@@ -33,12 +33,6 @@ public class LoginActivity extends AppCompatActivity {
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
 
-        // Verifica se usuário já está logado
-        if (isUserLoggedIn()) {
-            navigateToDashboard();
-            return;
-        }
-
         // Configura Edge-to-Edge
         EdgeToEdge.enable(this);
 
@@ -55,6 +49,12 @@ public class LoginActivity extends AppCompatActivity {
 
         // Inicializa ViewModel
         loginViewModel = new ViewModelProvider(this).get(LoginViewModel.class);
+
+        // Verifica se usuário já está logado
+        if (isUserLoggedIn()) {
+            navigateToDashboard();
+            return;
+        }
 
         // Configura observadores
         setupObservers();

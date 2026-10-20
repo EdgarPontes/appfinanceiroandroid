@@ -30,6 +30,7 @@ public class LoginActivity extends AppCompatActivity {
     private LoginViewModel loginViewModel;
 
     @Override
+    @SuppressWarnings("deprecation")
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
 
@@ -104,8 +105,7 @@ public class LoginActivity extends AppCompatActivity {
         // Observa sucesso no registro
         loginViewModel.registerSuccess.observe(this, success -> {
             if (success) {
-                Toast.makeText(this, "Registro realizado com sucesso!", Toast.LENGTH_SHORT).show();
-                navigateToDashboard();
+                Toast.makeText(this, "Registro realizado com sucesso! Faça login para continuar.", Toast.LENGTH_SHORT).show();
             }
         });
     }

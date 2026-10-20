@@ -45,6 +45,7 @@ public class TransactionsActivity extends AppCompatActivity {
     private ActivityResultLauncher<String[]> ofxFilePickerLauncher;
 
     @Override
+    @SuppressWarnings("deprecation")
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
 

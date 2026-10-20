@@ -42,6 +42,7 @@ public class DashboardActivity extends AppCompatActivity {
     private RecentTransactionsAdapter transactionsAdapter;
 
     @Override
+    @SuppressWarnings("deprecation")
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
 

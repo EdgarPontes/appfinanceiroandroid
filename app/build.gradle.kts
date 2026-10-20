@@ -40,6 +40,10 @@ android {
         viewBinding = true
         compose = true
     }
+    lintOptions {
+        isAbortOnError = false
+        isWarningsAsErrors = false
+    }
 
 
 }

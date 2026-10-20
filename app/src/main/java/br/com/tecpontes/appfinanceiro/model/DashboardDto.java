@@ -3,6 +3,7 @@ package br.com.tecpontes.appfinanceiro.model;
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
 import com.google.gson.annotations.SerializedName;
+import java.util.ArrayList;
 import java.util.List;
 
 /**
@@ -13,10 +14,10 @@ public class DashboardDto {
     @SerializedName("totalBalance")
     private double totalBalance;
 
-    @SerializedName("monthlyIncome")
+    @SerializedName("totalIncome")
     private double monthlyIncome;
 
-    @SerializedName("monthlyExpenses")
+    @SerializedName("totalExpenses")
     private double monthlyExpenses;
 
     @SerializedName("accountsCount")
@@ -29,6 +30,11 @@ public class DashboardDto {
     @Nullable
     @SerializedName("currency")
     private String currency;
+
+    /** Construtor usado pelo Gson; o endpoint pode não enviar transações recentes. */
+    public DashboardDto() {
+        recentTransactions = new ArrayList<>();
+    }
 
     public DashboardDto(double totalBalance, double monthlyIncome, double monthlyExpenses,
                        int accountsCount, @NonNull List<TransactionDto> recentTransactions,
@@ -98,7 +104,8 @@ public class DashboardDto {
                 ", monthlyIncome=" + monthlyIncome +
                 ", monthlyExpenses=" + monthlyExpenses +
                 ", accountsCount=" + accountsCount +
-                ", recentTransactionsCount=" + recentTransactions.size() +
+                ", recentTransactionsCount=" +
+                (recentTransactions != null ? recentTransactions.size() : 0) +
                 ", currency='" + currency + '\'' +
                 '}';
     }

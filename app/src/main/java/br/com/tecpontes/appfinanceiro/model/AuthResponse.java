@@ -9,35 +9,48 @@ import com.google.gson.annotations.SerializedName;
  */
 public class AuthResponse {
 
-    @NonNull
+    @Nullable
     @SerializedName("token")
     private String token;
 
-    @NonNull
+    @Nullable
     @SerializedName("user")
     private UserDto user;
 
-    public AuthResponse(@NonNull String token, @NonNull UserDto user) {
+    @Nullable
+    @SerializedName("message")
+    private String message;
+
+    public AuthResponse(@Nullable String token, @Nullable UserDto user) {
         this.token = token;
         this.user = user;
     }
 
-    @NonNull
+    @Nullable
     public String getToken() {
         return token;
     }
 
-    public void setToken(@NonNull String token) {
+    public void setToken(@Nullable String token) {
         this.token = token;
     }
 
-    @NonNull
+    @Nullable
     public UserDto getUser() {
         return user;
     }
 
-    public void setUser(@NonNull UserDto user) {
+    public void setUser(@Nullable UserDto user) {
         this.user = user;
+    }
+
+    @Nullable
+    public String getMessage() {
+        return message;
+    }
+
+    public void setMessage(@Nullable String message) {
+        this.message = message;
     }
 
     @Override
@@ -45,6 +58,7 @@ public class AuthResponse {
         return "AuthResponse{" +
                 "token='[PROTECTED]'" +
                 ", user=" + user +
+                ", message='" + message + '\'' +
                 '}';
     }
 

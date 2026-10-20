@@ -47,7 +47,7 @@ public class DashboardRepository {
                                  @NonNull Response<DashboardDto> response) {
                 if (response.isSuccessful() && response.body() != null) {
                     DashboardDto dashboardData = response.body();
-                    Log.d(TAG, "Dados do dashboard carregados: " + dashboardData);
+                    Log.d(TAG, "Dados do dashboard recebidos com sucesso");
                     callback.onSuccess(dashboardData);
                 } else {
                     Log.d(TAG, "Erro na resposta do dashboard: " + response.message());

@@ -47,9 +47,14 @@ public class AuthRepository {
                                  @NonNull Response<AuthResponse> response) {
                 if (response.isSuccessful() && response.body() != null) {
                     AuthResponse authResponse = response.body();
+                    String token = authResponse.getToken();
+                    if (token == null || token.trim().isEmpty()) {
+                        callback.onError("A API não retornou um token de autenticação");
+                        return;
+                    }
 
                     // Salva token e dados do usuário
-                    tokenManager.saveToken(authResponse.getToken());
+                    tokenManager.saveToken(token);
                     if (authResponse.getUser() != null) {
                         tokenManager.saveUserEmail(authResponse.getUser().getEmail());
                     }
@@ -87,8 +92,11 @@ public class AuthRepository {
                 if (response.isSuccessful() && response.body() != null) {
                     AuthResponse authResponse = response.body();
 
-                    // Salva token e dados do usuário
-                    tokenManager.saveToken(authResponse.getToken());
+                    // O endpoint de cadastro retorna apenas uma mensagem; não inicia sessão.
+                    String token = authResponse.getToken();
+                    if (token != null && !token.trim().isEmpty()) {
+                        tokenManager.saveToken(token);
+                    }
                     if (authResponse.getUser() != null) {
                         tokenManager.saveUserEmail(authResponse.getUser().getEmail());
                     }

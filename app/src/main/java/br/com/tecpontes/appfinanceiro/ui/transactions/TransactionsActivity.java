@@ -3,18 +3,15 @@ package br.com.tecpontes.appfinanceiro.ui.transactions;
 import android.content.Intent;
 import android.net.Uri;
 import android.os.Bundle;
-import android.os.Handler;
-import android.os.Looper;
-import android.text.Editable;
-import android.text.TextWatcher;
 import android.util.Log;
+import android.view.LayoutInflater;
 import android.view.View;
-import android.widget.AdapterView;
 import android.widget.ArrayAdapter;
 import android.widget.EditText;
 import android.widget.LinearLayout;
 import android.widget.PopupMenu;
 import android.widget.Spinner;
+import android.widget.TextView;
 import android.widget.Toast;
 import androidx.activity.EdgeToEdge;
 import androidx.activity.result.ActivityResultLauncher;
@@ -34,6 +31,7 @@ import br.com.tecpontes.appfinanceiro.viewmodel.TransactionsViewModel;
 import dagger.hilt.android.AndroidEntryPoint;
 import java.text.NumberFormat;
 import java.text.SimpleDateFormat;
+import java.text.DateFormatSymbols;
 import java.time.Instant;
 import java.util.ArrayList;
 import java.util.Calendar;
@@ -56,8 +54,6 @@ public class TransactionsActivity extends AppCompatActivity {
     private TransactionsAdapter transactionsAdapter;
 
     private ActivityResultLauncher<String[]> ofxFilePickerLauncher;
-    private final Handler searchHandler = new Handler(Looper.getMainLooper());
-    private Runnable pendingSearch;
 
     private List<Account> accounts = new ArrayList<>();
     private List<String> selectedAccountIds = new ArrayList<>();
@@ -65,13 +61,12 @@ public class TransactionsActivity extends AppCompatActivity {
     private List<TransactionListItemDto> apiTransactions = new ArrayList<>();
     private final List<CategoryOption> categoryOptions = new ArrayList<>();
 
-    private int selectedPeriodPosition;
-    private int selectedCategoryPosition;
     private String selectedType;
     private String selectedCategoryId;
     private String selectedReconciliation;
     private String selectedSort = "date_asc";
     private String searchQuery = "";
+    private Calendar selectedMonth = Calendar.getInstance();
     private Calendar periodStart;
     private Calendar periodEnd;
     private double selectedBalance;
@@ -100,10 +95,10 @@ public class TransactionsActivity extends AppCompatActivity {
         setupObservers();
         setupListeners();
         loadInitialData();
-
         if (getIntent().getBooleanExtra(EXTRA_OPEN_IMPORT, false)) {
-            binding.importOfxButton.post(this::openOfxFilePicker);
+            binding.getRoot().post(this::openOfxFilePicker);
         }
+
         Log.d(TAG, "TransactionsActivity criada");
     }
 
@@ -122,104 +117,182 @@ public class TransactionsActivity extends AppCompatActivity {
     }
 
     private void setupFilters() {
-        setupPeriodSpinner();
-        setupTypeSpinner();
-        setupReconciliationSpinner();
-        setupSortSpinner();
-        setupCategorySpinner();
-
-        binding.searchTransactionsEditText.addTextChangedListener(new TextWatcher() {
-            @Override public void beforeTextChanged(CharSequence s, int start, int count, int after) {}
-            @Override public void onTextChanged(CharSequence s, int start, int before, int count) {
-                searchQuery = s == null ? "" : s.toString().trim();
-                if (pendingSearch != null) searchHandler.removeCallbacks(pendingSearch);
-                pendingSearch = TransactionsActivity.this::applyLocalFilters;
-                searchHandler.postDelayed(pendingSearch, 250);
-            }
-            @Override public void afterTextChanged(Editable s) {}
-        });
+        setupMonthControls();
+        if (categoryOptions.isEmpty()) {
+            categoryOptions.add(new CategoryOption(null, "Todas categorias"));
+        }
+        binding.filtersButton.setOnClickListener(v -> showFiltersDialog());
+        updateFiltersButton();
     }
 
-    private void setupPeriodSpinner() {
-        String[] labels = {"Este mês", "Mês anterior", "Últimos 3 meses", "Todo o período"};
-        ArrayAdapter<String> adapter = new ArrayAdapter<>(
-                this, android.R.layout.simple_spinner_item, labels);
-        adapter.setDropDownViewResource(android.R.layout.simple_spinner_dropdown_item);
-        binding.periodSpinner.setAdapter(adapter);
-        binding.periodSpinner.setSelection(0, false);
-        binding.periodSpinner.setOnItemSelectedListener(new AdapterView.OnItemSelectedListener() {
-            @Override
-            public void onItemSelected(AdapterView<?> parent, View view, int position, long id) {
-                if (position == selectedPeriodPosition) return;
-                selectedPeriodPosition = position;
-                updatePeriodRange();
-                reloadData();
-            }
-            @Override public void onNothingSelected(AdapterView<?> parent) {}
-        });
+    private void setupMonthControls() {
+        selectedMonth.set(Calendar.DAY_OF_MONTH, 1);
+        updateMonthButtonLabel();
+        binding.periodMonthButton.setOnClickListener(v -> showMonthYearPicker());
+        binding.previousMonthButton.setOnClickListener(v -> moveSelectedMonth(-1));
+        binding.nextMonthButton.setOnClickListener(v -> moveSelectedMonth(1));
     }
 
-    private void setupTypeSpinner() {
-        setSpinner(binding.typeFilterSpinner,
-                new String[]{"Todos os tipos", "Receitas", "Despesas"}, position -> {
-                    selectedType = position == 1 ? "INCOME" : position == 2 ? "EXPENSE" : null;
-                    applyLocalFilters();
-                });
+    private void moveSelectedMonth(int offset) {
+        selectedMonth.add(Calendar.MONTH, offset);
+        updateMonthButtonLabel();
+        updatePeriodRange();
+        reloadData();
     }
 
-    private void setupReconciliationSpinner() {
-        setSpinner(binding.reconciliationFilterSpinner,
-                new String[]{"Conciliação", "Pendentes", "Conciliados"}, position -> {
-                    selectedReconciliation = position == 1 ? "false" : position == 2 ? "true" : null;
-                    applyLocalFilters();
-                });
+    private void updateMonthButtonLabel() {
+        String label = new SimpleDateFormat("MMM/yyyy", new Locale("pt", "BR"))
+                .format(selectedMonth.getTime());
+        label = label.replace(".", "");
+        if (!label.isEmpty()) label = label.substring(0, 1).toUpperCase(new Locale("pt", "BR")) + label.substring(1);
+        binding.periodMonthButton.setText(label);
+        String fullLabel = new SimpleDateFormat("MMMM 'de' yyyy", new Locale("pt", "BR"))
+                .format(selectedMonth.getTime());
+        binding.periodMonthButton.setContentDescription("Selecionar mês e ano: " + fullLabel);
     }
 
-    private void setupSortSpinner() {
-        setSpinner(binding.sortFilterSpinner,
-                new String[]{"Data: antigas primeiro", "Data: recentes primeiro",
+    private void showMonthYearPicker() {
+        String[] monthNames = DateFormatSymbols.getInstance(new Locale("pt", "BR")).getMonths();
+        String[] months = new String[12];
+        for (int i = 0; i < months.length; i++) {
+            String month = monthNames[i];
+            months[i] = month.substring(0, 1).toUpperCase(new Locale("pt", "BR")) + month.substring(1);
+        }
+
+        int currentYear = Calendar.getInstance().get(Calendar.YEAR);
+        int firstYear = Math.min(2020, selectedMonth.get(Calendar.YEAR));
+        int lastYear = Math.max(currentYear + 5, selectedMonth.get(Calendar.YEAR));
+        String[] years = new String[lastYear - firstYear + 1];
+        for (int i = 0; i < years.length; i++) years[i] = String.valueOf(firstYear + i);
+
+        LinearLayout content = new LinearLayout(this);
+        content.setOrientation(LinearLayout.VERTICAL);
+        content.setPadding(dp(24), dp(8), dp(24), 0);
+
+        TextView monthLabel = new TextView(this);
+        monthLabel.setText("Mês");
+        content.addView(monthLabel);
+        Spinner monthSpinner = new Spinner(this);
+        ArrayAdapter<String> monthAdapter = new ArrayAdapter<>(
+                this, android.R.layout.simple_spinner_item, months);
+        monthAdapter.setDropDownViewResource(android.R.layout.simple_spinner_dropdown_item);
+        monthSpinner.setAdapter(monthAdapter);
+        monthSpinner.setSelection(selectedMonth.get(Calendar.MONTH));
+        content.addView(monthSpinner);
+
+        TextView yearLabel = new TextView(this);
+        yearLabel.setText("Ano");
+        yearLabel.setPadding(0, dp(12), 0, 0);
+        content.addView(yearLabel);
+        Spinner yearSpinner = new Spinner(this);
+        ArrayAdapter<String> yearAdapter = new ArrayAdapter<>(
+                this, android.R.layout.simple_spinner_item, years);
+        yearAdapter.setDropDownViewResource(android.R.layout.simple_spinner_dropdown_item);
+        yearSpinner.setAdapter(yearAdapter);
+        yearSpinner.setSelection(selectedMonth.get(Calendar.YEAR) - firstYear);
+        content.addView(yearSpinner);
+
+        new AlertDialog.Builder(this)
+                .setTitle("Selecionar mês e ano")
+                .setView(content)
+                .setNegativeButton("Cancelar", null)
+                .setPositiveButton("Aplicar", (dialog, which) -> {
+                    int month = monthSpinner.getSelectedItemPosition();
+                    int year = Integer.parseInt((String) yearSpinner.getSelectedItem());
+                    selectedMonth.set(Calendar.YEAR, year);
+                    selectedMonth.set(Calendar.MONTH, month);
+                    selectedMonth.set(Calendar.DAY_OF_MONTH, 1);
+                    updateMonthButtonLabel();
+                    updatePeriodRange();
+                    reloadData();
+                })
+                .show();
+    }
+
+    private void showFiltersDialog() {
+        View content = LayoutInflater.from(this).inflate(R.layout.dialog_transaction_filters, null);
+        EditText search = content.findViewById(R.id.filterSearchEditText);
+        Spinner type = content.findViewById(R.id.filterTypeSpinner);
+        Spinner category = content.findViewById(R.id.filterCategorySpinner);
+        Spinner reconciliation = content.findViewById(R.id.filterReconciliationSpinner);
+        Spinner sort = content.findViewById(R.id.filterSortSpinner);
+
+        search.setText(searchQuery);
+        setDialogSpinner(type, new String[]{"Todos os tipos", "Receitas", "Despesas"},
+                selectedType == null ? 0 : "INCOME".equals(selectedType) ? 1 : 2);
+        setDialogSpinner(reconciliation, new String[]{"Todas", "Pendentes", "Conciliados"},
+                selectedReconciliation == null ? 0 : Boolean.parseBoolean(selectedReconciliation) ? 2 : 1);
+        setDialogSpinner(sort, new String[]{"Data: antigas primeiro", "Data: recentes primeiro",
                         "Valor: maior primeiro", "Valor: menor primeiro", "Descrição: A–Z"},
-                position -> {
-                    selectedSort = position == 1 ? "date_desc"
-                            : position == 2 ? "amount_desc"
-                            : position == 3 ? "amount_asc"
-                            : position == 4 ? "description_asc" : "date_asc";
-                    applyLocalFilters();
-                });
+                "date_desc".equals(selectedSort) ? 1 : "amount_desc".equals(selectedSort) ? 2
+                        : "amount_asc".equals(selectedSort) ? 3 : "description_asc".equals(selectedSort) ? 4 : 0);
+
+        ArrayAdapter<CategoryOption> categoryAdapter = new ArrayAdapter<>(
+                this, android.R.layout.simple_spinner_item, categoryOptions);
+        categoryAdapter.setDropDownViewResource(android.R.layout.simple_spinner_dropdown_item);
+        category.setAdapter(categoryAdapter);
+        int categoryPosition = 0;
+        for (int i = 0; i < categoryOptions.size(); i++) {
+            if (selectedCategoryId != null && selectedCategoryId.equals(categoryOptions.get(i).id)) {
+                categoryPosition = i;
+                break;
+            }
+        }
+        category.setSelection(categoryPosition, false);
+
+        AlertDialog dialog = new AlertDialog.Builder(this)
+                .setTitle("Filtros de transações")
+                .setView(content)
+                .setNeutralButton("Limpar", null)
+                .setNegativeButton("Cancelar", null)
+                .setPositiveButton("Aplicar", null)
+                .create();
+        dialog.setOnShowListener(ignored -> {
+            dialog.getButton(AlertDialog.BUTTON_POSITIVE).setOnClickListener(v -> {
+                searchQuery = search.getText().toString().trim();
+                selectedType = type.getSelectedItemPosition() == 1 ? "INCOME"
+                        : type.getSelectedItemPosition() == 2 ? "EXPENSE" : null;
+                selectedCategoryId = ((CategoryOption) category.getSelectedItem()).id;
+                selectedReconciliation = reconciliation.getSelectedItemPosition() == 1 ? "false"
+                        : reconciliation.getSelectedItemPosition() == 2 ? "true" : null;
+                selectedSort = sort.getSelectedItemPosition() == 1 ? "date_desc"
+                        : sort.getSelectedItemPosition() == 2 ? "amount_desc"
+                        : sort.getSelectedItemPosition() == 3 ? "amount_asc"
+                        : sort.getSelectedItemPosition() == 4 ? "description_asc" : "date_asc";
+                updateFiltersButton();
+                applyLocalFilters();
+                dialog.dismiss();
+            });
+            dialog.getButton(AlertDialog.BUTTON_NEUTRAL).setOnClickListener(v -> {
+                searchQuery = "";
+                selectedType = null;
+                selectedCategoryId = null;
+                selectedReconciliation = null;
+                selectedSort = "date_asc";
+                updateFiltersButton();
+                applyLocalFilters();
+                dialog.dismiss();
+            });
+        });
+        dialog.show();
     }
 
-    private void setSpinner(Spinner spinner, String[] labels, OnSpinnerSelection listener) {
+    private void setDialogSpinner(Spinner spinner, String[] values, int selection) {
         ArrayAdapter<String> adapter = new ArrayAdapter<>(
-                this, android.R.layout.simple_spinner_item, labels);
+                this, android.R.layout.simple_spinner_item, values);
         adapter.setDropDownViewResource(android.R.layout.simple_spinner_dropdown_item);
         spinner.setAdapter(adapter);
-        spinner.setSelection(0, false);
-        spinner.setOnItemSelectedListener(new AdapterView.OnItemSelectedListener() {
-            @Override
-            public void onItemSelected(AdapterView<?> parent, View view, int position, long id) {
-                listener.onSelected(position);
-            }
-            @Override public void onNothingSelected(AdapterView<?> parent) {}
-        });
+        spinner.setSelection(selection, false);
     }
 
-    private void setupCategorySpinner() {
-        categoryOptions.clear();
-        categoryOptions.add(new CategoryOption(null, "Todas categorias"));
-        ArrayAdapter<CategoryOption> adapter = new ArrayAdapter<>(
-                this, android.R.layout.simple_spinner_item, categoryOptions);
-        adapter.setDropDownViewResource(android.R.layout.simple_spinner_dropdown_item);
-        binding.categoryFilterSpinner.setAdapter(adapter);
-        binding.categoryFilterSpinner.setOnItemSelectedListener(new AdapterView.OnItemSelectedListener() {
-            @Override
-            public void onItemSelected(AdapterView<?> parent, View view, int position, long id) {
-                if (position == selectedCategoryPosition) return;
-                selectedCategoryPosition = position;
-                selectedCategoryId = categoryOptions.get(position).id;
-                applyLocalFilters();
-            }
-            @Override public void onNothingSelected(AdapterView<?> parent) {}
-        });
+    private void updateFiltersButton() {
+        int activeCount = 0;
+        if (!searchQuery.isEmpty()) activeCount++;
+        if (selectedType != null) activeCount++;
+        if (selectedCategoryId != null) activeCount++;
+        if (selectedReconciliation != null) activeCount++;
+        if (!"date_asc".equals(selectedSort)) activeCount++;
+        binding.filtersButton.setText(activeCount == 0 ? "Filtros" : "Filtros (" + activeCount + ")");
     }
 
     private void setupObservers() {
@@ -258,19 +331,11 @@ public class TransactionsActivity extends AppCompatActivity {
             balanceAvailable = true;
             applyLocalFilters();
         });
-        transactionsViewModel.importSuccess.observe(this, success -> {
-            if (Boolean.TRUE.equals(success)) {
-                Toast.makeText(this, "Arquivo OFX importado com sucesso!", Toast.LENGTH_SHORT).show();
-                reloadData();
-            }
-        });
     }
 
     private void setupListeners() {
         binding.backButton.setOnClickListener(v -> finish());
         binding.addTransactionFab.setOnClickListener(v -> showCreateTransactionDialog());
-        binding.addManualButton.setOnClickListener(v -> showCreateTransactionDialog());
-        binding.importOfxButton.setOnClickListener(v -> openOfxFilePicker());
         binding.syncButton.setOnClickListener(v -> reloadData());
         binding.accountsFilterButton.setOnClickListener(v -> showAccountsDialog());
     }
@@ -291,36 +356,21 @@ public class TransactionsActivity extends AppCompatActivity {
     }
 
     private void updatePeriodRange() {
-        Calendar now = Calendar.getInstance();
-        periodEnd = (Calendar) now.clone();
-        periodEnd.set(Calendar.HOUR_OF_DAY, 23);
-        periodEnd.set(Calendar.MINUTE, 59);
-        periodEnd.set(Calendar.SECOND, 59);
-        periodEnd.set(Calendar.MILLISECOND, 999);
-
-        if (selectedPeriodPosition == 3) {
-            periodStart = null;
-            return;
-        }
-
-        Calendar start = (Calendar) now.clone();
+        Calendar start = (Calendar) selectedMonth.clone();
         start.set(Calendar.DAY_OF_MONTH, 1);
         start.set(Calendar.HOUR_OF_DAY, 0);
         start.set(Calendar.MINUTE, 0);
         start.set(Calendar.SECOND, 0);
         start.set(Calendar.MILLISECOND, 0);
-        if (selectedPeriodPosition == 1) {
-            start.add(Calendar.MONTH, -1);
-            periodEnd.set(Calendar.DAY_OF_MONTH, 1);
-            periodEnd.add(Calendar.DAY_OF_MONTH, -1);
-            periodEnd.set(Calendar.HOUR_OF_DAY, 23);
-            periodEnd.set(Calendar.MINUTE, 59);
-            periodEnd.set(Calendar.SECOND, 59);
-            periodEnd.set(Calendar.MILLISECOND, 999);
-        } else if (selectedPeriodPosition == 2) {
-            start.add(Calendar.MONTH, -2);
-        }
         periodStart = start;
+
+        Calendar end = (Calendar) selectedMonth.clone();
+        end.set(Calendar.DAY_OF_MONTH, end.getActualMaximum(Calendar.DAY_OF_MONTH));
+        end.set(Calendar.HOUR_OF_DAY, 23);
+        end.set(Calendar.MINUTE, 59);
+        end.set(Calendar.SECOND, 59);
+        end.set(Calendar.MILLISECOND, 999);
+        periodEnd = end;
     }
 
     private void requestBalanceForPeriod() {
@@ -416,18 +466,7 @@ public class TransactionsActivity extends AppCompatActivity {
         for (Map.Entry<String, String> entry : labelsById.entrySet()) {
             categoryOptions.add(new CategoryOption(entry.getKey(), entry.getValue()));
         }
-        selectedCategoryPosition = 0;
-        for (int i = 0; i < categoryOptions.size(); i++) {
-            if (categoryOptions.get(i).id != null && categoryOptions.get(i).id.equals(selectedCategoryId)) {
-                selectedCategoryPosition = i;
-                break;
-            }
-        }
-        ArrayAdapter<CategoryOption> adapter = new ArrayAdapter<>(
-                this, android.R.layout.simple_spinner_item, categoryOptions);
-        adapter.setDropDownViewResource(android.R.layout.simple_spinner_dropdown_item);
-        binding.categoryFilterSpinner.setAdapter(adapter);
-        binding.categoryFilterSpinner.setSelection(selectedCategoryPosition, false);
+        updateFiltersButton();
     }
 
     private void applyLocalFilters() {
@@ -526,6 +565,15 @@ public class TransactionsActivity extends AppCompatActivity {
 
     private void openOfxFilePicker() {
         ofxFilePickerLauncher.launch(new String[]{"application/octet-stream", "text/xml", "text/plain"});
+    }
+
+    @Override
+    protected void onNewIntent(Intent intent) {
+        super.onNewIntent(intent);
+        setIntent(intent);
+        if (intent.getBooleanExtra(EXTRA_OPEN_IMPORT, false) && ofxFilePickerLauncher != null) {
+            binding.getRoot().post(this::openOfxFilePicker);
+        }
     }
 
     private void showCreateTransactionDialog() {
@@ -830,23 +878,9 @@ public class TransactionsActivity extends AppCompatActivity {
     }
 
     @Override
-    protected void onNewIntent(Intent intent) {
-        super.onNewIntent(intent);
-        setIntent(intent);
-        if (intent.getBooleanExtra(EXTRA_OPEN_IMPORT, false) && ofxFilePickerLauncher != null) {
-            binding.importOfxButton.post(this::openOfxFilePicker);
-        }
-    }
-
-    @Override
     protected void onDestroy() {
         super.onDestroy();
-        if (pendingSearch != null) searchHandler.removeCallbacks(pendingSearch);
         binding = null;
-    }
-
-    private interface OnSpinnerSelection {
-        void onSelected(int position);
     }
 
     private static class CategoryOption {

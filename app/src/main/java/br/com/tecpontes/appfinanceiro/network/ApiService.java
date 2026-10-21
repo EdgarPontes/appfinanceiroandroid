@@ -52,7 +52,12 @@ public interface ApiService {
     // ========== DASHBOARD ==========
 
     @GET("dashboard")
-    Call<DashboardDto> getDashboard();
+    Call<DashboardDto> getDashboard(
+            @Query("startDate") @Nullable String startDate,
+            @Query("endDate") @Nullable String endDate,
+            @Query("accountIds") @Nullable String accountIds,
+            @Query("evolutionGranularity") @Nullable String evolutionGranularity
+    );
 
     // ========== IMPORTAÇÃO OFX ==========
 

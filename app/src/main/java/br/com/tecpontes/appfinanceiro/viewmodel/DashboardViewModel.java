@@ -2,6 +2,7 @@ package br.com.tecpontes.appfinanceiro.viewmodel;
 
 import android.util.Log;
 import androidx.annotation.NonNull;
+import androidx.annotation.Nullable;
 import androidx.lifecycle.LiveData;
 import androidx.lifecycle.MutableLiveData;
 import androidx.lifecycle.ViewModel;
@@ -93,29 +94,37 @@ public class DashboardViewModel extends ViewModel {
      * Carrega dados do dashboard
      */
     public void loadDashboardData() {
+        loadDashboardData(null, null, null);
+    }
+
+    public void loadDashboardData(
+            @Nullable String startDate,
+            @Nullable String endDate,
+            @Nullable String accountIds) {
         Log.d(TAG, "Carregando dados do dashboard");
 
         _loading.setValue(true);
         _error.setValue(null);
 
-        dashboardRepository.getDashboardData(new DashboardRepository.DashboardCallback() {
-            @Override
-            public void onSuccess(DashboardDto dashboardData) {
-                _loading.postValue(false);
-                _dashboardData.postValue(dashboardData);
-                Log.d(TAG, "Dados do dashboard carregados com sucesso");
-            }
+        dashboardRepository.getDashboardData(startDate, endDate, accountIds,
+                new DashboardRepository.DashboardCallback() {
+                    @Override
+                    public void onSuccess(DashboardDto dashboardData) {
+                        _loading.postValue(false);
+                        _dashboardData.postValue(dashboardData);
+                        Log.d(TAG, "Dados do dashboard carregados com sucesso");
+                    }
 
-            @Override
-            public void onError(String error) {
-                _loading.postValue(false);
-                _error.postValue(error);
-                Log.d(TAG, "Erro ao carregar dashboard: " + error);
+                    @Override
+                    public void onError(String error) {
+                        _loading.postValue(false);
+                        _error.postValue(error);
+                        Log.d(TAG, "Erro ao carregar dashboard: " + error);
 
-                // Tenta carregar dados locais como fallback
-                loadLocalDashboardData();
-            }
-        });
+                        // Tenta carregar dados locais como fallback
+                        loadLocalDashboardData();
+                    }
+                });
     }
 
     /**

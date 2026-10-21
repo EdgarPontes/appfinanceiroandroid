@@ -2,6 +2,7 @@ package br.com.tecpontes.appfinanceiro.data.repository;
 
 import android.util.Log;
 import androidx.annotation.NonNull;
+import androidx.annotation.Nullable;
 import androidx.lifecycle.LiveData;
 import androidx.lifecycle.MutableLiveData;
 import br.com.tecpontes.appfinanceiro.data.local.dao.AccountDao;
@@ -36,10 +37,19 @@ public class DashboardRepository {
     /**
      * Obtém dados do dashboard da API
      */
-    public void getDashboardData(@NonNull DashboardCallback callback) {
+    public void getDashboardData(
+            @Nullable String startDate,
+            @Nullable String endDate,
+            @Nullable String accountIds,
+            @NonNull DashboardCallback callback) {
         Log.d(TAG, "Carregando dados do dashboard da API");
 
-        Call<DashboardDto> call = apiService.getDashboard();
+        Call<DashboardDto> call = apiService.getDashboard(
+                startDate,
+                endDate,
+                accountIds,
+                "month"
+        );
 
         call.enqueue(new Callback<DashboardDto>() {
             @Override

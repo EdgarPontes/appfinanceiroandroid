@@ -16,13 +16,12 @@ import androidx.activity.EdgeToEdge;
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
 import androidx.appcompat.app.AppCompatActivity;
-import androidx.core.graphics.Insets;
-import androidx.core.view.ViewCompat;
-import androidx.core.view.WindowInsetsCompat;
 import androidx.lifecycle.ViewModelProvider;
 import androidx.recyclerview.widget.LinearLayoutManager;
+import br.com.tecpontes.appfinanceiro.R;
 import br.com.tecpontes.appfinanceiro.databinding.ActivityDashboardBinding;
 import br.com.tecpontes.appfinanceiro.model.DashboardDto;
+import br.com.tecpontes.appfinanceiro.ui.BottomNavigationHelper;
 import br.com.tecpontes.appfinanceiro.ui.auth.LoginActivity;
 import br.com.tecpontes.appfinanceiro.ui.transactions.TransactionsActivity;
 import br.com.tecpontes.appfinanceiro.utils.TokenManager;
@@ -71,13 +70,10 @@ public class DashboardActivity extends AppCompatActivity {
         // Infla layout com ViewBinding
         binding = ActivityDashboardBinding.inflate(getLayoutInflater());
         setContentView(binding.getRoot());
+        BottomNavigationHelper.setup(this, R.id.navigation_dashboard);
 
         // Configura window insets
-        ViewCompat.setOnApplyWindowInsetsListener(binding.getRoot(), (v, insets) -> {
-            Insets systemBars = insets.getInsets(WindowInsetsCompat.Type.systemBars());
-            v.setPadding(systemBars.left, systemBars.top, systemBars.right, systemBars.bottom);
-            return insets;
-        });
+        BottomNavigationHelper.applyEdgeToEdgeInsets(binding.getRoot());
 
         // Inicializa ViewModel
         dashboardViewModel = new ViewModelProvider(this).get(DashboardViewModel.class);

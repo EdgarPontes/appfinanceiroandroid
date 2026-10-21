@@ -1,0 +1,23 @@
+<?xml version="1.0" encoding="utf-8"?>
+<menu xmlns:android="http://schemas.android.com/apk/res/android">
+    <item
+        android:id="@+id/navigation_dashboard"
+        android:icon="@drawable/ic_nav_dashboard"
+        android:title="Dashboard" />
+    <item
+        android:id="@+id/navigation_transactions"
+        android:icon="@drawable/ic_nav_transactions"
+        android:title="Transações" />
+    <item
+        android:id="@+id/navigation_cards"
+        android:icon="@drawable/ic_nav_cards"
+        android:title="Cartões" />
+    <item
+        android:id="@+id/navigation_accounts"
+        android:icon="@drawable/ic_nav_accounts"
+        android:title="Contas" />
+    <item
+        android:id="@+id/navigation_menu"
+        android:icon="@drawable/ic_nav_menu"
+        android:title="Menu" />
+</menu>

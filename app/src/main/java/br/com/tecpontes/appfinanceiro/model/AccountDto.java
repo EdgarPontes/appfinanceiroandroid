@@ -28,6 +28,11 @@ public class AccountDto {
     @SerializedName("description")
     private String description;
 
+    /** A API web não expõe moeda por conta; BRL é o padrão atual do produto. */
+    public AccountDto() {
+        this.currency = "BRL";
+    }
+
     public AccountDto(@NonNull String id, @NonNull String name, double balance,
                      @NonNull String currency, @Nullable String description) {
         this.id = id;
@@ -65,7 +70,7 @@ public class AccountDto {
 
     @NonNull
     public String getCurrency() {
-        return currency;
+        return currency == null || currency.trim().isEmpty() ? "BRL" : currency;
     }
 
     public void setCurrency(@NonNull String currency) {

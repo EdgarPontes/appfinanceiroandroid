@@ -3,12 +3,18 @@ package br.com.tecpontes.appfinanceiro.viewmodel;
 import android.net.Uri;
 import android.util.Log;
 import androidx.annotation.NonNull;
+import androidx.annotation.Nullable;
 import androidx.lifecycle.LiveData;
 import androidx.lifecycle.MutableLiveData;
 import androidx.lifecycle.ViewModel;
+import br.com.tecpontes.appfinanceiro.data.local.entity.Account;
 import br.com.tecpontes.appfinanceiro.data.local.entity.Transaction;
+import br.com.tecpontes.appfinanceiro.data.repository.AccountRepository;
 import br.com.tecpontes.appfinanceiro.data.repository.TransactionRepository;
+import br.com.tecpontes.appfinanceiro.model.BalanceHistoryDto;
 import br.com.tecpontes.appfinanceiro.model.TransactionDto;
+import br.com.tecpontes.appfinanceiro.model.TransactionListItemDto;
+import br.com.tecpontes.appfinanceiro.model.TransactionWriteDto;
 import dagger.hilt.android.lifecycle.HiltViewModel;
 import java.util.List;
 import javax.inject.Inject;
@@ -22,6 +28,7 @@ public class TransactionsViewModel extends ViewModel {
     private static final String TAG = "TransactionsViewModel";
 
     private final TransactionRepository transactionRepository;
+    private final AccountRepository accountRepository;
 
     // LiveData para estados da UI
     private final MutableLiveData<Boolean> _loading = new MutableLiveData<>(false);
@@ -46,6 +53,14 @@ public class TransactionsViewModel extends ViewModel {
     private final MutableLiveData<List<Transaction>> _transactionsByAccount = new MutableLiveData<>();
     public final LiveData<List<Transaction>> transactionsByAccount = _transactionsByAccount;
 
+    private final MutableLiveData<List<TransactionListItemDto>> _filteredTransactions = new MutableLiveData<>();
+    public final LiveData<List<TransactionListItemDto>> filteredTransactions = _filteredTransactions;
+
+    private final MutableLiveData<BalanceHistoryDto> _balanceAtDate = new MutableLiveData<>();
+    public final LiveData<BalanceHistoryDto> balanceAtDate = _balanceAtDate;
+
+    public final LiveData<List<Account>> accounts;
+
     private final MutableLiveData<Transaction> _selectedTransaction = new MutableLiveData<>();
     public final LiveData<Transaction> selectedTransaction = _selectedTransaction;
 
@@ -53,12 +68,123 @@ public class TransactionsViewModel extends ViewModel {
     private String currentAccountId = null;
 
     @Inject
-    public TransactionsViewModel(TransactionRepository transactionRepository) {
+    public TransactionsViewModel(
+            TransactionRepository transactionRepository,
+            AccountRepository accountRepository) {
         this.transactionRepository = transactionRepository;
+        this.accountRepository = accountRepository;
+        this.accounts = accountRepository.getAllAccounts();
         Log.d(TAG, "TransactionsViewModel inicializado");
 
         // Observa todas as transações
         observeAllTransactions();
+    }
+
+    /** Busca a lista detalhada da API com os filtros selecionados na tela. */
+    public void loadFilteredTransactions(
+            @Nullable String accountIds,
+            @Nullable String startDate,
+            @Nullable String endDate,
+            @Nullable String type,
+            @Nullable String categoryId,
+            @Nullable String reconciled,
+            @Nullable String query) {
+        _loading.setValue(true);
+        _error.setValue(null);
+        transactionRepository.fetchTransactions(accountIds, startDate, endDate, type,
+                categoryId, reconciled, query,
+                new TransactionRepository.TransactionListCallback() {
+                    @Override
+                    public void onSuccess(List<TransactionListItemDto> transactions) {
+                        _filteredTransactions.postValue(transactions);
+                        _loading.postValue(false);
+                    }
+
+                    @Override
+                    public void onError(String error) {
+                        _loading.postValue(false);
+                        _error.postValue(error);
+                    }
+                });
+    }
+
+    public void loadBalanceAtDate(@NonNull String accountIds, @NonNull String date) {
+        transactionRepository.fetchBalancesAtDate(accountIds, date,
+                new TransactionRepository.BalanceCallback() {
+                    @Override
+                    public void onSuccess(BalanceHistoryDto balance) {
+                        _balanceAtDate.postValue(balance);
+                    }
+
+                    @Override
+                    public void onError(String error) {
+                        Log.w(TAG, error);
+                    }
+                });
+    }
+
+    public void syncAccounts() {
+        accountRepository.syncAccounts(new AccountRepository.SyncCallback() {
+            @Override
+            public void onSuccess(int count) {
+                Log.d(TAG, "Contas disponíveis para filtros: " + count);
+            }
+
+            @Override
+            public void onError(String error) {
+                Log.w(TAG, "Não foi possível atualizar contas: " + error);
+            }
+        });
+    }
+
+    public void updateTransactionFromList(
+            @NonNull String id,
+            @NonNull TransactionWriteDto transaction,
+            @NonNull ActionCallback callback) {
+        transactionRepository.updateTransactionFromList(id, transaction, new TransactionRepository.RemoteActionCallback() {
+            @Override
+            public void onSuccess() {
+                callback.onSuccess();
+            }
+
+            @Override
+            public void onError(String error) {
+                callback.onError(error);
+            }
+        });
+    }
+
+    public void deleteRemoteTransaction(
+            @NonNull String id,
+            @Nullable String scope,
+            @NonNull ActionCallback callback) {
+        transactionRepository.deleteRemoteTransaction(id, scope, new TransactionRepository.RemoteActionCallback() {
+            @Override
+            public void onSuccess() {
+                callback.onSuccess();
+            }
+
+            @Override
+            public void onError(String error) {
+                callback.onError(error);
+            }
+        });
+    }
+
+    public void cloneTransaction(
+            @NonNull TransactionWriteDto transaction,
+            @NonNull ActionCallback callback) {
+        transactionRepository.createTransactionFromList(transaction, new TransactionRepository.RemoteActionCallback() {
+            @Override
+            public void onSuccess() {
+                callback.onSuccess();
+            }
+
+            @Override
+            public void onError(String error) {
+                callback.onError(error);
+            }
+        });
     }
 
     /**
@@ -250,5 +376,10 @@ public class TransactionsViewModel extends ViewModel {
      */
     public String getCurrentAccountId() {
         return currentAccountId;
+    }
+
+    public interface ActionCallback {
+        void onSuccess();
+        void onError(String error);
     }
 }

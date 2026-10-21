@@ -5,116 +5,114 @@
     android:layout_width="match_parent"
     android:layout_height="wrap_content"
     android:layout_marginBottom="8dp"
-    app:cardCornerRadius="12dp"
-    app:cardElevation="2dp"
-    app:cardBackgroundColor="@color/glass_white_translucent">
+    android:clickable="true"
+    android:focusable="true"
+    android:foreground="?attr/selectableItemBackground"
+    app:cardBackgroundColor="@color/glass_white_translucent"
+    app:cardCornerRadius="14dp"
+    app:cardElevation="2dp">
 
     <LinearLayout
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:orientation="horizontal"
-        android:padding="16dp"
-        android:gravity="center_vertical">
+        android:orientation="vertical"
+        android:padding="14dp">
 
-        <!-- Ícone da categoria -->
         <LinearLayout
-            android:layout_width="48dp"
-            android:layout_height="48dp"
-            android:background="@drawable/glass_card_background"
-            android:gravity="center"
-            android:layout_marginEnd="12dp"
-            app:cardCornerRadius="24dp">
-
-            <TextView
-                android:id="@+id/categoryIconTextView"
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:textSize="20sp"
-                android:textColor="@color/primary_purple"
-                tools:text="🍕" />
-
-        </LinearLayout>
-
-        <!-- Informações da transação -->
-        <LinearLayout
-            android:layout_width="0dp"
+            android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:layout_weight="1"
-            android:orientation="vertical">
+            android:gravity="center_vertical"
+            android:orientation="horizontal">
 
             <TextView
-                android:id="@+id/categoryTextView"
-                android:layout_width="wrap_content"
+                android:id="@+id/descriptionTextView"
+                android:layout_width="0dp"
                 android:layout_height="wrap_content"
-                android:textSize="16sp"
-                android:textStyle="bold"
+                android:layout_weight="1"
+                android:ellipsize="end"
+                android:maxLines="1"
                 android:textColor="@android:color/black"
-                tools:text="Alimentação" />
-
-            <TextView
-                android:id="@+id/noteTextView"
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:textSize="12sp"
-                android:textColor="@android:color/darker_gray"
-                android:visibility="gone"
-                tools:text="Restaurante XYZ"
-                tools:visibility="visible" />
-
-        </LinearLayout>
-
-        <!-- Valor e data -->
-        <LinearLayout
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:orientation="vertical"
-            android:gravity="end"
-            android:layout_marginEnd="8dp">
+                android:textSize="15sp"
+                android:textStyle="bold"
+                tools:text="Compras no supermercado" />
 
             <TextView
                 android:id="@+id/amountTextView"
+                android:layout_width="82dp"
+                android:layout_height="wrap_content"
+                android:gravity="end"
+                android:paddingStart="3dp"
+                android:textColor="@color/money_negative"
+                android:textSize="13sp"
+                android:textStyle="bold"
+                tools:text="−R$ 125,90" />
+            <TextView
+                android:id="@+id/runningBalanceTextView"
+                android:layout_width="82dp"
+                android:layout_height="wrap_content"
+                android:gravity="end"
+                android:paddingStart="3dp"
+                android:textColor="@android:color/darker_gray"
+                android:textSize="12sp"
+                tools:text="R$ 1.450,00" />
+            <ImageButton
+                android:id="@+id/moreOptionsButton"
+                android:layout_width="32dp"
+                android:layout_height="36dp"
+                android:background="?attr/selectableItemBackgroundBorderless"
+                android:contentDescription="Opções do lançamento"
+                android:padding="6dp"
+                android:src="@drawable/ic_transaction_more"
+                app:tint="@android:color/darker_gray" />
+        </LinearLayout>
+
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="9dp"
+            android:gravity="center_vertical"
+            android:orientation="horizontal">
+            <TextView
+                android:id="@+id/categoryTextView"
+                android:layout_width="0dp"
+                android:layout_height="wrap_content"
+                android:layout_weight="1"
+                android:ellipsize="end"
+                android:maxLines="1"
+                android:textColor="@android:color/darker_gray"
+                android:textSize="11sp"
+                tools:text="Loterias · Caixa Econômica Federal" />
+            <TextView
+                android:id="@+id/badgesTextView"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
-                android:textSize="16sp"
+                android:layout_marginStart="5dp"
+                android:ellipsize="end"
+                android:maxWidth="80dp"
+                android:maxLines="1"
+                android:textColor="@color/primary_blue"
+                android:textSize="10sp"
+                android:visibility="gone"
+                tools:text="Parcela 2/6" />
+            <TextView
+                android:id="@+id/statusTextView"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_marginStart="5dp"
+                android:paddingHorizontal="7dp"
+                android:paddingVertical="3dp"
+                android:textColor="@color/money_positive"
+                android:textSize="9sp"
                 android:textStyle="bold"
-                android:textColor="@color/primary_purple"
-                tools:text="+R$ 25,00" />
-
+                tools:text="Conciliado" />
             <TextView
                 android:id="@+id/dateTextView"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
-                android:textSize="12sp"
+                android:layout_marginStart="6dp"
                 android:textColor="@android:color/darker_gray"
-                tools:text="15/10/2024" />
-
+                android:textSize="10sp"
+                tools:text="21/10/2026" />
         </LinearLayout>
-
-        <!-- Botões de ação -->
-        <LinearLayout
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:orientation="vertical">
-
-            <ImageButton
-                android:id="@+id/editButton"
-                android:layout_width="32dp"
-                android:layout_height="32dp"
-                android:background="@android:color/transparent"
-                android:src="@android:drawable/ic_menu_edit"
-                app:tint="@color/primary_purple"
-                android:layout_marginBottom="4dp" />
-
-            <ImageButton
-                android:id="@+id/deleteButton"
-                android:layout_width="32dp"
-                android:layout_height="32dp"
-                android:background="@android:color/transparent"
-                android:src="@android:drawable/ic_menu_delete"
-                app:tint="@android:color/holo_red_dark" />
-
-        </LinearLayout>
-
     </LinearLayout>
-
 </androidx.cardview.widget.CardView>

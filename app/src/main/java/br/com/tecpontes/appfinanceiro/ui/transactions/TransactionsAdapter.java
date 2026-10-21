@@ -1,34 +1,36 @@
 package br.com.tecpontes.appfinanceiro.ui.transactions;
 
+import android.graphics.Color;
+import android.graphics.drawable.GradientDrawable;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.ImageButton;
 import android.widget.TextView;
 import androidx.annotation.NonNull;
+import androidx.annotation.Nullable;
 import androidx.recyclerview.widget.RecyclerView;
 import br.com.tecpontes.appfinanceiro.R;
-import br.com.tecpontes.appfinanceiro.data.local.entity.Transaction;
+import br.com.tecpontes.appfinanceiro.model.TransactionListItemDto;
 import java.text.NumberFormat;
 import java.text.SimpleDateFormat;
+import java.util.ArrayList;
+import java.util.Date;
 import java.util.List;
 import java.util.Locale;
 
-/**
- * Adapter para RecyclerView de transações na tela de transações
- */
+/** Apresenta a transação com os detalhes retornados pela API, semelhante à lista web. */
 public class TransactionsAdapter extends RecyclerView.Adapter<TransactionsAdapter.ViewHolder> {
 
-    private List<Transaction> transactions;
-    private final OnTransactionEditListener editListener;
-    private final OnTransactionDeleteListener deleteListener;
+    private final List<TransactionListItemDto> transactions = new ArrayList<>();
+    private final OnTransactionClickListener clickListener;
+    private final OnTransactionOptionsListener optionsListener;
 
-    public TransactionsAdapter(List<Transaction> transactions,
-                              OnTransactionEditListener editListener,
-                              OnTransactionDeleteListener deleteListener) {
-        this.transactions = transactions;
-        this.editListener = editListener;
-        this.deleteListener = deleteListener;
+    public TransactionsAdapter(
+            OnTransactionClickListener clickListener,
+            OnTransactionOptionsListener optionsListener) {
+        this.clickListener = clickListener;
+        this.optionsListener = optionsListener;
     }
 
     @NonNull
@@ -41,8 +43,14 @@ public class TransactionsAdapter extends RecyclerView.Adapter<TransactionsAdapte
 
     @Override
     public void onBindViewHolder(@NonNull ViewHolder holder, int position) {
-        Transaction transaction = transactions.get(position);
-        holder.bind(transaction, editListener, deleteListener);
+        TransactionListItemDto transaction = transactions.get(position);
+        holder.bind(transaction);
+        holder.itemView.setOnClickListener(v -> {
+            if (clickListener != null) clickListener.onTransactionClick(transaction);
+        });
+        holder.moreOptions.setOnClickListener(v -> {
+            if (optionsListener != null) optionsListener.onTransactionOptions(v, transaction);
+        });
     }
 
     @Override
@@ -50,91 +58,87 @@ public class TransactionsAdapter extends RecyclerView.Adapter<TransactionsAdapte
         return transactions.size();
     }
 
-    /**
-     * Atualiza lista de transações
-     */
-    public void updateTransactions(List<Transaction> newTransactions) {
-        this.transactions = newTransactions;
+    public void updateTransactions(@Nullable List<TransactionListItemDto> items) {
+        transactions.clear();
+        if (items != null) transactions.addAll(items);
         notifyDataSetChanged();
     }
 
-    /**
-     * ViewHolder para itens de transação
-     */
     public static class ViewHolder extends RecyclerView.ViewHolder {
-
-        private final TextView categoryTextView;
-        private final TextView amountTextView;
-        private final TextView dateTextView;
-        private final TextView noteTextView;
-        private final ImageButton editButton;
-        private final ImageButton deleteButton;
+        private final TextView description;
+        private final TextView category;
+        private final TextView amount;
+        private final TextView date;
+        private final TextView status;
+        private final TextView badges;
+        private final TextView runningBalance;
+        private final ImageButton moreOptions;
 
         public ViewHolder(@NonNull View itemView) {
             super(itemView);
-            categoryTextView = itemView.findViewById(R.id.categoryTextView);
-            amountTextView = itemView.findViewById(R.id.amountTextView);
-            dateTextView = itemView.findViewById(R.id.dateTextView);
-            noteTextView = itemView.findViewById(R.id.noteTextView);
-            editButton = itemView.findViewById(R.id.editButton);
-            deleteButton = itemView.findViewById(R.id.deleteButton);
+            description = itemView.findViewById(R.id.descriptionTextView);
+            category = itemView.findViewById(R.id.categoryTextView);
+            amount = itemView.findViewById(R.id.amountTextView);
+            date = itemView.findViewById(R.id.dateTextView);
+            status = itemView.findViewById(R.id.statusTextView);
+            badges = itemView.findViewById(R.id.badgesTextView);
+            runningBalance = itemView.findViewById(R.id.runningBalanceTextView);
+            moreOptions = itemView.findViewById(R.id.moreOptionsButton);
         }
 
-        public void bind(Transaction transaction,
-                        OnTransactionEditListener editListener,
-                        OnTransactionDeleteListener deleteListener) {
-            // Categoria
-            categoryTextView.setText(transaction.getCategory());
+        void bind(TransactionListItemDto transaction) {
+            description.setText(transaction.description == null || transaction.description.trim().isEmpty()
+                    ? transaction.getCategoryName() : transaction.description);
+            category.setText(transaction.getCategoryName() + " · " + transaction.getSourceName());
 
-            // Valor formatado
-            NumberFormat currencyFormat = NumberFormat.getCurrencyInstance(new Locale("pt", "BR"));
-            String formattedAmount = currencyFormat.format(transaction.getAmount());
+            NumberFormat currency = NumberFormat.getCurrencyInstance(new Locale("pt", "BR"));
+            double value = Math.abs(transaction.getAmountValue());
+            amount.setText((transaction.isIncome() ? "+" : "−") + currency.format(value));
+            amount.setTextColor(itemView.getContext().getColor(
+                    transaction.isIncome() ? R.color.money_positive : R.color.money_negative));
 
-            // Cor baseada no tipo (verde para receita, vermelho para despesa)
-            if ("income".equals(transaction.getType())) {
-                amountTextView.setTextColor(itemView.getContext().getColor(android.R.color.holo_green_dark));
-                amountTextView.setText("+" + formattedAmount);
+            if (transaction.getDateMillis() > 0) {
+                SimpleDateFormat dateFormat = new SimpleDateFormat("dd/MM/yyyy", new Locale("pt", "BR"));
+                date.setText(dateFormat.format(new Date(transaction.getDateMillis())));
             } else {
-                amountTextView.setTextColor(itemView.getContext().getColor(android.R.color.holo_red_dark));
-                amountTextView.setText("-" + formattedAmount);
+                date.setText("Data indisponível");
             }
 
-            // Data formatada
-            SimpleDateFormat dateFormat = new SimpleDateFormat("dd/MM/yyyy", new Locale("pt", "BR"));
-            String formattedDate = dateFormat.format(new java.util.Date(transaction.getDate()));
-            dateTextView.setText(formattedDate);
+            status.setText(transaction.isReconciled() ? "Conciliado" : "Pendente");
+            status.setTextColor(itemView.getContext().getColor(
+                    transaction.isReconciled() ? R.color.money_positive : android.R.color.darker_gray));
+            GradientDrawable statusBackground = new GradientDrawable();
+            statusBackground.setColor(transaction.isReconciled()
+                    ? Color.rgb(225, 246, 237) : Color.rgb(240, 242, 245));
+            statusBackground.setCornerRadius(itemView.getResources().getDisplayMetrics().density * 12);
+            status.setBackground(statusBackground);
 
-            // Nota (se houver)
-            if (transaction.getNote() != null && !transaction.getNote().trim().isEmpty()) {
-                noteTextView.setText(transaction.getNote());
-                noteTextView.setVisibility(View.VISIBLE);
-            } else {
-                noteTextView.setVisibility(View.GONE);
+            List<String> indicators = new ArrayList<>();
+            if (transaction.isFixedExpenseTransaction()) indicators.add("Fixa");
+            if (transaction.isInstallmentTransaction()) {
+                if (transaction.installmentNumber != null && transaction.totalInstallments != null) {
+                    indicators.add("Parcela " + transaction.installmentNumber + "/" + transaction.totalInstallments);
+                } else {
+                    indicators.add("Parcelada");
+                }
             }
+            badges.setText(android.text.TextUtils.join(" · ", indicators));
+            badges.setVisibility(indicators.isEmpty() ? View.GONE : View.VISIBLE);
 
-            // Listeners dos botões
-            editButton.setOnClickListener(v -> {
-                if (editListener != null) {
-                    editListener.onTransactionEdit(transaction);
-                }
-            });
-
-            deleteButton.setOnClickListener(v -> {
-                if (deleteListener != null) {
-                    deleteListener.onTransactionDelete(transaction.getId());
-                }
-            });
+            if (transaction.hasRunningBalance()) {
+                runningBalance.setText(currency.format(transaction.getRunningBalance()));
+            } else {
+                runningBalance.setText("—");
+            }
+            runningBalance.setVisibility(View.VISIBLE);
         }
     }
 
-    /**
-     * Interfaces para callbacks
-     */
-    public interface OnTransactionEditListener {
-        void onTransactionEdit(Transaction transaction);
+    public interface OnTransactionClickListener {
+        void onTransactionClick(TransactionListItemDto transaction);
     }
 
-    public interface OnTransactionDeleteListener {
-        void onTransactionDelete(String transactionId);
+    public interface OnTransactionOptionsListener {
+        void onTransactionOptions(View anchor, TransactionListItemDto transaction);
     }
 }

@@ -3,10 +3,14 @@ package br.com.tecpontes.appfinanceiro.data.repository;
 import android.net.Uri;
 import android.util.Log;
 import androidx.annotation.NonNull;
+import androidx.annotation.Nullable;
 import androidx.lifecycle.LiveData;
 import br.com.tecpontes.appfinanceiro.data.local.dao.TransactionDao;
 import br.com.tecpontes.appfinanceiro.data.local.entity.Transaction;
 import br.com.tecpontes.appfinanceiro.model.TransactionDto;
+import br.com.tecpontes.appfinanceiro.model.TransactionListItemDto;
+import br.com.tecpontes.appfinanceiro.model.BalanceHistoryDto;
+import br.com.tecpontes.appfinanceiro.model.TransactionWriteDto;
 import br.com.tecpontes.appfinanceiro.network.ApiService;
 import java.io.File;
 import java.util.List;
@@ -17,6 +21,7 @@ import javax.inject.Singleton;
 import okhttp3.MediaType;
 import okhttp3.MultipartBody;
 import okhttp3.RequestBody;
+import okhttp3.ResponseBody;
 import retrofit2.Call;
 import retrofit2.Callback;
 import retrofit2.Response;
@@ -68,33 +73,148 @@ public class TransactionRepository {
         return transactionDao.getRecentTransactions();
     }
 
+    /** Busca transações detalhadas usando os mesmos filtros aceitos pela API web. */
+    public void fetchTransactions(
+            @Nullable String accountIds,
+            @Nullable String startDate,
+            @Nullable String endDate,
+            @Nullable String type,
+            @Nullable String categoryId,
+            @Nullable String reconciled,
+            @Nullable String query,
+            @NonNull TransactionListCallback callback) {
+        Call<List<TransactionListItemDto>> call = apiService.getTransactions(
+                accountIds, startDate, endDate, type, categoryId, reconciled, query);
+        call.enqueue(new Callback<List<TransactionListItemDto>>() {
+            @Override
+            public void onResponse(@NonNull Call<List<TransactionListItemDto>> call,
+                                   @NonNull Response<List<TransactionListItemDto>> response) {
+                if (response.isSuccessful()) {
+                    callback.onSuccess(response.body() != null ? response.body() : java.util.Collections.emptyList());
+                } else {
+                    callback.onError("Erro na API: " + response.message());
+                }
+            }
+
+            @Override
+            public void onFailure(@NonNull Call<List<TransactionListItemDto>> call,
+                                  @NonNull Throwable error) {
+                Log.e(TAG, "Falha ao carregar transações", error);
+                callback.onError("Erro de conexão: " + error.getMessage());
+            }
+        });
+    }
+
+    /** Consulta saldo projetado das contas selecionadas no encerramento do período. */
+    public void fetchBalancesAtDate(
+            @NonNull String accountIds,
+            @NonNull String date,
+            @NonNull BalanceCallback callback) {
+        Call<BalanceHistoryDto> call = apiService.getBalancesAtDate(accountIds, date);
+        call.enqueue(new Callback<BalanceHistoryDto>() {
+            @Override
+            public void onResponse(@NonNull Call<BalanceHistoryDto> call,
+                                   @NonNull Response<BalanceHistoryDto> response) {
+                if (response.isSuccessful() && response.body() != null) {
+                    callback.onSuccess(response.body());
+                } else {
+                    callback.onError("Erro ao consultar saldos: " + response.message());
+                }
+            }
+
+            @Override
+            public void onFailure(@NonNull Call<BalanceHistoryDto> call, @NonNull Throwable error) {
+                Log.e(TAG, "Falha ao consultar saldos", error);
+                callback.onError("Erro de conexão ao consultar saldos: " + error.getMessage());
+            }
+        });
+    }
+
+    public void createTransactionFromList(
+            @NonNull TransactionWriteDto transaction,
+            @NonNull RemoteActionCallback callback) {
+        apiService.createTransactionFromList(transaction).enqueue(new Callback<ResponseBody>() {
+            @Override
+            public void onResponse(@NonNull Call<ResponseBody> call,
+                                   @NonNull Response<ResponseBody> response) {
+                if (response.isSuccessful()) callback.onSuccess();
+                else callback.onError("Não foi possível clonar o lançamento: " + response.message());
+            }
+
+            @Override
+            public void onFailure(@NonNull Call<ResponseBody> call, @NonNull Throwable error) {
+                callback.onError("Erro de conexão ao clonar: " + error.getMessage());
+            }
+        });
+    }
+
+    public void updateTransactionFromList(
+            @NonNull String id,
+            @NonNull TransactionWriteDto transaction,
+            @NonNull RemoteActionCallback callback) {
+        apiService.updateTransaction(id, transaction).enqueue(new Callback<ResponseBody>() {
+            @Override
+            public void onResponse(@NonNull Call<ResponseBody> call,
+                                   @NonNull Response<ResponseBody> response) {
+                if (response.isSuccessful()) callback.onSuccess();
+                else callback.onError("Não foi possível editar o lançamento: " + response.message());
+            }
+
+            @Override
+            public void onFailure(@NonNull Call<ResponseBody> call, @NonNull Throwable error) {
+                callback.onError("Erro de conexão ao editar: " + error.getMessage());
+            }
+        });
+    }
+
+    public void deleteRemoteTransaction(
+            @NonNull String id,
+            @Nullable String scope,
+            @NonNull RemoteActionCallback callback) {
+        apiService.deleteTransaction(id, scope).enqueue(new Callback<ResponseBody>() {
+            @Override
+            public void onResponse(@NonNull Call<ResponseBody> call,
+                                   @NonNull Response<ResponseBody> response) {
+                if (response.isSuccessful()) callback.onSuccess();
+                else callback.onError("Não foi possível excluir o lançamento: " + response.message());
+            }
+
+            @Override
+            public void onFailure(@NonNull Call<ResponseBody> call, @NonNull Throwable error) {
+                callback.onError("Erro de conexão ao excluir: " + error.getMessage());
+            }
+        });
+    }
+
     /**
      * Sincroniza transações da API para o banco local
      */
     public void syncTransactions(@NonNull String accountId, @NonNull SyncCallback callback) {
         Log.d(TAG, "Sincronizando transações para conta: " + accountId);
 
-        Call<List<TransactionDto>> call = apiService.getTransactions(accountId, null, null);
+        Call<List<TransactionListItemDto>> call = apiService.getTransactions(
+                accountId, null, null, null, null, null, null);
 
-        call.enqueue(new Callback<List<TransactionDto>>() {
+        call.enqueue(new Callback<List<TransactionListItemDto>>() {
             @Override
-            public void onResponse(@NonNull Call<List<TransactionDto>> call,
-                                 @NonNull Response<List<TransactionDto>> response) {
+            public void onResponse(@NonNull Call<List<TransactionListItemDto>> call,
+                                 @NonNull Response<List<TransactionListItemDto>> response) {
                 if (response.isSuccessful() && response.body() != null) {
-                    List<TransactionDto> transactionDtos = response.body();
+                    List<TransactionListItemDto> transactionDtos = response.body();
 
                     // Converte DTOs para entidades e salva no banco
                     executorService.execute(() -> {
                         try {
-                            for (TransactionDto dto : transactionDtos) {
+                            for (TransactionListItemDto dto : transactionDtos) {
+                                if (dto.id == null || dto.accountId == null) continue;
                                 Transaction transaction = new Transaction(
-                                    dto.getId(),
-                                    dto.getAccountId(),
-                                    dto.getAmount(),
-                                    dto.getDate(),
-                                    dto.getCategory(),
-                                    dto.getNote(),
-                                    dto.getType()
+                                    dto.id,
+                                    dto.accountId,
+                                    dto.getAmountValue(),
+                                    dto.getDateMillis(),
+                                    dto.getCategoryName(),
+                                    dto.note != null ? dto.note : dto.description,
+                                    dto.isIncome() ? "income" : "expense"
                                 );
                                 transactionDao.insert(transaction);
                             }
@@ -113,7 +233,7 @@ public class TransactionRepository {
             }
 
             @Override
-            public void onFailure(@NonNull Call<List<TransactionDto>> call, @NonNull Throwable t) {
+            public void onFailure(@NonNull Call<List<TransactionListItemDto>> call, @NonNull Throwable t) {
                 Log.e(TAG, "Falha na sincronização", t);
                 callback.onError("Erro de conexão: " + t.getMessage());
             }
@@ -278,6 +398,21 @@ public class TransactionRepository {
      */
     public interface SyncCallback {
         void onSuccess(int count);
+        void onError(String error);
+    }
+
+    public interface TransactionListCallback {
+        void onSuccess(List<TransactionListItemDto> transactions);
+        void onError(String error);
+    }
+
+    public interface BalanceCallback {
+        void onSuccess(BalanceHistoryDto balance);
+        void onError(String error);
+    }
+
+    public interface RemoteActionCallback {
+        void onSuccess();
         void onError(String error);
     }
 

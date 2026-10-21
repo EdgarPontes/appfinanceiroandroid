@@ -44,6 +44,18 @@
             android:exported="false"
             android:label="Transações"
             android:theme="@style/Theme.Appfinanceiro" />
+
+        <activity
+            android:name=".ui.menu.MenuActivity"
+            android:exported="false"
+            android:label="Menu"
+            android:theme="@style/Theme.Appfinanceiro" />
+
+        <activity
+            android:name=".ui.menu.FeatureDestinationActivity"
+            android:exported="false"
+            android:label="AppFinanceiro"
+            android:theme="@style/Theme.Appfinanceiro" />
     </application>
 
 </manifest>

@@ -112,7 +112,7 @@ public class MonthlyEvolutionChartView extends View {
                 String label = months[month - 1].replace(".", "");
                 return label.length() > 3 ? label.substring(0, 3) : label;
             }
-        } catch (NumberFormatException ignored) {
+        } catch (Exception ignored) {
             // Usa o texto original para granularidades que não sejam mensais.
         }
         return value;

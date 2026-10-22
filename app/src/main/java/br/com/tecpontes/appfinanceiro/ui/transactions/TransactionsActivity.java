@@ -10,12 +10,14 @@ import android.widget.ArrayAdapter;
 import android.widget.EditText;
 import android.widget.LinearLayout;
 import android.widget.PopupMenu;
+import android.widget.ScrollView;
 import android.widget.Spinner;
 import android.widget.TextView;
 import android.widget.Toast;
 import androidx.activity.EdgeToEdge;
 import androidx.activity.result.ActivityResultLauncher;
 import androidx.activity.result.contract.ActivityResultContracts;
+import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
 import androidx.appcompat.app.AlertDialog;
 import androidx.appcompat.app.AppCompatActivity;
@@ -71,6 +73,7 @@ public class TransactionsActivity extends AppCompatActivity {
     private Calendar periodEnd;
     private double selectedBalance;
     private boolean balanceAvailable;
+    private Map<String, String> balancesByAccount = new LinkedHashMap<>();
 
     @Override
     @SuppressWarnings("deprecation")
@@ -322,13 +325,13 @@ public class TransactionsActivity extends AppCompatActivity {
         });
         transactionsViewModel.balanceAtDate.observe(this, balance -> {
             if (balance == null) return;
+            balancesByAccount = balance.byAccount == null
+                    ? new LinkedHashMap<>() : new LinkedHashMap<>(balance.byAccount);
             selectedBalance = 0;
-            if (balance.byAccount != null) {
-                for (String accountId : selectedAccountIds) {
-                    selectedBalance += parseAmount(balance.byAccount.get(accountId));
-                }
+            for (String accountId : selectedAccountIds) {
+                selectedBalance += parseAmount(balancesByAccount.get(accountId));
             }
-            balanceAvailable = true;
+            balanceAvailable = balance.byAccount != null;
             applyLocalFilters();
         });
     }
@@ -338,6 +341,7 @@ public class TransactionsActivity extends AppCompatActivity {
         binding.addTransactionFab.setOnClickListener(v -> showCreateTransactionDialog());
         binding.syncButton.setOnClickListener(v -> reloadData());
         binding.accountsFilterButton.setOnClickListener(v -> showAccountsDialog());
+        binding.selectedBalanceSummary.setOnClickListener(v -> showAccountBalancesDialog());
     }
 
     private void loadInitialData() {
@@ -377,13 +381,109 @@ public class TransactionsActivity extends AppCompatActivity {
         if (selectedAccountIds.isEmpty()) {
             selectedBalance = 0;
             balanceAvailable = false;
+            balancesByAccount.clear();
             updateSummary(new ArrayList<>());
             return;
         }
         balanceAvailable = false;
+        balancesByAccount.clear();
         Calendar balanceDate = periodEnd != null ? periodEnd : Calendar.getInstance();
         String date = new SimpleDateFormat("yyyy-MM-dd", Locale.US).format(balanceDate.getTime());
         transactionsViewModel.loadBalanceAtDate(joinAccountIds(), date);
+    }
+
+    private void showAccountBalancesDialog() {
+        if (selectedAccountIds.isEmpty()) {
+            Toast.makeText(this, "Selecione ao menos uma conta para consultar os saldos", Toast.LENGTH_SHORT).show();
+            return;
+        }
+        if (!balanceAvailable) {
+            Toast.makeText(this, "Aguardando o carregamento dos saldos", Toast.LENGTH_SHORT).show();
+            return;
+        }
+
+        LinearLayout rows = new LinearLayout(this);
+        rows.setOrientation(LinearLayout.VERTICAL);
+        rows.setPadding(dp(20), dp(8), dp(20), dp(8));
+
+        TextView dateLabel = new TextView(this);
+        Calendar balanceDate = periodEnd != null ? periodEnd : Calendar.getInstance();
+        dateLabel.setText("Saldo até " + new SimpleDateFormat("dd/MM/yyyy", new Locale("pt", "BR"))
+                .format(balanceDate.getTime()));
+        dateLabel.setTextColor(getColor(android.R.color.darker_gray));
+        dateLabel.setTextSize(13);
+        dateLabel.setPadding(0, 0, 0, dp(8));
+        rows.addView(dateLabel);
+
+        for (String accountId : selectedAccountIds) {
+            Account account = findAccount(accountId);
+            String accountName = account == null ? accountId : account.getName();
+            double accountBalance = parseAmount(balancesByAccount.get(accountId));
+
+            LinearLayout row = new LinearLayout(this);
+            row.setOrientation(LinearLayout.HORIZONTAL);
+            row.setGravity(android.view.Gravity.CENTER_VERTICAL);
+            row.setPadding(0, dp(10), 0, dp(10));
+
+            TextView name = new TextView(this);
+            name.setText(accountName);
+            name.setTextColor(getColor(android.R.color.black));
+            name.setTextSize(14);
+            LinearLayout.LayoutParams nameParams = new LinearLayout.LayoutParams(
+                    0, LinearLayout.LayoutParams.WRAP_CONTENT, 1f);
+            row.addView(name, nameParams);
+
+            TextView amount = new TextView(this);
+            amount.setText(formatCurrency(accountBalance));
+            amount.setTextColor(moneyColor(accountBalance));
+            amount.setTextSize(14);
+            amount.setTypeface(null, android.graphics.Typeface.BOLD);
+            row.addView(amount);
+            rows.addView(row);
+
+            View divider = new View(this);
+            divider.setBackgroundColor(0x22000000);
+            rows.addView(divider, new LinearLayout.LayoutParams(
+                    LinearLayout.LayoutParams.MATCH_PARENT, dp(1)));
+        }
+
+        LinearLayout totalRow = new LinearLayout(this);
+        totalRow.setOrientation(LinearLayout.HORIZONTAL);
+        totalRow.setGravity(android.view.Gravity.CENTER_VERTICAL);
+        totalRow.setPadding(0, dp(14), 0, dp(6));
+
+        TextView totalLabel = new TextView(this);
+        totalLabel.setText("Total");
+        totalLabel.setTextColor(getColor(android.R.color.black));
+        totalLabel.setTextSize(14);
+        totalLabel.setTypeface(null, android.graphics.Typeface.BOLD);
+        totalRow.addView(totalLabel, new LinearLayout.LayoutParams(
+                0, LinearLayout.LayoutParams.WRAP_CONTENT, 1f));
+
+        TextView totalAmount = new TextView(this);
+        totalAmount.setText(formatCurrency(selectedBalance));
+        totalAmount.setTextColor(moneyColor(selectedBalance));
+        totalAmount.setTextSize(14);
+        totalAmount.setTypeface(null, android.graphics.Typeface.BOLD);
+        totalRow.addView(totalAmount);
+        rows.addView(totalRow);
+
+        ScrollView scrollView = new ScrollView(this);
+        scrollView.addView(rows);
+
+        new AlertDialog.Builder(this)
+                .setTitle("Saldos por conta")
+                .setView(scrollView)
+                .setPositiveButton("Fechar", null)
+                .show();
+    }
+
+    @Nullable
+    private Account findAccount(@NonNull String accountId) {
+        for (Account account : accounts) {
+            if (accountId.equals(account.getId())) return account;
+        }
+        return null;
     }
 
     private String joinAccountIds() {

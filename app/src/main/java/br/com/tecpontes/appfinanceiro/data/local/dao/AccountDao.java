@@ -27,8 +27,14 @@ public interface AccountDao {
     @Query("SELECT SUM(balance) FROM accounts")
     LiveData<Double> getTotalBalance();
 
+    @Query("SELECT SUM(balance) FROM accounts")
+    Double getTotalBalanceSync();
+
     @Query("SELECT COUNT(*) FROM accounts")
     LiveData<Integer> getAccountsCount();
+
+    @Query("SELECT COUNT(*) FROM accounts")
+    Integer getAccountsCountSync();
 
     @Insert(onConflict = OnConflictStrategy.REPLACE)
     void insert(Account account);

@@ -57,6 +57,7 @@ public class CategoryPieChartView extends View {
     @Override
     protected void onDraw(Canvas canvas) {
         super.onDraw(canvas);
+        if (getWidth() <= 0 || getHeight() <= 0) return;
         double total = 0;
         for (Entry entry : entries) total += Math.max(0, entry.value);
 

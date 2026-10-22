@@ -6,6 +6,7 @@ import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
 import androidx.lifecycle.LiveData;
 import androidx.lifecycle.MutableLiveData;
+import androidx.lifecycle.Transformations;
 import androidx.lifecycle.ViewModel;
 import br.com.tecpontes.appfinanceiro.data.local.entity.Account;
 import br.com.tecpontes.appfinanceiro.data.local.entity.Transaction;
@@ -47,11 +48,10 @@ public class TransactionsViewModel extends ViewModel {
     public final LiveData<Boolean> importSuccess = _importSuccess;
 
     // LiveData para dados
-    private final MutableLiveData<List<Transaction>> _transactions = new MutableLiveData<>();
-    public final LiveData<List<Transaction>> transactions = _transactions;
+    public final LiveData<List<Transaction>> transactions;
 
-    private final MutableLiveData<List<Transaction>> _transactionsByAccount = new MutableLiveData<>();
-    public final LiveData<List<Transaction>> transactionsByAccount = _transactionsByAccount;
+    private final MutableLiveData<String> _selectedAccountId = new MutableLiveData<>();
+    public final LiveData<List<Transaction>> transactionsByAccount;
 
     private final MutableLiveData<List<TransactionListItemDto>> _filteredTransactions = new MutableLiveData<>();
     public final LiveData<List<TransactionListItemDto>> filteredTransactions = _filteredTransactions;
@@ -74,10 +74,14 @@ public class TransactionsViewModel extends ViewModel {
         this.transactionRepository = transactionRepository;
         this.accountRepository = accountRepository;
         this.accounts = accountRepository.getAllAccounts();
+        this.transactions = transactionRepository.getAllTransactions();
+        this.transactionsByAccount = Transformations.switchMap(_selectedAccountId, accountId -> {
+            if (accountId == null || accountId.isEmpty()) {
+                return transactionRepository.getAllTransactions();
+            }
+            return transactionRepository.getTransactionsByAccount(accountId);
+        });
         Log.d(TAG, "TransactionsViewModel inicializado");
-
-        // Observa todas as transações
-        observeAllTransactions();
     }
 
     /** Busca a lista detalhada da API com os filtros selecionados na tela. */
@@ -188,26 +192,12 @@ public class TransactionsViewModel extends ViewModel {
     }
 
     /**
-     * Observa todas as transações
-     */
-    private void observeAllTransactions() {
-        transactionRepository.getAllTransactions().observeForever(transactions -> {
-            _transactions.setValue(transactions);
-            Log.d(TAG, "Todas as transações atualizadas: " + (transactions != null ? transactions.size() : 0));
-        });
-    }
-
-    /**
      * Carrega transações por conta
      */
     public void loadTransactionsByAccount(@NonNull String accountId) {
         Log.d(TAG, "Carregando transações para conta: " + accountId);
         currentAccountId = accountId;
-
-        transactionRepository.getTransactionsByAccount(accountId).observeForever(transactions -> {
-            _transactionsByAccount.setValue(transactions);
-            Log.d(TAG, "Transações da conta atualizadas: " + (transactions != null ? transactions.size() : 0));
-        });
+        _selectedAccountId.setValue(accountId);
     }
 
     /**
@@ -365,8 +355,8 @@ public class TransactionsViewModel extends ViewModel {
                 "loading=" + _loading.getValue() +
                 ", hasError=" + (_error.getValue() != null) +
                 ", currentAccountId=" + currentAccountId +
-                ", allTransactionsCount=" + (_transactions.getValue() != null ? _transactions.getValue().size() : 0) +
-                ", accountTransactionsCount=" + (_transactionsByAccount.getValue() != null ? _transactionsByAccount.getValue().size() : 0) +
+                ", allTransactionsCount=" + (transactions.getValue() != null ? transactions.getValue().size() : 0) +
+                ", accountTransactionsCount=" + (transactionsByAccount.getValue() != null ? transactionsByAccount.getValue().size() : 0) +
                 ", selectedTransaction=" + (_selectedTransaction.getValue() != null ? _selectedTransaction.getValue().getId() : "none") +
                 '}';
     }

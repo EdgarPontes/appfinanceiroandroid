@@ -9,6 +9,8 @@ import br.com.tecpontes.appfinanceiro.data.local.dao.AccountDao;
 import br.com.tecpontes.appfinanceiro.data.local.dao.TransactionDao;
 import br.com.tecpontes.appfinanceiro.model.DashboardDto;
 import br.com.tecpontes.appfinanceiro.network.ApiService;
+import java.util.concurrent.ExecutorService;
+import java.util.concurrent.Executors;
 import javax.inject.Inject;
 import javax.inject.Singleton;
 import retrofit2.Call;
@@ -26,12 +28,14 @@ public class DashboardRepository {
     private final ApiService apiService;
     private final AccountDao accountDao;
     private final TransactionDao transactionDao;
+    private final ExecutorService executorService;
 
     @Inject
     public DashboardRepository(ApiService apiService, AccountDao accountDao, TransactionDao transactionDao) {
         this.apiService = apiService;
         this.accountDao = accountDao;
         this.transactionDao = transactionDao;
+        this.executorService = Executors.newSingleThreadExecutor();
     }
 
     /**
@@ -79,12 +83,11 @@ public class DashboardRepository {
     public void getLocalDashboardData(@NonNull LocalDashboardCallback callback) {
         Log.d(TAG, "Carregando dados locais do dashboard");
 
-        // Dados locais como fallback quando API não disponível
-        new Thread(() -> {
+        executorService.execute(() -> {
             try {
-                // Obtém dados locais
-                Double totalBalance = accountDao.getTotalBalance().getValue();
-                Integer accountsCount = accountDao.getAccountsCount().getValue();
+                // Obtém dados locais síncronos
+                Double totalBalance = accountDao.getTotalBalanceSync();
+                Integer accountsCount = accountDao.getAccountsCountSync();
 
                 // Valores padrão se não houver dados
                 if (totalBalance == null) totalBalance = 0.0;
@@ -97,7 +100,7 @@ public class DashboardRepository {
                 Log.e(TAG, "Erro ao carregar dados locais", e);
                 callback.onError("Erro local: " + e.getMessage());
             }
-        }).start();
+        });
     }
 
     /**

@@ -129,8 +129,10 @@ public class DashboardActivity extends AppCompatActivity {
     private void setupObservers() {
         // Observa estado de loading
         dashboardViewModel.loading.observe(this, loading -> {
-            binding.swipeRefreshLayout.setRefreshing(loading);
-            binding.loadingView.getRoot().setVisibility(loading ? View.VISIBLE : View.GONE);
+            if (binding != null) {
+                binding.swipeRefreshLayout.setRefreshing(loading);
+                binding.loadingView.getRoot().setVisibility(loading ? View.VISIBLE : View.GONE);
+            }
         });
 
         // Observa erros
@@ -148,14 +150,14 @@ public class DashboardActivity extends AppCompatActivity {
         });
 
         dashboardViewModel.dashboardData.observe(this, dashboardData -> {
-            if (dashboardData != null) {
+            if (binding != null && dashboardData != null) {
                 renderDashboard(dashboardData);
             }
         });
 
         // Observa transações recentes
         dashboardViewModel.recentTransactions.observe(this, transactions -> {
-            if (transactions != null) {
+            if (binding != null && transactions != null) {
                 transactionsAdapter.updateTransactions(transactions);
                 updateTransactionsVisibility(transactions.isEmpty());
             }

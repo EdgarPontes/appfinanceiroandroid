@@ -6,6 +6,7 @@ import br.com.tecpontes.appfinanceiro.model.AccountDto;
 import br.com.tecpontes.appfinanceiro.model.AuthRequest;
 import br.com.tecpontes.appfinanceiro.model.AuthResponse;
 import br.com.tecpontes.appfinanceiro.model.BalanceHistoryDto;
+import br.com.tecpontes.appfinanceiro.model.CategoryDto;
 import br.com.tecpontes.appfinanceiro.model.DashboardDto;
 import br.com.tecpontes.appfinanceiro.model.TransactionDto;
 import br.com.tecpontes.appfinanceiro.model.TransactionListItemDto;
@@ -81,6 +82,11 @@ public interface ApiService {
             @Path("id") String id,
             @Query("scope") @Nullable String scope
     );
+
+    // ========== CATEGORIAS ==========
+
+    @GET("categories")
+    Call<List<CategoryDto>> getCategories(@Query("type") @Nullable String type);
 
     // ========== DASHBOARD ==========
 

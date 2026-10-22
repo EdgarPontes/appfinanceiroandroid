@@ -42,14 +42,9 @@ public class DashboardViewModel extends ViewModel {
     private final MutableLiveData<DashboardDto> _dashboardData = new MutableLiveData<>();
     public final LiveData<DashboardDto> dashboardData = _dashboardData;
 
-    private final MutableLiveData<List<Account>> _accounts = new MutableLiveData<>();
-    public final LiveData<List<Account>> accounts = _accounts;
-
-    private final MutableLiveData<List<Transaction>> _recentTransactions = new MutableLiveData<>();
-    public final LiveData<List<Transaction>> recentTransactions = _recentTransactions;
-
-    private final MutableLiveData<Double> _totalBalance = new MutableLiveData<>();
-    public final LiveData<Double> totalBalance = _totalBalance;
+    public final LiveData<List<Account>> accounts;
+    public final LiveData<List<Transaction>> recentTransactions;
+    public final LiveData<Double> totalBalance;
 
     @Inject
     public DashboardViewModel(
@@ -61,33 +56,11 @@ public class DashboardViewModel extends ViewModel {
         this.accountRepository = accountRepository;
         this.transactionRepository = transactionRepository;
 
+        this.accounts = accountRepository.getAllAccounts();
+        this.recentTransactions = transactionRepository.getRecentTransactions();
+        this.totalBalance = accountRepository.getTotalBalance();
+
         Log.d(TAG, "DashboardViewModel inicializado");
-
-        // Observa dados locais
-        observeLocalData();
-    }
-
-    /**
-     * Observa dados locais do banco
-     */
-    private void observeLocalData() {
-        // Observa contas
-        accountRepository.getAllAccounts().observeForever(accounts -> {
-            _accounts.setValue(accounts);
-            Log.d(TAG, "Contas atualizadas: " + (accounts != null ? accounts.size() : 0));
-        });
-
-        // Observa transações recentes
-        transactionRepository.getRecentTransactions().observeForever(transactions -> {
-            _recentTransactions.setValue(transactions);
-            Log.d(TAG, "Transações recentes atualizadas: " + (transactions != null ? transactions.size() : 0));
-        });
-
-        // Observa saldo total
-        accountRepository.getTotalBalance().observeForever(balance -> {
-            _totalBalance.setValue(balance != null ? balance : 0.0);
-            Log.d(TAG, "Saldo total atualizado: " + balance);
-        });
     }
 
     /**
@@ -223,9 +196,9 @@ public class DashboardViewModel extends ViewModel {
         return "DashboardViewModel{" +
                 "loading=" + _loading.getValue() +
                 ", hasError=" + (_error.getValue() != null) +
-                ", accountsCount=" + (_accounts.getValue() != null ? _accounts.getValue().size() : 0) +
-                ", transactionsCount=" + (_recentTransactions.getValue() != null ? _recentTransactions.getValue().size() : 0) +
-                ", totalBalance=" + _totalBalance.getValue() +
+                ", accountsCount=" + (accounts.getValue() != null ? accounts.getValue().size() : 0) +
+                ", transactionsCount=" + (recentTransactions.getValue() != null ? recentTransactions.getValue().size() : 0) +
+                ", totalBalance=" + totalBalance.getValue() +
                 '}';
     }
 }

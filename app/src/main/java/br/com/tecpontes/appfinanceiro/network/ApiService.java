@@ -3,15 +3,23 @@ package br.com.tecpontes.appfinanceiro.network;
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
 import br.com.tecpontes.appfinanceiro.model.AccountDto;
+import br.com.tecpontes.appfinanceiro.model.AccountRequestDto;
+import br.com.tecpontes.appfinanceiro.model.AccountBalanceHistoryDto;
 import br.com.tecpontes.appfinanceiro.model.AuthRequest;
 import br.com.tecpontes.appfinanceiro.model.AuthResponse;
 import br.com.tecpontes.appfinanceiro.model.BalanceHistoryDto;
 import br.com.tecpontes.appfinanceiro.model.CategoryDto;
 import br.com.tecpontes.appfinanceiro.model.DashboardDto;
 import br.com.tecpontes.appfinanceiro.model.CreditCardDto;
+import br.com.tecpontes.appfinanceiro.model.CreditCardRequestDto;
 import br.com.tecpontes.appfinanceiro.model.InvoiceDetailsDto;
 import br.com.tecpontes.appfinanceiro.model.InvoicePaymentRequestDto;
 import br.com.tecpontes.appfinanceiro.model.ReconciliationRequestDto;
+import br.com.tecpontes.appfinanceiro.model.ReconciliationSummaryDto;
+import br.com.tecpontes.appfinanceiro.model.ReconciliationPreviewRequestDto;
+import br.com.tecpontes.appfinanceiro.model.ReconciliationPreviewDto;
+import br.com.tecpontes.appfinanceiro.model.ReconciliationConfirmRequestDto;
+import br.com.tecpontes.appfinanceiro.model.ReconciliationConfirmResultDto;
 import br.com.tecpontes.appfinanceiro.model.TransactionDto;
 import br.com.tecpontes.appfinanceiro.model.TransactionListItemDto;
 import br.com.tecpontes.appfinanceiro.model.TransactionWriteDto;
@@ -47,13 +55,37 @@ public interface ApiService {
     @GET("accounts")
     Call<List<AccountDto>> getAccounts();
 
+    @GET("accounts")
+    Call<List<AccountDto>> getAccountsWithInactive(@Query("includeInactive") String includeInactive);
+
     @POST("accounts")
     Call<AccountDto> createAccount(@Body AccountDto account);
+
+    @POST("accounts")
+    Call<ResponseBody> createManagedAccount(@Body AccountRequestDto account);
+
+    @PUT("accounts/{id}")
+    Call<ResponseBody> updateManagedAccount(@Path("id") String id, @Body AccountRequestDto account);
+
+    @DELETE("accounts/{id}")
+    Call<ResponseBody> deleteManagedAccount(@Path("id") String id);
 
     // ========== CARTÕES E FATURAS ==========
 
     @GET("cards/")
     Call<List<CreditCardDto>> getCreditCards();
+
+    @GET("cards")
+    Call<List<CreditCardDto>> getCreditCardsWithInactive(@Query("includeInactive") String includeInactive);
+
+    @POST("cards")
+    Call<ResponseBody> createCreditCard(@Body CreditCardRequestDto card);
+
+    @PUT("cards/{id}")
+    Call<ResponseBody> updateCreditCard(@Path("id") String id, @Body CreditCardRequestDto card);
+
+    @DELETE("cards/{id}")
+    Call<ResponseBody> deleteCreditCard(@Path("id") String id);
 
     @GET("invoices/{cardId}/{year}/{month}")
     Call<InvoiceDetailsDto> getInvoiceDetails(
@@ -92,6 +124,21 @@ public interface ApiService {
             @Query("accountIds") @NonNull String accountIds,
             @Query("date") @NonNull String date
     );
+
+    @GET("balance-history")
+    Call<AccountBalanceHistoryDto> getAccountBalanceHistory(@Query("accountId") String accountId);
+
+    @GET("reconciliation/summary")
+    Call<ReconciliationSummaryDto> getReconciliationSummary();
+
+    @POST("maintenance/recalculate")
+    Call<ResponseBody> recalculateBalances();
+
+    @POST("reconciliation/preview")
+    Call<ReconciliationPreviewDto> previewReconciliation(@Body ReconciliationPreviewRequestDto request);
+
+    @POST("reconciliation/confirm")
+    Call<ReconciliationConfirmResultDto> confirmReconciliation(@Body ReconciliationConfirmRequestDto request);
 
     @POST("transactions")
     Call<TransactionDto> createTransaction(@Body TransactionDto transaction);

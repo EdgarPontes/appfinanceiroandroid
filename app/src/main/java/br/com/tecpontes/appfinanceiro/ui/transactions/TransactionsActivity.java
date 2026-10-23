@@ -52,6 +52,7 @@ import java.util.Map;
 public class TransactionsActivity extends AppCompatActivity {
 
     public static final String EXTRA_OPEN_IMPORT = "open_ofx_import";
+    public static final String EXTRA_RECONCILIATION_FILTER = "reconciliation_filter";
     private static final String TAG = "TransactionsActivity";
 
     private ActivityTransactionsBinding binding;
@@ -93,6 +94,7 @@ public class TransactionsActivity extends AppCompatActivity {
         BottomNavigationHelper.applyEdgeToEdgeInsets(binding.getRoot());
 
         transactionsViewModel = new ViewModelProvider(this).get(TransactionsViewModel.class);
+        selectedReconciliation = getIntent().getStringExtra(EXTRA_RECONCILIATION_FILTER);
         transactionsAdapter = new TransactionsAdapter(
                 this::showTransactionDetails, this::showTransactionOptions);
         binding.transactionsRecyclerView.setLayoutManager(new LinearLayoutManager(this));

@@ -28,6 +28,14 @@ public class AccountDto {
     @SerializedName("description")
     private String description;
 
+    @Nullable @SerializedName("type") private String type;
+    @Nullable @SerializedName("isActive") private Boolean isActive;
+    @Nullable @SerializedName("branch") private String branch;
+    @Nullable @SerializedName("accountNumber") private String accountNumber;
+    @Nullable @SerializedName("pendingInvoices") private String pendingInvoices;
+    @Nullable @SerializedName("effectiveBalance") private String effectiveBalance;
+    @Nullable @SerializedName("openingBalance") private String openingBalance;
+
     /** A API web não expõe moeda por conta; BRL é o padrão atual do produto. */
     public AccountDto() {
         this.currency = "BRL";
@@ -85,6 +93,21 @@ public class AccountDto {
     public void setDescription(@Nullable String description) {
         this.description = description;
     }
+
+    @Nullable public String getType() { return type; }
+    public void setType(@Nullable String type) { this.type = type; }
+    public boolean isActive() { return isActive == null || isActive; }
+    public void setActive(boolean active) { isActive = active; }
+    @Nullable public String getBranch() { return branch; }
+    public void setBranch(@Nullable String branch) { this.branch = branch; }
+    @Nullable public String getAccountNumber() { return accountNumber; }
+    public void setAccountNumber(@Nullable String accountNumber) { this.accountNumber = accountNumber; }
+    @Nullable public String getPendingInvoices() { return pendingInvoices; }
+    public void setPendingInvoices(@Nullable String pendingInvoices) { this.pendingInvoices = pendingInvoices; }
+    @Nullable public String getEffectiveBalance() { return effectiveBalance; }
+    public void setEffectiveBalance(@Nullable String effectiveBalance) { this.effectiveBalance = effectiveBalance; }
+    @Nullable public String getOpeningBalance() { return openingBalance; }
+    public void setOpeningBalance(@Nullable String openingBalance) { this.openingBalance = openingBalance; }
 
     @Override
     public String toString() {

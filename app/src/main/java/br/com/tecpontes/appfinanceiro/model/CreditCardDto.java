@@ -14,6 +14,7 @@ public class CreditCardDto {
     @Nullable @SerializedName("closingDay") private Integer closingDay;
     @Nullable @SerializedName("dueDay") private Integer dueDay;
     @Nullable @SerializedName("debitAccountId") private String debitAccountId;
+    @Nullable @SerializedName("isActive") private Boolean isActive;
     @Nullable @SerializedName("debitAccount") private AccountDto debitAccount;
     @Nullable @SerializedName("currentInvoice") private CardInvoiceSummary currentInvoice;
 
@@ -26,6 +27,7 @@ public class CreditCardDto {
     @Nullable public Integer getClosingDay() { return closingDay; }
     @Nullable public Integer getDueDay() { return dueDay; }
     @Nullable public String getDebitAccountId() { return debitAccountId; }
+    public boolean isActive() { return isActive == null || isActive; }
     @Nullable public AccountDto getDebitAccount() { return debitAccount; }
     @Nullable public CardInvoiceSummary getCurrentInvoice() { return currentInvoice; }
 

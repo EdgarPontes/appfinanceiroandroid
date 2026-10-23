@@ -158,4 +158,43 @@
     <string name="categories_delete_confirm">Confirmar Exclusão</string>
     <string name="categories_deleting">Excluindo...</string>
 
+    <!-- Relatórios -->
+    <string name="reports_title">Relatórios</string>
+    <string name="reports_subtitle">Análises e comparativos financeiros</string>
+    <string name="reports_filters">Filtros</string>
+    <string name="reports_period_label">Período</string>
+    <string name="reports_period_hint">Selecione o período</string>
+    <string name="reports_period_title">Selecione o período</string>
+    <string name="reports_type_label">Tipo de lançamento</string>
+    <string name="reports_type_all">Todos</string>
+    <string name="reports_type_expense">Despesas</string>
+    <string name="reports_type_income">Créditos / Receitas</string>
+    <string name="reports_categories_label">Categorias</string>
+    <string name="reports_categories_all">Todas as categorias</string>
+    <string name="reports_categories_selected">%1$d categoria(s) selecionada(s)</string>
+    <string name="reports_categories_title">Filtrar por categorias</string>
+    <string name="reports_categories_clear">Limpar seleção</string>
+    <string name="reports_categories_apply">Aplicar</string>
+    <string name="reports_categories_empty">Nenhuma categoria encontrada.</string>
+    <string name="reports_summary_title">Resumo do Período</string>
+    <string name="reports_total_income">Total de Créditos / Receitas</string>
+    <string name="reports_total_expenses">Total de Despesas</string>
+    <string name="reports_balance">Saldo do Período</string>
+    <string name="reports_transaction_count">Número de Transações</string>
+    <string name="reports_expenses_by_category">Despesas por Categoria</string>
+    <string name="reports_income_by_category">Receitas por Categoria</string>
+    <string name="reports_no_expenses">Nenhuma despesa no período.</string>
+    <string name="reports_no_income">Nenhuma receita no período.</string>
+    <string name="reports_actions_title">Exportar e detalhar</string>
+    <string name="reports_detail_expenses">Detalhar despesas</string>
+    <string name="reports_export_csv">Exportar CSV</string>
+    <string name="reports_export_pdf">Exportar PDF</string>
+    <string name="reports_export_hint">Os arquivos incluem os lançamentos filtrados no período selecionado.</string>
+    <string name="reports_export_success">Relatório exportado com sucesso.</string>
+    <string name="reports_export_error">Não foi possível exportar o relatório.</string>
+    <string name="reports_expenses_dialog_title">Despesas detalhadas</string>
+    <string name="reports_expenses_dialog_subtitle">%1$d lançamento(s) • Total: %2$s</string>
+    <string name="reports_close">Fechar</string>
+    <string name="reports_no_description">Sem descrição</string>
+
 </resources>

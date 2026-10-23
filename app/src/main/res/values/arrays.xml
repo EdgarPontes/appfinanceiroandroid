@@ -67,6 +67,18 @@
         <item>INCOME</item>
     </string-array>
 
+    <string-array name="report_type_labels">
+        <item>@string/reports_type_all</item>
+        <item>@string/reports_type_expense</item>
+        <item>@string/reports_type_income</item>
+    </string-array>
+
+    <string-array name="report_type_values">
+        <item>ALL</item>
+        <item>EXPENSE</item>
+        <item>INCOME</item>
+    </string-array>
+
     <string-array name="month_values">
         <item>01</item>
         <item>02</item>

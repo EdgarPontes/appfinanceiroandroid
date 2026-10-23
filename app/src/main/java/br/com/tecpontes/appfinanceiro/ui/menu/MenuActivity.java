@@ -9,6 +9,7 @@ import br.com.tecpontes.appfinanceiro.R;
 import br.com.tecpontes.appfinanceiro.ui.BottomNavigationHelper;
 import br.com.tecpontes.appfinanceiro.ui.categories.CategoriesActivity;
 import br.com.tecpontes.appfinanceiro.ui.notifications.NotificationsActivity;
+import br.com.tecpontes.appfinanceiro.ui.reports.ReportsActivity;
 import br.com.tecpontes.appfinanceiro.ui.settings.SettingsActivity;
 import br.com.tecpontes.appfinanceiro.ui.transactions.TransactionsActivity;
 import br.com.tecpontes.appfinanceiro.ui.profile.ProfileActivity;
@@ -56,6 +57,8 @@ public class MenuActivity extends AppCompatActivity {
                 intent = new Intent(this, NotificationsActivity.class);
             } else if (FeatureDestinationActivity.CATEGORIES.equals(destination)) {
                 intent = new Intent(this, CategoriesActivity.class);
+            } else if (FeatureDestinationActivity.REPORTS.equals(destination)) {
+                intent = new Intent(this, ReportsActivity.class);
             } else {
                 intent = FeatureDestinationActivity.createIntent(this, destination);
             }

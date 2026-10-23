@@ -1,0 +1,75 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+
+    <string-array name="notification_placeholders">
+        <item>Nome completo do usuário ({user.name})</item>
+        <item>Primeiro nome do usuário ({user.firstName})</item>
+        <item>Valor total da fatura ({invoice.totalAmount})</item>
+        <item>Data de vencimento da fatura ({invoice.dueDate})</item>
+        <item>Mês de referência da fatura ({invoice.referenceMonth})</item>
+        <item>Ano de referência da fatura ({invoice.referenceYear})</item>
+        <item>Nome do cartão de crédito ({card.name})</item>
+        <item>Valor do pagamento efetuado ({paymentAmount})</item>
+        <item>Soma das despesas na fatura ({totalExpenses})</item>
+        <item>Lista das 3 principais despesas ({topExpenses})</item>
+    </string-array>
+
+    <string-array name="notification_placeholder_values">
+        <item>{user.name}</item>
+        <item>{user.firstName}</item>
+        <item>{invoice.totalAmount}</item>
+        <item>{invoice.dueDate}</item>
+        <item>{invoice.referenceMonth}</item>
+        <item>{invoice.referenceYear}</item>
+        <item>{card.name}</item>
+        <item>{paymentAmount}</item>
+        <item>{totalExpenses}</item>
+        <item>{topExpenses}</item>
+    </string-array>
+
+    <string-array name="notification_recurrence_labels">
+        <item>@string/notification_recurrence_none</item>
+        <item>@string/notification_recurrence_daily</item>
+        <item>@string/notification_recurrence_weekly</item>
+        <item>@string/notification_recurrence_monthly</item>
+        <item>@string/notification_recurrence_annually</item>
+    </string-array>
+
+    <string-array name="notification_recurrence_values">
+        <item>none</item>
+        <item>daily</item>
+        <item>weekly</item>
+        <item>monthly</item>
+        <item>annually</item>
+    </string-array>
+
+    <string-array name="notification_priority_labels">
+        <item>@string/notification_priority_low</item>
+        <item>@string/notification_priority_medium</item>
+        <item>@string/notification_priority_high</item>
+        <item>@string/notification_priority_critical</item>
+    </string-array>
+
+    <string-array name="notification_priority_values">
+        <item>low</item>
+        <item>medium</item>
+        <item>high</item>
+        <item>critical</item>
+    </string-array>
+
+    <string-array name="month_values">
+        <item>01</item>
+        <item>02</item>
+        <item>03</item>
+        <item>04</item>
+        <item>05</item>
+        <item>06</item>
+        <item>07</item>
+        <item>08</item>
+        <item>09</item>
+        <item>10</item>
+        <item>11</item>
+        <item>12</item>
+    </string-array>
+
+</resources>

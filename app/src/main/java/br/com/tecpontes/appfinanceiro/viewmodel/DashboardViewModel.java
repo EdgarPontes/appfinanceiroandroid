@@ -10,6 +10,7 @@ import br.com.tecpontes.appfinanceiro.data.local.entity.Account;
 import br.com.tecpontes.appfinanceiro.data.local.entity.Transaction;
 import br.com.tecpontes.appfinanceiro.data.repository.AccountRepository;
 import br.com.tecpontes.appfinanceiro.data.repository.DashboardRepository;
+import br.com.tecpontes.appfinanceiro.data.repository.NotificationsRepository;
 import br.com.tecpontes.appfinanceiro.data.repository.TransactionRepository;
 import br.com.tecpontes.appfinanceiro.model.DashboardDto;
 import dagger.hilt.android.lifecycle.HiltViewModel;
@@ -27,6 +28,7 @@ public class DashboardViewModel extends ViewModel {
     private final DashboardRepository dashboardRepository;
     private final AccountRepository accountRepository;
     private final TransactionRepository transactionRepository;
+    private final NotificationsRepository notificationsRepository;
 
     // LiveData para estados da UI
     private final MutableLiveData<Boolean> _loading = new MutableLiveData<>(false);
@@ -42,6 +44,9 @@ public class DashboardViewModel extends ViewModel {
     private final MutableLiveData<DashboardDto> _dashboardData = new MutableLiveData<>();
     public final LiveData<DashboardDto> dashboardData = _dashboardData;
 
+    private final MutableLiveData<Integer> _unreadNotifications = new MutableLiveData<>(0);
+    public final LiveData<Integer> unreadNotifications = _unreadNotifications;
+
     public final LiveData<List<Account>> accounts;
     public final LiveData<List<Transaction>> recentTransactions;
     public final LiveData<Double> totalBalance;
@@ -50,11 +55,13 @@ public class DashboardViewModel extends ViewModel {
     public DashboardViewModel(
             DashboardRepository dashboardRepository,
             AccountRepository accountRepository,
-            TransactionRepository transactionRepository
+            TransactionRepository transactionRepository,
+            NotificationsRepository notificationsRepository
     ) {
         this.dashboardRepository = dashboardRepository;
         this.accountRepository = accountRepository;
         this.transactionRepository = transactionRepository;
+        this.notificationsRepository = notificationsRepository;
 
         this.accounts = accountRepository.getAllAccounts();
         this.recentTransactions = transactionRepository.getRecentTransactions();
@@ -179,6 +186,22 @@ public class DashboardViewModel extends ViewModel {
     public void refreshData() {
         Log.d(TAG, "Atualizando dados do dashboard");
         loadDashboardData();
+    }
+
+    /**
+     * Atualiza o contador de notificações não lidas exibido no sino do dashboard.
+     */
+    public void loadUnreadNotifications() {
+        notificationsRepository.getUnreadCount(
+                new NotificationsRepository.ResultCallback<Integer>() {
+                    @Override public void onSuccess(@Nullable Integer result) {
+                        _unreadNotifications.postValue(result == null ? 0 : result);
+                    }
+
+                    @Override public void onError(String message) {
+                        // O sino é complementar: falhas silenciosas não atrapalham o dashboard.
+                    }
+                });
     }
 
     /**

@@ -23,6 +23,7 @@ import br.com.tecpontes.appfinanceiro.databinding.ActivityDashboardBinding;
 import br.com.tecpontes.appfinanceiro.model.DashboardDto;
 import br.com.tecpontes.appfinanceiro.ui.BottomNavigationHelper;
 import br.com.tecpontes.appfinanceiro.ui.auth.LoginActivity;
+import br.com.tecpontes.appfinanceiro.ui.notifications.NotificationHistoryActivity;
 import br.com.tecpontes.appfinanceiro.ui.transactions.TransactionsActivity;
 import br.com.tecpontes.appfinanceiro.utils.TokenManager;
 import br.com.tecpontes.appfinanceiro.utils.SessionExpiredNavigation;
@@ -100,6 +101,14 @@ public class DashboardActivity extends AppCompatActivity {
         Log.d(TAG, "DashboardActivity criada");
     }
 
+    @Override
+    protected void onResume() {
+        super.onResume();
+        if (dashboardViewModel != null) {
+            dashboardViewModel.loadUnreadNotifications();
+        }
+    }
+
     /**
      * Configura RecyclerView para transações recentes
      */
@@ -165,6 +174,19 @@ public class DashboardActivity extends AppCompatActivity {
             }
         });
 
+        dashboardViewModel.unreadNotifications.observe(this, this::renderNotificationBadge);
+
+    }
+
+    private void renderNotificationBadge(@Nullable Integer count) {
+        if (binding == null) return;
+        int unread = count == null ? 0 : count;
+        if (unread <= 0) {
+            binding.notificationsBadgeTextView.setVisibility(View.GONE);
+            return;
+        }
+        binding.notificationsBadgeTextView.setText(unread > 9 ? "9+" : String.valueOf(unread));
+        binding.notificationsBadgeTextView.setVisibility(View.VISIBLE);
     }
 
     /**
@@ -180,6 +202,12 @@ public class DashboardActivity extends AppCompatActivity {
         // Botão de sincronizar
         binding.syncButton.setOnClickListener(v -> {
             dashboardViewModel.syncAccounts();
+        });
+
+        // Sino de notificações
+        binding.notificationsButton.setOnClickListener(v -> {
+            Intent intent = new Intent(this, NotificationHistoryActivity.class);
+            startActivity(intent);
         });
 
         // Card de adicionar transação

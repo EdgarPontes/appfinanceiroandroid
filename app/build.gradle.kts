@@ -88,6 +88,9 @@ dependencies {
     implementation(libs.glide)
     kapt("com.github.bumptech.glide:compiler:4.16.0")
 
+    // Trabalho em segundo plano (notificações locais)
+    implementation(libs.androidx.work.runtime)
+
     // Testing
     testImplementation(libs.junit)
     androidTestImplementation(libs.androidx.junit)

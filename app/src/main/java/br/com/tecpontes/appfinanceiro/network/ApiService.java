@@ -9,11 +9,17 @@ import br.com.tecpontes.appfinanceiro.model.AuthRequest;
 import br.com.tecpontes.appfinanceiro.model.AuthResponse;
 import br.com.tecpontes.appfinanceiro.model.BalanceHistoryDto;
 import br.com.tecpontes.appfinanceiro.model.CategoryDto;
+import br.com.tecpontes.appfinanceiro.model.CategoryGoalDto;
+import br.com.tecpontes.appfinanceiro.model.CategoryGoalRequestDto;
 import br.com.tecpontes.appfinanceiro.model.DashboardDto;
 import br.com.tecpontes.appfinanceiro.model.CreditCardDto;
 import br.com.tecpontes.appfinanceiro.model.CreditCardRequestDto;
+import br.com.tecpontes.appfinanceiro.model.ImportCategoryGoalsRequestDto;
 import br.com.tecpontes.appfinanceiro.model.InvoiceDetailsDto;
 import br.com.tecpontes.appfinanceiro.model.InvoicePaymentRequestDto;
+import br.com.tecpontes.appfinanceiro.model.MessageConfigDto;
+import br.com.tecpontes.appfinanceiro.model.MessageLogDto;
+import br.com.tecpontes.appfinanceiro.model.MessageLogsResponseDto;
 import br.com.tecpontes.appfinanceiro.model.ReconciliationRequestDto;
 import br.com.tecpontes.appfinanceiro.model.ReconciliationSummaryDto;
 import br.com.tecpontes.appfinanceiro.model.ReconciliationPreviewRequestDto;
@@ -27,6 +33,8 @@ import br.com.tecpontes.appfinanceiro.model.ProfileUpdateRequestDto;
 import br.com.tecpontes.appfinanceiro.model.TransactionDto;
 import br.com.tecpontes.appfinanceiro.model.TransactionListItemDto;
 import br.com.tecpontes.appfinanceiro.model.TransactionWriteDto;
+import br.com.tecpontes.appfinanceiro.model.UserSettingsDto;
+import br.com.tecpontes.appfinanceiro.model.UserSettingsUpdateRequestDto;
 import java.util.List;
 import okhttp3.MultipartBody;
 import retrofit2.Call;
@@ -35,6 +43,7 @@ import retrofit2.http.DELETE;
 import retrofit2.http.GET;
 import retrofit2.http.HTTP;
 import retrofit2.http.Multipart;
+import retrofit2.http.PATCH;
 import retrofit2.http.POST;
 import retrofit2.http.PUT;
 import retrofit2.http.Part;
@@ -208,4 +217,72 @@ public interface ApiService {
     @Multipart
     @POST("import/ofx")
     Call<List<TransactionDto>> importOfx(@Part MultipartBody.Part file);
+
+    // ========== CONFIGURAÇÕES DO USUÁRIO ==========
+
+    @GET("user/settings")
+    Call<UserSettingsDto> getUserSettings();
+
+    @PUT("user/settings")
+    Call<UserSettingsDto> updateUserSettings(@Body UserSettingsUpdateRequestDto request);
+
+    // ========== NOTIFICAÇÕES ==========
+
+    @GET("message-configs")
+    Call<List<MessageConfigDto>> getMessageConfigs();
+
+    @POST("message-configs")
+    Call<MessageConfigDto> createMessageConfig(@Body MessageConfigDto request);
+
+    @POST("message-configs/defaults")
+    Call<ResponseBody> createDefaultMessageConfigs();
+
+    @PUT("message-configs/{id}")
+    Call<MessageConfigDto> updateMessageConfig(
+            @Path("id") String id,
+            @Body MessageConfigDto request
+    );
+
+    @PATCH("message-configs/{id}")
+    Call<MessageConfigDto> patchMessageConfig(
+            @Path("id") String id,
+            @Body MessageConfigDto request
+    );
+
+    @DELETE("message-configs/{id}")
+    Call<ResponseBody> deleteMessageConfig(@Path("id") String id);
+
+    @GET("message-logs")
+    Call<MessageLogsResponseDto> getMessageLogs(
+            @Query("limit") int limit,
+            @Query("offset") int offset,
+            @Query("searchTerm") @Nullable String searchTerm,
+            @Query("type") @Nullable String type,
+            @Query("status") @Nullable String status,
+            @Query("priority") @Nullable String priority,
+            @Query("showArchived") @Nullable String showArchived
+    );
+
+    @POST("message-logs/{id}/read")
+    Call<MessageLogDto> markMessageLogAsRead(@Path("id") String id);
+
+    @POST("message-logs/{id}/archive")
+    Call<MessageLogDto> archiveMessageLog(@Path("id") String id);
+
+    @DELETE("message-logs/{id}")
+    Call<ResponseBody> deleteMessageLog(@Path("id") String id);
+
+    // ========== METAS POR CATEGORIA ==========
+
+    @GET("category-goals")
+    Call<List<CategoryGoalDto>> getCategoryGoals(
+            @Query("referenceMonth") @Nullable Integer referenceMonth,
+            @Query("referenceYear") @Nullable Integer referenceYear
+    );
+
+    @POST("category-goals")
+    Call<CategoryGoalDto> upsertCategoryGoal(@Body CategoryGoalRequestDto request);
+
+    @POST("category-goals/import")
+    Call<ResponseBody> importCategoryGoals(@Body ImportCategoryGoalsRequestDto request);
 }

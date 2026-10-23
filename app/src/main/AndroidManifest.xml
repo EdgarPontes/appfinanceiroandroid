@@ -3,6 +3,7 @@
     xmlns:tools="http://schemas.android.com/tools">
 
     <uses-permission android:name="android.permission.INTERNET" />
+    <uses-permission android:name="android.permission.POST_NOTIFICATIONS" />
 
     <application
         android:name=".AppFinanceiroApplication"
@@ -67,6 +68,24 @@
             android:name=".ui.profile.ProfileActivity"
             android:exported="false"
             android:label="Perfil"
+            android:theme="@style/Theme.Appfinanceiro" />
+
+        <activity
+            android:name=".ui.settings.SettingsActivity"
+            android:exported="false"
+            android:label="Configurações"
+            android:theme="@style/Theme.Appfinanceiro" />
+
+        <activity
+            android:name=".ui.notifications.NotificationsActivity"
+            android:exported="false"
+            android:label="Notificações"
+            android:theme="@style/Theme.Appfinanceiro" />
+
+        <activity
+            android:name=".ui.notifications.NotificationHistoryActivity"
+            android:exported="false"
+            android:label="Histórico de Notificações"
             android:theme="@style/Theme.Appfinanceiro" />
 
         <activity

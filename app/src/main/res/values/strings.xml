@@ -1,3 +1,125 @@
+<?xml version="1.0" encoding="utf-8"?>
 <resources>
+
     <string name="app_name">appfinanceiro</string>
+
+    <!-- Configurações -->
+    <string name="settings_title">Configurações</string>
+    <string name="settings_financial_goals">Metas Financeiras</string>
+    <string name="settings_savings_label">Meta de Poupança Mensal (%)</string>
+    <string name="settings_savings_hint">20</string>
+    <string name="settings_savings_helper">Porcentagem da receita que você deseja poupar mensalmente</string>
+    <string name="settings_budget_label">Meta de Orçamento Mensal (R$)</string>
+    <string name="settings_budget_hint">5000.00</string>
+    <string name="settings_budget_helper">Valor máximo que você planeja gastar mensalmente (opcional)</string>
+    <string name="settings_alert_label">Alerta de Gastos (%)</string>
+    <string name="settings_alert_helper">Porcentagem do orçamento mensal que dispara alertas</string>
+    <string name="settings_currency_label">Moeda</string>
+    <string name="settings_currency_helper">Moeda padrão do sistema (atualmente apenas BRL suportado)</string>
+    <string name="settings_save_goals">Salvar Metas Financeiras</string>
+    <string name="settings_dnd_title">Não Perturbe (DND)</string>
+    <string name="settings_dnd_switch">Ativar Modo Silencioso</string>
+    <string name="settings_dnd_helper">Não receber notificações push durante o horário definido.</string>
+    <string name="settings_dnd_start">Início</string>
+    <string name="settings_dnd_end">Fim</string>
+    <string name="settings_save_dnd">Salvar Configurações DND</string>
+    <string name="settings_retention_title">Retenção de Notificações</string>
+    <string name="settings_retention_label">Período de retenção (dias)</string>
+    <string name="settings_retention_helper">Notificações excluídas ficam em lixeira por este período antes da purga automática (7-365 dias). Padrão 90.</string>
+    <string name="settings_save_retention">Salvar Retenção</string>
+    <string name="settings_category_goals_title">Metas por Categoria</string>
+    <string name="settings_import_goals">Importar Metas</string>
+    <string name="settings_category_goals_helper">Defina um valor de meta para cada categoria no mês atual.</string>
+    <string name="settings_save_category_goals">Salvar Metas por Categoria</string>
+    <string name="settings_goal_label">Meta (R$)</string>
+    <string name="settings_saved">Suas configurações foram salvas.</string>
+    <string name="settings_saving">Salvando...</string>
+    <string name="settings_import_title">Importar Metas de Mês Anterior</string>
+    <string name="settings_import_helper">Selecione o mês e ano de origem para importar as metas para o mês atual.</string>
+    <string name="settings_import_month">Mês</string>
+    <string name="settings_import_year">Ano</string>
+    <string name="settings_import_confirm">Confirmar Importação</string>
+    <string name="settings_importing">Importando...</string>
+    <string name="settings_month_hint">Selecione o mês</string>
+    <string name="settings_year_hint">2026</string>
+
+    <!-- Notificações -->
+    <string name="notifications_title">Notificações</string>
+    <string name="notifications_subtitle">Ative, desative e configure suas notificações e lembretes automáticos.</string>
+    <string name="notifications_financial_title">Notificações Financeiras</string>
+    <string name="notifications_create_defaults">Criar configurações padrão</string>
+    <string name="notifications_custom_title">Lembretes Personalizados</string>
+    <string name="notifications_create_reminder">Criar Lembrete</string>
+    <string name="notifications_empty">Você ainda não tem lembretes personalizados.</string>
+    <string name="notifications_device_title">Notificações do Aparelho</string>
+    <string name="notifications_device_helper">Receba alertas das suas notificações financeiras neste aparelho.</string>
+    <string name="notifications_device_enabled">Ativadas</string>
+    <string name="notifications_device_disabled">Desativadas</string>
+    <string name="notifications_device_blocked">Bloqueadas nas configurações do sistema</string>
+    <string name="notifications_device_enable">Ativar notificações</string>
+    <string name="notifications_device_disable">Desativar notificações</string>
+    <string name="notifications_history">Ver histórico de notificações</string>
+    <string name="notifications_error_loading">Não foi possível carregar as notificações.</string>
+
+    <string name="notification_create_title">Criar Lembrete Personalizado</string>
+    <string name="notification_create_desc">Crie um novo lembrete para ser notificado no futuro.</string>
+    <string name="notification_field_title">Título</string>
+    <string name="notification_field_title_hint">Ex: Trocar óleo do carro</string>
+    <string name="notification_field_text">Texto do Lembrete</string>
+    <string name="notification_field_text_hint">Ex: Lembrete para trocar o óleo do carro</string>
+    <string name="notification_field_date">Data do Lembrete</string>
+    <string name="notification_field_date_hint">Escolha uma data</string>
+    <string name="notification_field_recurrence">Recorrência</string>
+    <string name="notification_recurrence_none">Nenhuma</string>
+    <string name="notification_recurrence_daily">Diária</string>
+    <string name="notification_recurrence_weekly">Semanal</string>
+    <string name="notification_recurrence_monthly">Mensal</string>
+    <string name="notification_recurrence_annually">Anual</string>
+    <string name="notification_save">Salvar</string>
+    <string name="notification_edit_title">Editar Template de Notificação</string>
+    <string name="notification_edit_desc">Edite o título, texto e prioridade deste template de notificação.</string>
+    <string name="notification_field_priority">Prioridade</string>
+    <string name="notification_priority_low">Baixa</string>
+    <string name="notification_priority_medium">Média</string>
+    <string name="notification_priority_high">Alta</string>
+    <string name="notification_priority_critical">Crítica</string>
+    <string name="notification_placeholders">Placeholders disponíveis</string>
+    <string name="notification_insert">Inserir</string>
+    <string name="notification_save_changes">Salvar Alterações</string>
+    <string name="notification_required_title">Informe um título.</string>
+    <string name="notification_required_text">Informe o texto.</string>
+
+    <!-- Histórico -->
+    <string name="history_title">Histórico de Notificações</string>
+    <string name="history_subtitle">Visualize e gerencie todas as suas notificações passadas e arquivadas.</string>
+    <string name="history_refresh">Atualizar</string>
+    <string name="history_mark_all">Marcar todas como lidas</string>
+    <string name="history_search_hint">Buscar no histórico...</string>
+    <string name="history_filters">Filtros</string>
+    <string name="history_filter_type">Tipo</string>
+    <string name="history_type_all">Todos os tipos</string>
+    <string name="history_type_success">Sucesso</string>
+    <string name="history_type_info">Informativas</string>
+    <string name="history_type_alert">Alertas</string>
+    <string name="history_archive_section">Arquivo</string>
+    <string name="history_show_archived">Mostrar Arquivadas</string>
+    <string name="history_clear_filters">Limpar Filtros</string>
+    <string name="history_clear_all">Limpar todos os filtros</string>
+    <string name="history_loading">Carregando histórico...</string>
+    <string name="history_empty_title">Nenhuma notificação encontrada</string>
+    <string name="history_empty_desc">Não encontramos nenhuma notificação com os filtros aplicados.</string>
+    <string name="history_action_read">Marcar como lida</string>
+    <string name="history_action_archive">Arquivar</string>
+    <string name="history_action_delete">Excluir</string>
+    <string name="history_delete_title">Excluir notificação</string>
+    <string name="history_delete_message">Deseja excluir esta notificação? Ela ficará na lixeira pelo período de retenção configurado.</string>
+    <string name="history_delete_confirm">Excluir</string>
+    <string name="history_cancel">Cancelar</string>
+    <string name="history_notification_fallback">Notificação</string>
+    <string name="history_no_description">Sem descrição</string>
+
+    <!-- Dashboard -->
+    <string name="dashboard_open_notifications">Abrir notificações</string>
+    <string name="action_back">Voltar</string>
+
 </resources>

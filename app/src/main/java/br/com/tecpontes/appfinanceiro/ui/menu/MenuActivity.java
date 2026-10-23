@@ -7,6 +7,8 @@ import androidx.annotation.Nullable;
 import androidx.appcompat.app.AppCompatActivity;
 import br.com.tecpontes.appfinanceiro.R;
 import br.com.tecpontes.appfinanceiro.ui.BottomNavigationHelper;
+import br.com.tecpontes.appfinanceiro.ui.notifications.NotificationsActivity;
+import br.com.tecpontes.appfinanceiro.ui.settings.SettingsActivity;
 import br.com.tecpontes.appfinanceiro.ui.transactions.TransactionsActivity;
 import br.com.tecpontes.appfinanceiro.ui.profile.ProfileActivity;
 
@@ -44,9 +46,16 @@ public class MenuActivity extends AppCompatActivity {
                 openImport(view);
                 return;
             }
-            Intent intent = FeatureDestinationActivity.PROFILE.equals(destination)
-                    ? new Intent(this, ProfileActivity.class)
-                    : FeatureDestinationActivity.createIntent(this, destination);
+            Intent intent;
+            if (FeatureDestinationActivity.PROFILE.equals(destination)) {
+                intent = new Intent(this, ProfileActivity.class);
+            } else if (FeatureDestinationActivity.SETTINGS.equals(destination)) {
+                intent = new Intent(this, SettingsActivity.class);
+            } else if (FeatureDestinationActivity.NOTIFICATIONS.equals(destination)) {
+                intent = new Intent(this, NotificationsActivity.class);
+            } else {
+                intent = FeatureDestinationActivity.createIntent(this, destination);
+            }
             intent.addFlags(Intent.FLAG_ACTIVITY_CLEAR_TOP | Intent.FLAG_ACTIVITY_SINGLE_TOP);
             startActivity(intent);
             overridePendingTransition(0, 0);

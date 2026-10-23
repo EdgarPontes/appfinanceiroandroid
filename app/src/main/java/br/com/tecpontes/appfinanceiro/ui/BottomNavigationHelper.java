@@ -4,12 +4,12 @@ import android.app.Activity;
 import android.content.Intent;
 import android.view.View;
 import androidx.annotation.IdRes;
+import androidx.annotation.Nullable;
 import androidx.core.graphics.Insets;
 import androidx.core.view.ViewCompat;
 import androidx.core.view.WindowInsetsCompat;
 import br.com.tecpontes.appfinanceiro.R;
 import br.com.tecpontes.appfinanceiro.ui.dashboard.DashboardActivity;
-import br.com.tecpontes.appfinanceiro.ui.menu.FeatureDestinationActivity;
 import br.com.tecpontes.appfinanceiro.ui.menu.MenuActivity;
 import br.com.tecpontes.appfinanceiro.ui.transactions.TransactionsActivity;
 import br.com.tecpontes.appfinanceiro.ui.cards.CardsActivity;
@@ -47,27 +47,30 @@ public final class BottomNavigationHelper {
         bottomNavigation.setSelectedItemId(selectedItemId);
         bottomNavigation.setOnItemSelectedListener(item -> {
             int itemId = item.getItemId();
-            if (itemId == selectedItemId) return true;
+            Class<?> destination = rootDestinationFor(itemId);
+            if (destination == null) return false;
 
-            Intent intent;
-            if (itemId == R.id.navigation_dashboard) {
-                intent = new Intent(activity, DashboardActivity.class);
-            } else if (itemId == R.id.navigation_transactions) {
-                intent = new Intent(activity, TransactionsActivity.class);
-            } else if (itemId == R.id.navigation_menu) {
-                intent = new Intent(activity, MenuActivity.class);
-            } else if (itemId == R.id.navigation_cards) {
-                intent = new Intent(activity, CardsActivity.class);
-            } else if (itemId == R.id.navigation_accounts) {
-                intent = new Intent(activity, AccountsActivity.class);
-            } else {
-                return false;
-            }
+            // Em telas secundárias (Perfil, Configurações, Notificações, Histórico, Importar
+            // extrato...), tocar na aba já selecionada volta para a raiz daquela aba. O
+            // CLEAR_TOP reaproveita a instância existente e preserva o estado da tela raiz.
+            if (itemId == selectedItemId && destination.isInstance(activity)) return true;
 
+            Intent intent = new Intent(activity, destination);
             intent.addFlags(Intent.FLAG_ACTIVITY_CLEAR_TOP | Intent.FLAG_ACTIVITY_SINGLE_TOP);
             activity.startActivity(intent);
             activity.overridePendingTransition(0, 0);
             return true;
         });
+    }
+
+    /** Tela raiz associada a cada item da barra inferior. */
+    @Nullable
+    private static Class<?> rootDestinationFor(@IdRes int itemId) {
+        if (itemId == R.id.navigation_dashboard) return DashboardActivity.class;
+        if (itemId == R.id.navigation_transactions) return TransactionsActivity.class;
+        if (itemId == R.id.navigation_cards) return CardsActivity.class;
+        if (itemId == R.id.navigation_accounts) return AccountsActivity.class;
+        if (itemId == R.id.navigation_menu) return MenuActivity.class;
+        return null;
     }
 }

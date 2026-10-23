@@ -49,6 +49,7 @@ public class ProfileActivity extends AppCompatActivity {
         EdgeToEdge.enable(this);
         binding = ActivityProfileBinding.inflate(getLayoutInflater());
         setContentView(binding.getRoot());
+        binding.toolbar.setNavigationOnClickListener(v -> finish());
         BottomNavigationHelper.setup(this, R.id.navigation_menu);
         BottomNavigationHelper.applyEdgeToEdgeInsets(binding.getRoot());
         viewModel = new ViewModelProvider(this).get(ProfileViewModel.class);

@@ -11,6 +11,7 @@ import br.com.tecpontes.appfinanceiro.model.BalanceHistoryDto;
 import br.com.tecpontes.appfinanceiro.model.CategoryDto;
 import br.com.tecpontes.appfinanceiro.model.CategoryGoalDto;
 import br.com.tecpontes.appfinanceiro.model.CategoryGoalRequestDto;
+import br.com.tecpontes.appfinanceiro.model.CategoryRequestDto;
 import br.com.tecpontes.appfinanceiro.model.DashboardDto;
 import br.com.tecpontes.appfinanceiro.model.CreditCardDto;
 import br.com.tecpontes.appfinanceiro.model.CreditCardRequestDto;
@@ -201,6 +202,21 @@ public interface ApiService {
 
     @GET("categories")
     Call<List<CategoryDto>> getCategories(@Query("type") @Nullable String type);
+
+    @POST("categories")
+    Call<CategoryDto> createCategory(@Body CategoryRequestDto request);
+
+    @PUT("categories/{id}")
+    Call<CategoryDto> updateCategory(
+            @Path("id") String id,
+            @Body CategoryRequestDto request
+    );
+
+    @DELETE("categories/{id}")
+    Call<ResponseBody> deleteCategory(@Path("id") String id);
+
+    @POST("categories/defaults")
+    Call<ResponseBody> createDefaultCategories();
 
     // ========== DASHBOARD ==========
 

@@ -7,6 +7,7 @@ import androidx.annotation.Nullable;
 import androidx.appcompat.app.AppCompatActivity;
 import br.com.tecpontes.appfinanceiro.R;
 import br.com.tecpontes.appfinanceiro.ui.BottomNavigationHelper;
+import br.com.tecpontes.appfinanceiro.ui.categories.CategoriesActivity;
 import br.com.tecpontes.appfinanceiro.ui.notifications.NotificationsActivity;
 import br.com.tecpontes.appfinanceiro.ui.settings.SettingsActivity;
 import br.com.tecpontes.appfinanceiro.ui.transactions.TransactionsActivity;
@@ -53,6 +54,8 @@ public class MenuActivity extends AppCompatActivity {
                 intent = new Intent(this, SettingsActivity.class);
             } else if (FeatureDestinationActivity.NOTIFICATIONS.equals(destination)) {
                 intent = new Intent(this, NotificationsActivity.class);
+            } else if (FeatureDestinationActivity.CATEGORIES.equals(destination)) {
+                intent = new Intent(this, CategoriesActivity.class);
             } else {
                 intent = FeatureDestinationActivity.createIntent(this, destination);
             }

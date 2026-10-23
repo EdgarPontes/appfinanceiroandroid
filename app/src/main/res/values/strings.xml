@@ -122,4 +122,40 @@
     <string name="dashboard_open_notifications">Abrir notificações</string>
     <string name="action_back">Voltar</string>
 
+    <!-- Categorias -->
+    <string name="categories_title">Categorias</string>
+    <string name="categories_subtitle">Organize suas transações por categorias</string>
+    <string name="categories_tab_expenses">Despesas</string>
+    <string name="categories_tab_income">Receitas</string>
+    <string name="categories_empty_title">Nenhuma categoria encontrada</string>
+    <string name="categories_empty_expense">Crie categorias para organizar suas despesas.</string>
+    <string name="categories_empty_income">Crie categorias para organizar suas receitas.</string>
+    <string name="categories_new">Nova Categoria</string>
+    <string name="categories_create_defaults">Criar Categorias Padrão</string>
+    <string name="categories_new_content_desc">Nova categoria</string>
+    <string name="categories_edit_desc">Editar</string>
+    <string name="categories_delete_desc">Excluir</string>
+    <string name="categories_dialog_new_title">Nova Categoria</string>
+    <string name="categories_dialog_edit_title">Editar Categoria</string>
+    <string name="categories_name_label">Nome da Categoria *</string>
+    <string name="categories_name_hint">Ex: Alimentação</string>
+    <string name="categories_type_label">Tipo *</string>
+    <string name="categories_type_expense">Despesa</string>
+    <string name="categories_type_income">Receita</string>
+    <string name="categories_parent_label">Categoria Pai (Opcional)</string>
+    <string name="categories_parent_none">Nenhuma</string>
+    <string name="categories_color_label">Cor *</string>
+    <string name="categories_color_hex_hint">#RRGGBB</string>
+    <string name="categories_cancel">Cancelar</string>
+    <string name="categories_create">Criar Categoria</string>
+    <string name="categories_update">Atualizar</string>
+    <string name="categories_saving">Salvando...</string>
+    <string name="categories_error_name">Informe o nome da categoria.</string>
+    <string name="categories_error_color">Informe uma cor válida no formato #RRGGBB.</string>
+    <string name="categories_error_clear_parent">Não é possível remover a categoria pai nesta versão. Escolha outra categoria pai.</string>
+    <string name="categories_delete_title">Você tem certeza?</string>
+    <string name="categories_delete_message">Você está prestes a excluir a categoria "%1$s". Essa ação não pode ser desfeita.</string>
+    <string name="categories_delete_confirm">Confirmar Exclusão</string>
+    <string name="categories_deleting">Excluindo...</string>
+
 </resources>

@@ -57,6 +57,16 @@
         <item>critical</item>
     </string-array>
 
+    <string-array name="category_type_labels">
+        <item>@string/categories_type_expense</item>
+        <item>@string/categories_type_income</item>
+    </string-array>
+
+    <string-array name="category_type_values">
+        <item>EXPENSE</item>
+        <item>INCOME</item>
+    </string-array>
+
     <string-array name="month_values">
         <item>01</item>
         <item>02</item>

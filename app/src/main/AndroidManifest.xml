@@ -77,6 +77,12 @@
             android:theme="@style/Theme.Appfinanceiro" />
 
         <activity
+            android:name=".ui.categories.CategoriesActivity"
+            android:exported="false"
+            android:label="Categorias"
+            android:theme="@style/Theme.Appfinanceiro" />
+
+        <activity
             android:name=".ui.notifications.NotificationsActivity"
             android:exported="false"
             android:label="Notificações"

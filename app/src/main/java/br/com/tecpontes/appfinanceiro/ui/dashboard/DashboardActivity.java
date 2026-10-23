@@ -25,6 +25,7 @@ import br.com.tecpontes.appfinanceiro.ui.BottomNavigationHelper;
 import br.com.tecpontes.appfinanceiro.ui.auth.LoginActivity;
 import br.com.tecpontes.appfinanceiro.ui.transactions.TransactionsActivity;
 import br.com.tecpontes.appfinanceiro.utils.TokenManager;
+import br.com.tecpontes.appfinanceiro.utils.SessionExpiredNavigation;
 import br.com.tecpontes.appfinanceiro.viewmodel.DashboardViewModel;
 import dagger.hilt.android.AndroidEntryPoint;
 import java.text.NumberFormat;
@@ -86,6 +87,7 @@ public class DashboardActivity extends AppCompatActivity {
 
         // Configura observadores
         setupObservers();
+        SessionExpiredNavigation.observe(this, tokenManager);
 
         // Configura listeners
         setupListeners();

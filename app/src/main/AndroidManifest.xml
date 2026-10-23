@@ -46,6 +46,12 @@
             android:theme="@style/Theme.Appfinanceiro" />
 
         <activity
+            android:name=".ui.cards.CardsActivity"
+            android:exported="false"
+            android:label="Cartões"
+            android:theme="@style/Theme.Appfinanceiro" />
+
+        <activity
             android:name=".ui.menu.MenuActivity"
             android:exported="false"
             android:label="Menu"

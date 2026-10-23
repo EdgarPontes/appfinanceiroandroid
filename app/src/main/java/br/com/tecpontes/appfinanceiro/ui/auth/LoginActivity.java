@@ -15,8 +15,10 @@ import androidx.core.view.WindowInsetsCompat;
 import androidx.lifecycle.ViewModelProvider;
 import br.com.tecpontes.appfinanceiro.databinding.ActivityLoginBinding;
 import br.com.tecpontes.appfinanceiro.ui.dashboard.DashboardActivity;
+import br.com.tecpontes.appfinanceiro.utils.TokenManager;
 import br.com.tecpontes.appfinanceiro.viewmodel.LoginViewModel;
 import dagger.hilt.android.AndroidEntryPoint;
+import javax.inject.Inject;
 
 /**
  * Activity para tela de login
@@ -25,9 +27,13 @@ import dagger.hilt.android.AndroidEntryPoint;
 public class LoginActivity extends AppCompatActivity {
 
     private static final String TAG = "LoginActivity";
+    public static final String EXTRA_SESSION_EXPIRED = "session_expired";
 
     private ActivityLoginBinding binding;
     private LoginViewModel loginViewModel;
+
+    @Inject
+    TokenManager tokenManager;
 
     @Override
     @SuppressWarnings("deprecation")
@@ -40,6 +46,11 @@ public class LoginActivity extends AppCompatActivity {
         // Infla layout com ViewBinding
         binding = ActivityLoginBinding.inflate(getLayoutInflater());
         setContentView(binding.getRoot());
+
+        boolean expiredSessionPending = tokenManager.consumeSessionExpiredEvent();
+        if (getIntent().getBooleanExtra(EXTRA_SESSION_EXPIRED, false) || expiredSessionPending) {
+            Toast.makeText(this, "Sua sessão expirou. Faça login novamente.", Toast.LENGTH_LONG).show();
+        }
 
         // Configura window insets
         ViewCompat.setOnApplyWindowInsetsListener(binding.getRoot(), (v, insets) -> {
@@ -119,7 +130,7 @@ public class LoginActivity extends AppCompatActivity {
             String email = binding.emailEditText.getText().toString().trim();
             String password = binding.passwordEditText.getText().toString().trim();
 
-            loginViewModel.login(email, password);
+            loginViewModel.login(email, password, binding.keepConnectedCheckBox.isChecked());
         });
 
         // Listener para botão de registro

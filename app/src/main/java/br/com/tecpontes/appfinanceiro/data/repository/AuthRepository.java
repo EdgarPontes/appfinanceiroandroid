@@ -34,8 +34,8 @@ public class AuthRepository {
     /**
      * Realiza login do usuário
      */
-    public void login(@NonNull String email, @NonNull String password,
-                     @NonNull AuthCallback callback) {
+    public void login(@NonNull String email, @NonNull String password, boolean keepConnected,
+                      @NonNull AuthCallback callback) {
         Log.d(TAG, "Tentando fazer login para: " + email);
 
         AuthRequest request = new AuthRequest(email, password);
@@ -54,9 +54,9 @@ public class AuthRepository {
                     }
 
                     // Salva token e dados do usuário
-                    tokenManager.saveToken(token);
+                    tokenManager.saveToken(token, keepConnected);
                     if (authResponse.getUser() != null) {
-                        tokenManager.saveUserEmail(authResponse.getUser().getEmail());
+                        tokenManager.saveUserEmail(authResponse.getUser().getEmail(), keepConnected);
                     }
 
                     Log.d(TAG, "Login realizado com sucesso");
@@ -92,15 +92,7 @@ public class AuthRepository {
                 if (response.isSuccessful() && response.body() != null) {
                     AuthResponse authResponse = response.body();
 
-                    // O endpoint de cadastro retorna apenas uma mensagem; não inicia sessão.
-                    String token = authResponse.getToken();
-                    if (token != null && !token.trim().isEmpty()) {
-                        tokenManager.saveToken(token);
-                    }
-                    if (authResponse.getUser() != null) {
-                        tokenManager.saveUserEmail(authResponse.getUser().getEmail());
-                    }
-
+                    // O cadastro não inicia sessão; a autenticação é feita pelo fluxo de login.
                     Log.d(TAG, "Registro realizado com sucesso");
                     callback.onSuccess(authResponse);
                 } else {

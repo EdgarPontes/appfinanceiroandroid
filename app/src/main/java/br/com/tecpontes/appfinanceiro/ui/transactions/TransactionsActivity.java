@@ -29,8 +29,11 @@ import br.com.tecpontes.appfinanceiro.databinding.ActivityTransactionsBinding;
 import br.com.tecpontes.appfinanceiro.model.TransactionListItemDto;
 import br.com.tecpontes.appfinanceiro.model.TransactionWriteDto;
 import br.com.tecpontes.appfinanceiro.ui.BottomNavigationHelper;
+import br.com.tecpontes.appfinanceiro.utils.SessionExpiredNavigation;
+import br.com.tecpontes.appfinanceiro.utils.TokenManager;
 import br.com.tecpontes.appfinanceiro.viewmodel.TransactionsViewModel;
 import dagger.hilt.android.AndroidEntryPoint;
+import javax.inject.Inject;
 import java.text.NumberFormat;
 import java.text.SimpleDateFormat;
 import java.text.DateFormatSymbols;
@@ -54,6 +57,9 @@ public class TransactionsActivity extends AppCompatActivity {
     private ActivityTransactionsBinding binding;
     private TransactionsViewModel transactionsViewModel;
     private TransactionsAdapter transactionsAdapter;
+
+    @Inject
+    TokenManager tokenManager;
 
     private ActivityResultLauncher<String[]> ofxFilePickerLauncher;
 
@@ -96,6 +102,7 @@ public class TransactionsActivity extends AppCompatActivity {
         setupOfxFilePicker();
         setupFilters();
         setupObservers();
+        SessionExpiredNavigation.observe(this, tokenManager);
         setupListeners();
         loadInitialData();
         if (getIntent().getBooleanExtra(EXTRA_OPEN_IMPORT, false)) {

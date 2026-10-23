@@ -12,6 +12,7 @@ import br.com.tecpontes.appfinanceiro.ui.dashboard.DashboardActivity;
 import br.com.tecpontes.appfinanceiro.ui.menu.FeatureDestinationActivity;
 import br.com.tecpontes.appfinanceiro.ui.menu.MenuActivity;
 import br.com.tecpontes.appfinanceiro.ui.transactions.TransactionsActivity;
+import br.com.tecpontes.appfinanceiro.ui.cards.CardsActivity;
 import com.google.android.material.bottomnavigation.BottomNavigationView;
 
 /** Liga a barra inferior às telas principais do aplicativo. */
@@ -55,8 +56,7 @@ public final class BottomNavigationHelper {
             } else if (itemId == R.id.navigation_menu) {
                 intent = new Intent(activity, MenuActivity.class);
             } else if (itemId == R.id.navigation_cards) {
-                intent = FeatureDestinationActivity.createIntent(
-                        activity, FeatureDestinationActivity.CARDS);
+                intent = new Intent(activity, CardsActivity.class);
             } else if (itemId == R.id.navigation_accounts) {
                 intent = FeatureDestinationActivity.createIntent(
                         activity, FeatureDestinationActivity.ACCOUNTS);

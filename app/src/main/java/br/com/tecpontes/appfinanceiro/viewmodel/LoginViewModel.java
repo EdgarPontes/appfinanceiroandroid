@@ -49,7 +49,7 @@ public class LoginViewModel extends ViewModel {
     /**
      * Realiza login do usuário
      */
-    public void login(@NonNull String email, @NonNull String password) {
+    public void login(@NonNull String email, @NonNull String password, boolean keepConnected) {
         Log.d(TAG, "Tentando login para: " + email);
 
         // Valida formulário
@@ -61,7 +61,7 @@ public class LoginViewModel extends ViewModel {
         _loading.setValue(true);
         _error.setValue(null);
 
-        authRepository.login(email, password, new AuthRepository.AuthCallback() {
+        authRepository.login(email, password, keepConnected, new AuthRepository.AuthCallback() {
             @Override
             public void onSuccess(AuthResponse response) {
                 _loading.postValue(false);

@@ -8,6 +8,10 @@ import br.com.tecpontes.appfinanceiro.model.AuthResponse;
 import br.com.tecpontes.appfinanceiro.model.BalanceHistoryDto;
 import br.com.tecpontes.appfinanceiro.model.CategoryDto;
 import br.com.tecpontes.appfinanceiro.model.DashboardDto;
+import br.com.tecpontes.appfinanceiro.model.CreditCardDto;
+import br.com.tecpontes.appfinanceiro.model.InvoiceDetailsDto;
+import br.com.tecpontes.appfinanceiro.model.InvoicePaymentRequestDto;
+import br.com.tecpontes.appfinanceiro.model.ReconciliationRequestDto;
 import br.com.tecpontes.appfinanceiro.model.TransactionDto;
 import br.com.tecpontes.appfinanceiro.model.TransactionListItemDto;
 import br.com.tecpontes.appfinanceiro.model.TransactionWriteDto;
@@ -46,6 +50,30 @@ public interface ApiService {
     @POST("accounts")
     Call<AccountDto> createAccount(@Body AccountDto account);
 
+    // ========== CARTÕES E FATURAS ==========
+
+    @GET("cards/")
+    Call<List<CreditCardDto>> getCreditCards();
+
+    @GET("invoices/{cardId}/{year}/{month}")
+    Call<InvoiceDetailsDto> getInvoiceDetails(
+            @Path("cardId") String cardId,
+            @Path("year") int year,
+            @Path("month") int month
+    );
+
+    @POST("invoices/{id}/close")
+    Call<ResponseBody> closeInvoice(@Path("id") String invoiceId);
+
+    @POST("invoices/{id}/reopen")
+    Call<ResponseBody> reopenInvoice(@Path("id") String invoiceId);
+
+    @POST("invoices/{id}/pay")
+    Call<ResponseBody> payInvoice(
+            @Path("id") String invoiceId,
+            @Body InvoicePaymentRequestDto request
+    );
+
     // ========== TRANSAÇÕES ==========
 
     @GET("transactions")
@@ -82,6 +110,13 @@ public interface ApiService {
             @Path("id") String id,
             @Query("scope") @Nullable String scope
     );
+
+    @PUT("transactions/{id}/reconcile")
+    Call<ResponseBody> setTransactionReconciled(
+            @Path("id") String transactionId,
+            @Body ReconciliationRequestDto request
+    );
+
 
     // ========== CATEGORIAS ==========
 

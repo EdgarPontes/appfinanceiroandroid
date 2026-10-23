@@ -29,12 +29,13 @@ public class JwtInterceptor implements Interceptor {
     public Response intercept(@NonNull Chain chain) throws IOException {
         Request original = chain.request();
         String token = tokenManager.getToken();
+        boolean authenticatedRequest = token != null && !token.isEmpty();
 
         Log.d("JwtInterceptor", "Interceptando requisição para: " + original.url());
 
         // Adiciona o token JWT se disponível
         Request.Builder builder = original.newBuilder();
-        if (token != null && !token.isEmpty()) {
+        if (authenticatedRequest) {
             builder.header("Authorization", "Bearer " + token);
             Log.d("JwtInterceptor", "Token JWT adicionado à requisição");
         } else {
@@ -44,13 +45,10 @@ public class JwtInterceptor implements Interceptor {
         Request request = builder.build();
         Response response = chain.proceed(request);
 
-        // Trata resposta 401 (não autorizado)
-        if (response.code() == 401) {
-            Log.d("JwtInterceptor", "401 detectado — limpando token");
-            tokenManager.clearToken();
-
-            // TODO: Emitir evento para forçar tela de login
-            // Pode ser implementado com LiveData, EventBus ou Broadcast
+        // Trata expiração em qualquer endpoint que tenha recebido um token.
+        if (response.code() == 401 && authenticatedRequest) {
+            Log.d("JwtInterceptor", "401 detectado — encerrando sessão e notificando a interface");
+            tokenManager.notifySessionExpired();
         }
 
         return response;

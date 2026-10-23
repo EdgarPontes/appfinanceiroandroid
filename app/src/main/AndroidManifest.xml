@@ -64,6 +64,12 @@
             android:theme="@style/Theme.Appfinanceiro" />
 
         <activity
+            android:name=".ui.profile.ProfileActivity"
+            android:exported="false"
+            android:label="Perfil"
+            android:theme="@style/Theme.Appfinanceiro" />
+
+        <activity
             android:name=".ui.menu.MenuActivity"
             android:exported="false"
             android:label="Menu"

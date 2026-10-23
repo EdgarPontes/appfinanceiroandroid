@@ -8,6 +8,7 @@ import androidx.appcompat.app.AppCompatActivity;
 import br.com.tecpontes.appfinanceiro.R;
 import br.com.tecpontes.appfinanceiro.ui.BottomNavigationHelper;
 import br.com.tecpontes.appfinanceiro.ui.transactions.TransactionsActivity;
+import br.com.tecpontes.appfinanceiro.ui.profile.ProfileActivity;
 
 /** Menu para destinos secundários do aplicativo. */
 public class MenuActivity extends AppCompatActivity {
@@ -43,7 +44,9 @@ public class MenuActivity extends AppCompatActivity {
                 openImport(view);
                 return;
             }
-            Intent intent = FeatureDestinationActivity.createIntent(this, destination);
+            Intent intent = FeatureDestinationActivity.PROFILE.equals(destination)
+                    ? new Intent(this, ProfileActivity.class)
+                    : FeatureDestinationActivity.createIntent(this, destination);
             intent.addFlags(Intent.FLAG_ACTIVITY_CLEAR_TOP | Intent.FLAG_ACTIVITY_SINGLE_TOP);
             startActivity(intent);
             overridePendingTransition(0, 0);

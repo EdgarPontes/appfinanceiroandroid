@@ -20,6 +20,10 @@ import br.com.tecpontes.appfinanceiro.model.ReconciliationPreviewRequestDto;
 import br.com.tecpontes.appfinanceiro.model.ReconciliationPreviewDto;
 import br.com.tecpontes.appfinanceiro.model.ReconciliationConfirmRequestDto;
 import br.com.tecpontes.appfinanceiro.model.ReconciliationConfirmResultDto;
+import br.com.tecpontes.appfinanceiro.model.DeactivateAccountRequestDto;
+import br.com.tecpontes.appfinanceiro.model.PasswordUpdateRequestDto;
+import br.com.tecpontes.appfinanceiro.model.ProfileDto;
+import br.com.tecpontes.appfinanceiro.model.ProfileUpdateRequestDto;
 import br.com.tecpontes.appfinanceiro.model.TransactionDto;
 import br.com.tecpontes.appfinanceiro.model.TransactionListItemDto;
 import br.com.tecpontes.appfinanceiro.model.TransactionWriteDto;
@@ -29,6 +33,7 @@ import retrofit2.Call;
 import retrofit2.http.Body;
 import retrofit2.http.DELETE;
 import retrofit2.http.GET;
+import retrofit2.http.HTTP;
 import retrofit2.http.Multipart;
 import retrofit2.http.POST;
 import retrofit2.http.PUT;
@@ -49,6 +54,24 @@ public interface ApiService {
 
     @POST("auth/register")
     Call<AuthResponse> register(@Body AuthRequest request);
+
+    // ========== PERFIL ==========
+
+    @GET("me")
+    Call<ProfileDto> getMyProfile();
+
+    @PUT("users/profile")
+    Call<ResponseBody> updateMyProfile(@Body ProfileUpdateRequestDto request);
+
+    @PUT("me/password")
+    Call<ResponseBody> updateMyPassword(@Body PasswordUpdateRequestDto request);
+
+    @Multipart
+    @POST("me/avatar")
+    Call<ResponseBody> uploadMyAvatar(@Part MultipartBody.Part avatar);
+
+    @HTTP(method = "DELETE", path = "users/deactivate", hasBody = true)
+    Call<ResponseBody> deactivateMyAccount(@Body DeactivateAccountRequestDto request);
 
     // ========== CONTAS ==========
 

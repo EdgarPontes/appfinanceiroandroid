@@ -2,9 +2,9 @@
 
 Documento vivo para acompanhar a modernização visual do app, com etapas, critérios de aceite e conclusões.
 
-- **Status geral:** Fase 3 em andamento; Login, Dashboard, Transações, Criar/editar lançamento e Contas implementados; validação visual de `F3-04` e `F3-05` pendente.
+- **Status geral:** Fase 3 em andamento; Login, Dashboard, Transações, Criar/editar lançamento, Contas e Importação de extrato implementados.
 - **Última atualização:** 2026-10-24.
-- **Próximo passo:** validar `F3-04` e `F3-05` com prints em claro/escuro e seguir para `F3-06` (Importação de extrato).
+- **Próximo passo:** `F3-07` (Cartões).
 - **Responsável:** equipe de desenvolvimento Android.
 
 ## Como atualizar este documento
@@ -33,7 +33,7 @@ Documento vivo para acompanhar a modernização visual do app, com etapas, crit�
 | Fase 0 | Diagnóstico técnico e definição do plano | Concluído | 100% |
 | Fase 1 | Fundação visual: tokens, temas, estilos e drawables | Concluído | 100% |
 | Fase 2 | Migração global de cores fixas e preparação do dark mode | Concluído | 100% |
-| Fase 3 | Redesenho estrutural das telas | Em andamento | 45% |
+| Fase 3 | Redesenho estrutural das telas | Em andamento | 55% |
 | Fase 4 | Validação final, dark mode e QA | Pendente | 0% |
 
 ## Decisões consolidadas
@@ -121,9 +121,9 @@ Objetivo: aplicar a identidade Modern Tech & Sofisticado em cada tela, mantendo 
 | F3-01 | Login | `activity_login.xml`, `LoginActivity.java` | Estrutura moderna, CTA esmeralda, dark mode e estados de erro preservados. | Concluído | Branding em gradiente, `ModernCard`, `ModernTextInput`, CTA esmeralda e dark mode; IDs e estados de erro preservados; build OK. |
 | F3-02 | Dashboard | `activity_dashboard.xml`, `DashboardActivity.java` | Cards de saldo/patrimônio/resumo modernos e legíveis nos dois temas. | Concluído | Cards migrados para `ModernCard`, seletor de período estilizado, CTA esmeralda de adicionar transação, botão secundário outlined e itens recentes com `ModernListCard`; build OK. |
 | F3-03 | Transações | `activity_transactions.xml`, `TransactionsActivity.java` | Filtros, resumo, lista e FAB alinhados ao novo design. | Concluído | Toolbar e seletores modernizados, resumo em `ModernCard`, filtros tonal, FAB esmeralda e itens com `ModernListCard`; build OK. |
-| F3-04 | Criar/editar lançamento | `dialog_create_transaction.xml`, `dialog_edit_transaction.xml`, `CreateTransactionDialog.java`, `TransactionsActivity.java` | Formulário moderno, teclado, máscara de valor e privacidade preservados. | Em andamento | Diálogo de criação com `ModernCard`, subtítulo, campos `ModernTextInput`, spinners com `bg_spinner_selector`, labels em sentence case e CTA esmeralda; botão de data alinhado aos campos. A edição de despesas/receitas reutiliza o formulário completo de criação, com tipo, descrição, valor, data, forma de pagamento, conta/cartão, categoria, parcelamento/mensal e observação carregados do lançamento; a edição em série preserva o diálogo de escopo. Clonar abre o mesmo formulário preenchido e cria uma cópia sem vínculo de grupo. Valor e data usam o mesmo `TextInputLayout`; campos com hint têm 56dp para não cortar ascendentes. Transferências e saldo inicial mantêm o editor reduzido porque o endpoint `PUT /transactions/{id}` não expõe os dois lados da transferência. Máscara/regras/IDs mantidos; build e testes OK. Pendente validação visual. |
-| F3-05 | Contas | `activity_accounts.xml`, `AccountsActivity.java`, `dialog_account_form.xml`, `dialog_credit_card_form.xml`, `dialog_balance_history.xml` | Cards de conta e cartão modernizados sem perder ações. | Em andamento | Tela migrada para `CoordinatorLayout`/`AppBarLayout`, com card de resumo (saldo, limite disponível e faturas pendentes), conciliação em `ModernCard`, controles de “Inativos” e “Recalcular” no cabeçalho, CTAs e estados vazios. Cards com ícones em círculo, badges de status, valores nas cores financeiras, ações em pills e overflow com `contentDescription`. Formulários e histórico em diálogos próprios com `ModernTextInput`, spinners com chevron e CTA esmeralda. Máscara de privacidade e todos os IDs preservados; build/testes e `git diff --check` OK. Pendente validação visual em claro/escuro. |
-| F3-06 | Importação de extrato | `activity_statement_import.xml`, `StatementImportActivity.java` | Linhas, seleção e resumo legíveis em ambos os temas. | Pendente | Aguardando execução. |
+| F3-04 | Criar/editar lançamento | `dialog_create_transaction.xml`, `dialog_edit_transaction.xml`, `CreateTransactionDialog.java`, `TransactionsActivity.java` | Formulário moderno, teclado, máscara de valor e privacidade preservados. | Concluído | Diálogo de criação com `ModernCard`, subtítulo, campos `ModernTextInput`, spinners com `bg_spinner_selector`, labels em sentence case e CTA esmeralda; botão de data alinhado aos campos. A edição de despesas/receitas reutiliza o formulário completo de criação, com tipo, descrição, valor, data, forma de pagamento, conta/cartão, categoria, parcelamento/mensal e observação carregados do lançamento; a edição em série preserva o diálogo de escopo. Clonar abre o mesmo formulário preenchido e cria uma cópia sem vínculo de grupo. Valor e data usam o mesmo `TextInputLayout`; campos com hint têm 56dp para não cortar ascendentes. Transferências e saldo inicial mantêm o editor reduzido porque o endpoint `PUT /transactions/{id}` não expõe os dois lados da transferência. Máscara/regras/IDs mantidos; build, testes e validação visual em claro/escuro OK. |
+| F3-05 | Contas | `activity_accounts.xml`, `AccountsActivity.java`, `dialog_account_form.xml`, `dialog_credit_card_form.xml`, `dialog_balance_history.xml` | Cards de conta e cartão modernizados sem perder ações. | Concluído | Tela migrada para `CoordinatorLayout`/`AppBarLayout`, com card de resumo (saldo, limite disponível e faturas pendentes), conciliação em `ModernCard`, controles de “Inativos” e “Recalcular” no cabeçalho, CTAs e estados vazios. Cards com ícones em círculo, badges de status, valores nas cores financeiras, ações em pills e overflow com `contentDescription`. Formulários e histórico em diálogos próprios com `ModernTextInput`, spinners com chevron e CTA esmeralda. Máscara de privacidade e todos os IDs preservados; build, testes, `git diff --check` e validação visual em claro/escuro OK. |
+| F3-06 | Importação de extrato | `activity_statement_import.xml`, `StatementImportActivity.java` | Linhas, seleção e resumo legíveis em ambos os temas. | Concluído | Tela migrada para `CoordinatorLayout`/`AppBarLayout` com toolbar e botão de voltar; card da conta, card de importação, resumo em `ModernCard` tonal, CTA esmeralda e estados de vazio/erro. Correspondências e lançamentos novos usam `item_statement_match.xml`/`item_statement_new.xml` com `ModernListCard`, checkbox, valores nas cores financeiras, badge de confiança e spinner de categoria com `bg_spinner_selector`. Insets das barras do sistema aplicados e prévia limpa ao trocar de arquivo. IDs e fluxo de seleção/conciliação preservados; build/testes e `git diff --check` OK. |
 | F3-07 | Cartões | `activity_cards.xml`, `CardsActivity.java` | Visão do cartão, fatura e resumo modernizados. | Pendente | Aguardando execução. |
 | F3-08 | Relatórios | `activity_reports.xml`, `ReportsActivity.java` | Filtros, cards de resumo e categorias no novo padrão. | Pendente | Aguardando execução. |
 | F3-09 | Configurações | `activity_settings.xml`, `SettingsActivity.java` | Seções, campos e metas alinhados ao design system. | Pendente | Aguardando execução. |
@@ -175,6 +175,8 @@ Objetivo: aplicar a identidade Modern Tech & Sofisticado em cada tela, mantendo 
 | 2026-10-24 | F3-04 | Ajuste do seletor de parcelas | O campo “Número de parcelas” deixou de usar hint flutuante e passou a usar o mesmo visual de 53dp do spinner, com label externo. O seletor de valor foi renomeado para “Por parcela”/“Total” para não quebrar em duas linhas. Build/testes OK. |
 | 2026-10-24 | F3-05 | Contas redesenhadas | `activity_accounts.xml` com AppBar, card de resumo, conciliação, filtros e estados vazios; cards programáticos com `ModernListCard`, ícones em círculo, badges e ações acessíveis; formulários de conta/cartão e histórico em diálogos próprios. Máscara de privacidade e IDs preservados; `./gradlew testDebugUnitTest assembleDebug` OK; `git diff --check` sem erros. Pendente validação visual. |
 | 2026-10-24 | F3-05 | Controles de inativos e recálculo no cabeçalho | `showInactiveCheckBox` (“Inativos”) e `recalculateButton` (ícone de sincronização) foram movidos para o `Toolbar` de Contas. A linha de filtros do corpo foi removida; o resumo e a conciliação subiram. IDs e listeners Java preservados; `ImageButton` mantém `contentDescription` e `tooltipText`. Build OK. |
+| 2026-10-24 | F3-04/F3-05 | Fechamento das pendências de validação | Validação visual em claro/escuro concluída e itens marcados como `Concluído` no plano. |
+| 2026-10-24 | F3-06 | Importação de extrato redesenhada | `activity_statement_import.xml` com AppBar, card da conta, card de importação, resumo tonal e CTA esmeralda; `item_statement_match.xml` e `item_statement_new.xml` criados com `ModernListCard`, badge de confiança e spinner de categoria; insets de barras do sistema e limpeza da prévia ao trocar de arquivo; IDs e fluxo de conciliação preservados; `./gradlew testDebugUnitTest assembleDebug` OK e `git diff --check` sem erros. |
 
 ## Comandos de validação
 
@@ -198,9 +200,13 @@ git diff --check
 - `app/src/main/res/drawable/bg_text_action.xml`
 - `app/src/main/res/drawable/bg_status_badge_error.xml`
 - `app/src/main/res/drawable/bg_status_badge_success.xml`
+- `app/src/main/res/drawable/bg_status_badge_neutral.xml`
 - `app/src/main/res/drawable/ic_chevron_down.xml`
 - `app/src/main/res/color/navigation_item_tint.xml`
 - `app/src/main/res/layout/bottom_navigation.xml`
+- `app/src/main/res/layout/activity_statement_import.xml`
+- `app/src/main/res/layout/item_statement_match.xml`
+- `app/src/main/res/layout/item_statement_new.xml`
 - `app/src/main/res/layout/dialog_create_transaction.xml`
 - `app/src/main/res/layout/dialog_edit_transaction.xml`
 - `app/src/main/res/layout/dialog_account_form.xml`

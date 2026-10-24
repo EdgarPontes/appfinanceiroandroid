@@ -7,7 +7,6 @@ import android.provider.OpenableColumns;
 import android.view.View;
 import android.widget.ArrayAdapter;
 import android.widget.CheckBox;
-import android.widget.LinearLayout;
 import android.widget.Spinner;
 import android.widget.TextView;
 import android.widget.Toast;
@@ -17,6 +16,9 @@ import androidx.activity.result.contract.ActivityResultContracts;
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
 import androidx.appcompat.app.AppCompatActivity;
+import androidx.core.graphics.Insets;
+import androidx.core.view.ViewCompat;
+import androidx.core.view.WindowInsetsCompat;
 import androidx.lifecycle.ViewModelProvider;
 import br.com.tecpontes.appfinanceiro.R;
 import br.com.tecpontes.appfinanceiro.data.repository.AccountsRepository;
@@ -72,6 +74,12 @@ public class StatementImportActivity extends AppCompatActivity {
         EdgeToEdge.enable(this);
         binding = ActivityStatementImportBinding.inflate(getLayoutInflater());
         setContentView(binding.getRoot());
+        ViewCompat.setOnApplyWindowInsetsListener(binding.getRoot(), (view, windowInsets) -> {
+            Insets systemBars = windowInsets.getInsets(WindowInsetsCompat.Type.systemBars());
+            view.setPadding(systemBars.left, systemBars.top, systemBars.right, systemBars.bottom);
+            return windowInsets;
+        });
+        binding.importToolbar.setNavigationOnClickListener(v -> finish());
         viewModel = new ViewModelProvider(this).get(AccountsViewModel.class);
         accountId = getIntent().getStringExtra(EXTRA_ACCOUNT_ID);
         format = getIntent().getStringExtra(EXTRA_FORMAT);
@@ -112,9 +120,11 @@ public class StatementImportActivity extends AppCompatActivity {
     private void onFileSelected(@Nullable Uri uri) {
         if (uri == null) return;
         showLoading(true);
+        clearPreview();
         binding.importErrorTextView.setVisibility(View.GONE);
         selectedFileName = displayName(uri);
         binding.importFileNameTextView.setText(selectedFileName);
+        binding.importFileNameTextView.setVisibility(View.VISIBLE);
         new Thread(() -> {
             try {
                 String contents = readContent(uri);
@@ -184,10 +194,11 @@ public class StatementImportActivity extends AppCompatActivity {
     private void renderPreview() {
         binding.importMatchesContainer.removeAllViews();
         binding.importUnmatchedContainer.removeAllViews();
+        binding.summaryCard.setVisibility(View.GONE);
         binding.confirmReconciliationButton.setEnabled(false);
         if (preview == null) return;
         binding.importEmptyTextView.setVisibility(View.GONE);
-        binding.importSummaryTextView.setVisibility(View.VISIBLE);
+        binding.summaryCard.setVisibility(View.VISIBLE);
         ReconciliationPreviewDto.Summary summary = preview.summary;
         String summaryText = preview.getEntries().size() + " linhas no extrato · "
                 + (summary == null || summary.high == null ? 0 : summary.high) + " correspondências fortes · "
@@ -215,45 +226,61 @@ public class StatementImportActivity extends AppCompatActivity {
     private void addMatchRow(ReconciliationPreviewDto.Match match) {
         if (match.transactionId == null || match.statementIndex < 0 || match.statementIndex >= preview.getEntries().size()) return;
         StatementEntryDto entry = preview.getEntries().get(match.statementIndex);
-        CheckBox checkBox = new CheckBox(this);
-        checkBox.setText(entry.description + " · " + formatAmount(entry.amount)
-                + "\n" + (match.transaction == null ? "" : safe(match.transaction.description) + " · ")
-                + confidenceLabel(match.confidence) + (match.score == null ? "" : " (" + match.score + "%)"));
-        checkBox.setTextSize(13);
-        checkBox.setPadding(0, dp(6), 0, dp(6));
+        View row = getLayoutInflater().inflate(R.layout.item_statement_match, binding.importMatchesContainer, false);
+        CheckBox checkBox = row.findViewById(R.id.matchCheckBox);
+        TextView description = row.findViewById(R.id.matchDescriptionTextView);
+        TextView amount = row.findViewById(R.id.matchAmountTextView);
+        TextView details = row.findViewById(R.id.matchDetailsTextView);
+        TextView badge = row.findViewById(R.id.matchConfidenceBadge);
+
+        description.setText(safe(entry.description));
+        amount.setText(formatAmount(entry.amount));
+        amount.setTextColor(moneyColor(entry.amount));
+        String systemDescription = match.transaction == null ? "" : safe(match.transaction.description).trim();
+        String score = match.score == null ? "" : " · " + match.score + "%";
+        details.setText((systemDescription.isEmpty() ? "" : systemDescription + " · ")
+                + confidenceLabel(match.confidence) + score);
+        badge.setText(confidenceLabel(match.confidence));
+        applyConfidenceBadge(badge, match.confidence);
+
         checkBox.setChecked(selectedMatches.contains(match.transactionId));
         checkBox.setOnCheckedChangeListener((button, checked) -> {
             if (checked) selectedMatches.add(match.transactionId);
             else selectedMatches.remove(match.transactionId);
         });
-        binding.importMatchesContainer.addView(checkBox);
+        row.setOnClickListener(v -> checkBox.toggle());
+        binding.importMatchesContainer.addView(row);
     }
 
     private void addUnmatchedRow(int index) {
         if (index < 0 || index >= preview.getEntries().size()) return;
         StatementEntryDto entry = preview.getEntries().get(index);
-        LinearLayout item = new LinearLayout(this);
-        item.setOrientation(LinearLayout.VERTICAL);
-        item.setPadding(0, dp(8), 0, dp(8));
-        CheckBox checkBox = new CheckBox(this);
-        checkBox.setText(entry.description + " · " + formatAmount(entry.amount));
-        checkBox.setTextSize(13);
+        View row = getLayoutInflater().inflate(R.layout.item_statement_new, binding.importUnmatchedContainer, false);
+        CheckBox checkBox = row.findViewById(R.id.newEntryCheckBox);
+        TextView description = row.findViewById(R.id.newEntryDescriptionTextView);
+        TextView amount = row.findViewById(R.id.newEntryAmountTextView);
+        TextView details = row.findViewById(R.id.newEntryDetailsTextView);
+        Spinner spinner = row.findViewById(R.id.newEntryCategorySpinner);
+
+        description.setText(safe(entry.description));
+        amount.setText(formatAmount(entry.amount));
+        amount.setTextColor(moneyColor(entry.amount));
+        details.setText(entryDetails(entry));
         checkBox.setChecked(selectedUnmatched.contains(index));
         checkBox.setOnCheckedChangeListener((button, checked) -> {
             if (checked) selectedUnmatched.add(index);
             else selectedUnmatched.remove(index);
         });
-        item.addView(checkBox);
 
         List<CategoryOption> options = categoryOptions(index);
-        Spinner spinner = new Spinner(this);
         ArrayAdapter<CategoryOption> adapter = new ArrayAdapter<>(this,
-                android.R.layout.simple_spinner_item, options);
-        adapter.setDropDownViewResource(android.R.layout.simple_spinner_dropdown_item);
+                R.layout.item_spinner_form, options);
+        adapter.setDropDownViewResource(R.layout.item_spinner_form_dropdown);
         spinner.setAdapter(adapter);
-        item.addView(spinner);
         categorySpinners.put(index, spinner);
-        binding.importUnmatchedContainer.addView(item);
+
+        row.setOnClickListener(v -> checkBox.toggle());
+        binding.importUnmatchedContainer.addView(row);
     }
 
     private List<CategoryOption> categoryOptions(int index) {
@@ -315,14 +342,61 @@ public class StatementImportActivity extends AppCompatActivity {
         });
     }
 
+    private void clearPreview() {
+        preview = null;
+        selectedMatches.clear();
+        selectedUnmatched.clear();
+        categorySpinners.clear();
+        binding.importMatchesContainer.removeAllViews();
+        binding.importUnmatchedContainer.removeAllViews();
+        binding.summaryCard.setVisibility(View.GONE);
+        binding.importEmptyTextView.setVisibility(View.GONE);
+        binding.confirmReconciliationButton.setEnabled(false);
+    }
+
     private TextView sectionTitle(String text) {
         TextView title = new TextView(this);
         title.setText(text);
         title.setTextColor(getColor(R.color.on_surface));
         title.setTextSize(17);
         title.setTypeface(null, android.graphics.Typeface.BOLD);
-        title.setPadding(0, dp(16), 0, dp(6));
+        title.setPadding(0, dp(20), 0, dp(8));
         return title;
+    }
+
+    private void applyConfidenceBadge(TextView badge, @Nullable String confidence) {
+        if ("HIGH".equalsIgnoreCase(confidence)) {
+            badge.setBackgroundResource(R.drawable.bg_status_badge_success);
+            badge.setTextColor(getColor(R.color.on_success_container));
+        } else if ("MEDIUM".equalsIgnoreCase(confidence)) {
+            badge.setBackgroundResource(R.drawable.bg_status_badge_neutral);
+            badge.setTextColor(getColor(R.color.on_neutral_container));
+        } else {
+            badge.setBackgroundResource(R.drawable.bg_status_badge_error);
+            badge.setTextColor(getColor(R.color.on_error_container));
+        }
+    }
+
+    private String entryDetails(StatementEntryDto entry) {
+        StringBuilder details = new StringBuilder();
+        if (entry.date != null && !entry.date.trim().isEmpty()) {
+            details.append("Data ").append(entry.date.trim());
+        }
+        if (entry.type != null && !entry.type.trim().isEmpty()) {
+            if (details.length() > 0) details.append(" · ");
+            details.append(typeLabel(entry.type));
+        }
+        return details.toString();
+    }
+
+    private String typeLabel(String type) {
+        if ("debit".equalsIgnoreCase(type)) return "Débito";
+        if ("credit".equalsIgnoreCase(type)) return "Crédito";
+        return type;
+    }
+
+    private int moneyColor(double value) {
+        return getColor(value < 0 ? R.color.money_negative : R.color.money_positive);
     }
 
     private String displayName(Uri uri) {

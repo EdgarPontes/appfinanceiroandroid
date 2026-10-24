@@ -11,9 +11,8 @@ import androidx.recyclerview.widget.LinearLayoutManager;
 import br.com.tecpontes.appfinanceiro.R;
 import br.com.tecpontes.appfinanceiro.databinding.DialogReportExpensesBinding;
 import br.com.tecpontes.appfinanceiro.model.TransactionListItemDto;
-import java.text.NumberFormat;
+import br.com.tecpontes.appfinanceiro.utils.PrivacyMode;
 import java.util.List;
-import java.util.Locale;
 
 /** Diálogo com a lista detalhada de despesas do período. */
 public class ReportExpensesDialog extends Dialog {
@@ -40,10 +39,9 @@ public class ReportExpensesDialog extends Dialog {
         binding = DialogReportExpensesBinding.inflate(getLayoutInflater());
         setContentView(binding.getRoot());
 
-        NumberFormat currency = NumberFormat.getCurrencyInstance(new Locale("pt", "BR"));
         binding.reportExpensesSubtitleTextView.setText(
                 getContext().getString(R.string.reports_expenses_dialog_subtitle,
-                        expenses.size(), currency.format(total)));
+                        expenses.size(), PrivacyMode.format(getContext(), total)));
 
         binding.reportExpensesRecyclerView.setLayoutManager(new LinearLayoutManager(getContext()));
         binding.reportExpensesRecyclerView.setAdapter(adapter);

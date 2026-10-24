@@ -25,18 +25,17 @@ import br.com.tecpontes.appfinanceiro.ui.BottomNavigationHelper;
 import br.com.tecpontes.appfinanceiro.ui.auth.LoginActivity;
 import br.com.tecpontes.appfinanceiro.ui.notifications.NotificationHistoryActivity;
 import br.com.tecpontes.appfinanceiro.ui.transactions.TransactionsActivity;
+import br.com.tecpontes.appfinanceiro.utils.PrivacyMode;
 import br.com.tecpontes.appfinanceiro.utils.TokenManager;
 import br.com.tecpontes.appfinanceiro.utils.SessionExpiredNavigation;
 import br.com.tecpontes.appfinanceiro.viewmodel.DashboardViewModel;
 import dagger.hilt.android.AndroidEntryPoint;
-import java.text.NumberFormat;
 import java.time.Instant;
 import java.util.ArrayList;
 import java.util.Calendar;
 import java.util.Collections;
 import java.util.Comparator;
 import java.util.List;
-import java.util.Locale;
 import javax.inject.Inject;
 
 /**
@@ -55,6 +54,7 @@ public class DashboardActivity extends AppCompatActivity {
 
     // Adapter para transações recentes
     private RecentTransactionsAdapter transactionsAdapter;
+    @Nullable private DashboardDto lastDashboardData;
     private int selectedPeriodPosition = 0;
     private static final int[] FALLBACK_CHART_COLORS = {
             Color.rgb(20, 160, 135), Color.rgb(58, 141, 255), Color.rgb(245, 166, 35),
@@ -92,6 +92,7 @@ public class DashboardActivity extends AppCompatActivity {
 
         // Configura listeners
         setupListeners();
+        updateMaskButton();
 
         setupPeriodFilter();
 
@@ -104,6 +105,10 @@ public class DashboardActivity extends AppCompatActivity {
     @Override
     protected void onResume() {
         super.onResume();
+        if (binding != null) {
+            updateMaskButton();
+            if (lastDashboardData != null) renderDashboard(lastDashboardData);
+        }
         if (dashboardViewModel != null) {
             dashboardViewModel.loadUnreadNotifications();
         }
@@ -162,6 +167,7 @@ public class DashboardActivity extends AppCompatActivity {
 
         dashboardViewModel.dashboardData.observe(this, dashboardData -> {
             if (binding != null && dashboardData != null) {
+                lastDashboardData = dashboardData;
                 renderDashboard(dashboardData);
             }
         });
@@ -189,6 +195,17 @@ public class DashboardActivity extends AppCompatActivity {
         binding.notificationsBadgeTextView.setVisibility(View.VISIBLE);
     }
 
+    private void updateMaskButton() {
+        if (binding == null) return;
+        boolean masked = PrivacyMode.isMasked(this);
+        binding.maskValuesButton.setImageResource(masked
+                ? R.drawable.ic_visibility_off
+                : R.drawable.ic_visibility);
+        binding.maskValuesButton.setContentDescription(masked
+                ? "Mostrar valores"
+                : "Ocultar valores");
+    }
+
     /**
      * Configura listeners dos componentes
      */
@@ -197,6 +214,13 @@ public class DashboardActivity extends AppCompatActivity {
         binding.viewAllTransactionsButton.setOnClickListener(v -> {
             Intent intent = new Intent(this, TransactionsActivity.class);
             startActivity(intent);
+        });
+
+        // Botão de ocultar/mostrar valores
+        binding.maskValuesButton.setOnClickListener(v -> {
+            PrivacyMode.toggle(this);
+            updateMaskButton();
+            if (lastDashboardData != null) renderDashboard(lastDashboardData);
         });
 
         // Botão de sincronizar
@@ -422,7 +446,7 @@ public class DashboardActivity extends AppCompatActivity {
     }
 
     private String formatCurrency(double value) {
-        return NumberFormat.getCurrencyInstance(new Locale("pt", "BR")).format(value);
+        return PrivacyMode.format(this, value);
     }
 
     private int moneyColor(double value) {

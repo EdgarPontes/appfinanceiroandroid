@@ -27,6 +27,16 @@
                 android:orientation="horizontal"
                 android:paddingEnd="4dp">
 
+                <ImageButton
+                    android:id="@+id/maskValuesButton"
+                    android:layout_width="48dp"
+                    android:layout_height="48dp"
+                    android:background="?attr/selectableItemBackgroundBorderless"
+                    android:contentDescription="Ocultar valores"
+                    android:padding="12dp"
+                    android:src="@drawable/ic_visibility"
+                    app:tint="@color/primary_purple" />
+
                 <FrameLayout
                     android:layout_width="48dp"
                     android:layout_height="48dp">

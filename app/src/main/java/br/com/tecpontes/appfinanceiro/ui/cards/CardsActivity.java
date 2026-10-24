@@ -32,6 +32,7 @@ import br.com.tecpontes.appfinanceiro.model.TransactionListItemDto;
 import br.com.tecpontes.appfinanceiro.model.TransactionWriteDto;
 import br.com.tecpontes.appfinanceiro.ui.BottomNavigationHelper;
 import br.com.tecpontes.appfinanceiro.ui.transactions.TransactionsAdapter;
+import br.com.tecpontes.appfinanceiro.utils.PrivacyMode;
 import br.com.tecpontes.appfinanceiro.utils.SessionExpiredNavigation;
 import br.com.tecpontes.appfinanceiro.utils.TokenManager;
 import br.com.tecpontes.appfinanceiro.viewmodel.CreditCardsViewModel;
@@ -246,8 +247,8 @@ public class CardsActivity extends AppCompatActivity {
         double limit = parseAmount(card.getLimit());
         double used = parseAmount(card.getUsedAmount());
         double available = card.getAvailableLimit() == null ? limit - used : parseAmount(card.getAvailableLimit());
-        binding.usedLimitTextView.setText("Utilizado " + formatCurrency(used) + " / " + formatCurrency(limit));
-        binding.availableLimitTextView.setText("Disponível " + formatCurrency(available));
+        binding.usedLimitTextView.setText("Utilizado " + formatSummaryCurrency(used) + " / " + formatSummaryCurrency(limit));
+        binding.availableLimitTextView.setText("Disponível " + formatSummaryCurrency(available));
         int percent = limit <= 0 ? 0 : (int) Math.max(0, Math.min(100, Math.round(used * 100 / limit)));
         binding.limitProgressBar.setProgress(percent);
     }
@@ -363,25 +364,25 @@ public class CardsActivity extends AppCompatActivity {
         String debitAccountName = selectedCard == null || selectedCard.getDebitAccount() == null
                 ? "Não definida" : safe(selectedCard.getDebitAccount().getName());
         addInfoRow(summary, "Conta de débito", debitAccountName, Color.DKGRAY, false);
-        addInfoRow(summary, "Saldo anterior", formatCurrency(invoice.amount(invoice.previousBalance)),
+        addInfoRow(summary, "Saldo anterior", formatSummaryCurrency(invoice.amount(invoice.previousBalance)),
                 getColor(R.color.money_negative), false);
-        addInfoRow(summary, "Total pago", formatCurrency(invoice.amount(invoice.totalPaid)),
+        addInfoRow(summary, "Total pago", formatSummaryCurrency(invoice.amount(invoice.totalPaid)),
                 getColor(R.color.money_positive), false);
-        addInfoRow(summary, "Total atual", formatCurrency(invoice.amount(invoice.totalAmount)),
+        addInfoRow(summary, "Total atual", formatSummaryCurrency(invoice.amount(invoice.totalAmount)),
                 getColor(R.color.money_negative), true);
-        addInfoRow(summary, "Valor a pagar", formatCurrency(invoice.amount(invoice.remainingBalance)),
+        addInfoRow(summary, "Valor a pagar", formatSummaryCurrency(invoice.amount(invoice.remainingBalance)),
                 getColor(R.color.money_negative), true);
         if (Boolean.TRUE.equals(invoice.hasPartialPayment)) {
             addInfoRow(summary, "Pagamento", "Parcial", getColor(R.color.primary_purple), false);
         }
         addInfoRow(summary, "Detalhamento da fatura", "", Color.DKGRAY, true);
-        addInfoRow(summary, "Despesas conciliadas", formatCurrency(invoice.amount(invoice.totalConciliado)),
+        addInfoRow(summary, "Despesas conciliadas", formatSummaryCurrency(invoice.amount(invoice.totalConciliado)),
                 getColor(R.color.money_positive), false);
-        addInfoRow(summary, "Despesas não conciliadas", formatCurrency(invoice.amount(invoice.totalNaoConciliado)),
+        addInfoRow(summary, "Despesas não conciliadas", formatSummaryCurrency(invoice.amount(invoice.totalNaoConciliado)),
                 getColor(R.color.money_negative), false);
-        addInfoRow(summary, "Despesas fixas no mês", formatCurrency(invoice.amount(invoice.fixedExpenses)),
+        addInfoRow(summary, "Despesas fixas no mês", formatSummaryCurrency(invoice.amount(invoice.fixedExpenses)),
                 getColor(R.color.money_negative), false);
-        addInfoRow(summary, "Parcelas futuras", formatCurrency(invoice.amount(invoice.futureInstallments)),
+        addInfoRow(summary, "Parcelas futuras", formatSummaryCurrency(invoice.amount(invoice.futureInstallments)),
                 getColor(R.color.money_negative), false);
 
         boolean fullyPaid = invoice.amount(invoice.remainingBalance) <= 0;
@@ -465,7 +466,7 @@ public class CardsActivity extends AppCompatActivity {
             heading.addView(categoryName, new LinearLayout.LayoutParams(0,
                     LinearLayout.LayoutParams.WRAP_CONTENT, 1));
             TextView amount = new TextView(this);
-            amount.setText(formatCurrency(total.amount));
+            amount.setText(formatSummaryCurrency(total.amount));
             amount.setTextColor(getColor(R.color.money_negative));
             heading.addView(amount);
             row.addView(heading);
@@ -932,6 +933,10 @@ public class CardsActivity extends AppCompatActivity {
         return NumberFormat.getCurrencyInstance(new Locale("pt", "BR")).format(value);
     }
 
+    private String formatSummaryCurrency(double value) {
+        return PrivacyMode.format(this, value);
+    }
+
     private String formatDate(@Nullable String value) {
         if (value == null || value.trim().isEmpty()) return "—";
         try {
@@ -947,6 +952,16 @@ public class CardsActivity extends AppCompatActivity {
 
     private String safe(@Nullable Object value) { return value == null ? "" : String.valueOf(value); }
     private int dp(float value) { return Math.round(value * getResources().getDisplayMetrics().density); }
+
+    @Override
+    protected void onResume() {
+        super.onResume();
+        if (binding == null) return;
+        renderCardOverview(findSelectedCard());
+        InvoiceDetailsDto invoice = viewModel.invoiceData.getValue();
+        if (invoice != null) renderInvoice(invoice);
+    }
+
 
     @Override protected void onNewIntent(Intent intent) {
         super.onNewIntent(intent);

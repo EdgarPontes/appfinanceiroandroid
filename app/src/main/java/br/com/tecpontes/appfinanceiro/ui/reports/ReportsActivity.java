@@ -24,6 +24,7 @@ import br.com.tecpontes.appfinanceiro.databinding.ActivityReportsBinding;
 import br.com.tecpontes.appfinanceiro.model.CategoryDto;
 import br.com.tecpontes.appfinanceiro.model.TransactionListItemDto;
 import br.com.tecpontes.appfinanceiro.ui.BottomNavigationHelper;
+import br.com.tecpontes.appfinanceiro.utils.PrivacyMode;
 import br.com.tecpontes.appfinanceiro.utils.ReportExporter;
 import br.com.tecpontes.appfinanceiro.utils.SessionExpiredNavigation;
 import br.com.tecpontes.appfinanceiro.utils.TokenManager;
@@ -33,7 +34,6 @@ import com.google.android.material.dialog.MaterialAlertDialogBuilder;
 import dagger.hilt.android.AndroidEntryPoint;
 import java.io.IOException;
 import java.io.OutputStream;
-import java.text.NumberFormat;
 import java.time.Instant;
 import java.time.LocalDate;
 import java.time.ZoneId;
@@ -45,7 +45,6 @@ import java.util.HashMap;
 import java.util.HashSet;
 import java.util.LinkedHashMap;
 import java.util.List;
-import java.util.Locale;
 import java.util.Map;
 import java.util.Set;
 import javax.inject.Inject;
@@ -64,9 +63,6 @@ public class ReportsActivity extends AppCompatActivity {
     private ReportsViewModel viewModel;
 
     @Inject TokenManager tokenManager;
-
-    private final NumberFormat currency =
-            NumberFormat.getCurrencyInstance(new Locale("pt", "BR"));
 
     private LocalDate periodStart = LocalDate.now().withDayOfMonth(1);
     private LocalDate periodEnd = LocalDate.now();
@@ -406,9 +402,9 @@ public class ReportsActivity extends AppCompatActivity {
     }
 
     private void renderSummary() {
-        binding.totalIncomeTextView.setText(currency.format(summary.income));
-        binding.totalExpensesTextView.setText(currency.format(summary.expenses));
-        binding.balanceTextView.setText(currency.format(summary.balance));
+        binding.totalIncomeTextView.setText(PrivacyMode.format(this, summary.income));
+        binding.totalExpensesTextView.setText(PrivacyMode.format(this, summary.expenses));
+        binding.balanceTextView.setText(PrivacyMode.format(this, summary.balance));
         binding.balanceTextView.setTextColor(ContextCompat.getColor(
                 this, summary.balance >= 0 ? R.color.money_positive : R.color.money_negative));
         binding.transactionCountTextView.setText(String.valueOf(summary.count));
@@ -445,7 +441,7 @@ public class ReportsActivity extends AppCompatActivity {
             TextView amountView = row.findViewById(R.id.reportCategoryAmountTextView);
 
             nameView.setText(aggregate.name);
-            amountView.setText(currency.format(aggregate.amount));
+            amountView.setText(PrivacyMode.format(this, aggregate.amount));
             amountView.setTextColor(ContextCompat.getColor(this, amountColor));
 
             try {
@@ -570,6 +566,12 @@ public class ReportsActivity extends AppCompatActivity {
             return transaction.category.color;
         }
         return "#6B7280";
+    }
+
+    @Override
+    protected void onResume() {
+        super.onResume();
+        if (binding != null) applyFiltersAndRender();
     }
 
     @Override

@@ -33,6 +33,7 @@ import br.com.tecpontes.appfinanceiro.model.CreditCardDto;
 import br.com.tecpontes.appfinanceiro.model.TransactionTransferRequestDto;
 import br.com.tecpontes.appfinanceiro.model.TransactionWriteDto;
 import br.com.tecpontes.appfinanceiro.ui.BottomNavigationHelper;
+import br.com.tecpontes.appfinanceiro.utils.PrivacyMode;
 import br.com.tecpontes.appfinanceiro.utils.SessionExpiredNavigation;
 import br.com.tecpontes.appfinanceiro.utils.TokenManager;
 import br.com.tecpontes.appfinanceiro.viewmodel.TransactionsViewModel;
@@ -461,7 +462,7 @@ public class TransactionsActivity extends AppCompatActivity {
             row.addView(name, nameParams);
 
             TextView amount = new TextView(this);
-            amount.setText(formatCurrency(accountBalance));
+            amount.setText(formatSummaryCurrency(accountBalance));
             amount.setTextColor(moneyColor(accountBalance));
             amount.setTextSize(14);
             amount.setTypeface(null, android.graphics.Typeface.BOLD);
@@ -488,7 +489,7 @@ public class TransactionsActivity extends AppCompatActivity {
                 0, LinearLayout.LayoutParams.WRAP_CONTENT, 1f));
 
         TextView totalAmount = new TextView(this);
-        totalAmount.setText(formatCurrency(selectedBalance));
+        totalAmount.setText(formatSummaryCurrency(selectedBalance));
         totalAmount.setTextColor(moneyColor(selectedBalance));
         totalAmount.setTextSize(14);
         totalAmount.setTypeface(null, android.graphics.Typeface.BOLD);
@@ -674,10 +675,10 @@ public class TransactionsActivity extends AppCompatActivity {
     private void updateSummary(List<TransactionListItemDto> visible) {
         double periodResult = 0;
         for (TransactionListItemDto item : visible) periodResult += signedAmount(item);
-        binding.selectedBalanceTextView.setText(formatCurrency(selectedBalance));
+        binding.selectedBalanceTextView.setText(formatSummaryCurrency(selectedBalance));
         binding.selectedBalanceTextView.setTextColor(moneyColor(selectedBalance));
         binding.periodResultTextView.setText((periodResult >= 0 ? "+" : "−")
-                + formatCurrency(Math.abs(periodResult)));
+                + formatSummaryCurrency(Math.abs(periodResult)));
         binding.periodResultTextView.setTextColor(moneyColor(periodResult));
         binding.transactionsCountTextView.setText(visible.size()
                 + (visible.size() == 1 ? " item" : " itens"));
@@ -1045,6 +1046,10 @@ public class TransactionsActivity extends AppCompatActivity {
         return NumberFormat.getCurrencyInstance(new Locale("pt", "BR")).format(value);
     }
 
+    private String formatSummaryCurrency(double value) {
+        return PrivacyMode.format(this, value);
+    }
+
     private double parseAmount(@Nullable String value) {
         if (value == null) return 0;
         try {
@@ -1060,6 +1065,12 @@ public class TransactionsActivity extends AppCompatActivity {
 
     private String formatDate(long millis) {
         return new SimpleDateFormat("dd/MM/yyyy", new Locale("pt", "BR")).format(new Date(millis));
+    }
+
+    @Override
+    protected void onResume() {
+        super.onResume();
+        if (binding != null) applyLocalFilters();
     }
 
     @Override

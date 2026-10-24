@@ -33,6 +33,7 @@ import br.com.tecpontes.appfinanceiro.model.CreditCardRequestDto;
 import br.com.tecpontes.appfinanceiro.model.ReconciliationSummaryDto;
 import br.com.tecpontes.appfinanceiro.ui.BottomNavigationHelper;
 import br.com.tecpontes.appfinanceiro.ui.transactions.TransactionsActivity;
+import br.com.tecpontes.appfinanceiro.utils.PrivacyMode;
 import br.com.tecpontes.appfinanceiro.utils.SessionExpiredNavigation;
 import br.com.tecpontes.appfinanceiro.utils.TokenManager;
 import br.com.tecpontes.appfinanceiro.viewmodel.AccountsViewModel;
@@ -40,7 +41,6 @@ import com.google.android.material.card.MaterialCardView;
 import dagger.hilt.android.AndroidEntryPoint;
 import java.math.BigDecimal;
 import java.math.RoundingMode;
-import java.text.NumberFormat;
 import java.text.SimpleDateFormat;
 import java.util.ArrayList;
 import java.util.Comparator;
@@ -60,6 +60,7 @@ public class AccountsActivity extends AppCompatActivity {
     private boolean includeInactive;
     private boolean firstResume = true;
     private AccountDto selectedHistoryAccount;
+    @Nullable private ReconciliationSummaryDto lastReconciliationSummary;
     private LinearLayout historyRows;
     private TextView historyState;
     private AlertDialog historyDialog;
@@ -91,7 +92,10 @@ public class AccountsActivity extends AppCompatActivity {
             cards.sort(Comparator.comparing(c -> safe(c.getName()), String.CASE_INSENSITIVE_ORDER));
             renderCards();
         });
-        viewModel.reconciliationData.observe(this, this::renderReconciliationSummary);
+        viewModel.reconciliationData.observe(this, summary -> {
+            lastReconciliationSummary = summary;
+            renderReconciliationSummary(summary);
+        });
         viewModel.isLoading.observe(this, loading ->
                 binding.swipeRefreshLayout.setRefreshing(Boolean.TRUE.equals(loading)));
         viewModel.errorMessage.observe(this, message -> {
@@ -693,7 +697,7 @@ public class AccountsActivity extends AppCompatActivity {
     }
 
     private String formatCurrency(double value) {
-        return NumberFormat.getCurrencyInstance(new Locale("pt", "BR")).format(value);
+        return PrivacyMode.format(this, value);
     }
 
     private int moneyColor(double value) {
@@ -720,6 +724,11 @@ public class AccountsActivity extends AppCompatActivity {
 
     @Override protected void onResume() {
         super.onResume();
+        if (binding != null) {
+            renderAccounts();
+            renderCards();
+            renderReconciliationSummary(lastReconciliationSummary);
+        }
         if (firstResume) firstResume = false;
         else if (viewModel != null) viewModel.load(includeInactive);
     }

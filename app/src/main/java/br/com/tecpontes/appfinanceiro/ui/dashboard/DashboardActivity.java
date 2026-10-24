@@ -251,8 +251,8 @@ public class DashboardActivity extends AppCompatActivity {
     private void setupPeriodFilter() {
         String[] periods = {"Este mês", "Últimos 3 meses", "Últimos 12 meses"};
         ArrayAdapter<String> adapter = new ArrayAdapter<>(
-                this, android.R.layout.simple_spinner_item, periods);
-        adapter.setDropDownViewResource(android.R.layout.simple_spinner_dropdown_item);
+                this, R.layout.item_spinner_period, periods);
+        adapter.setDropDownViewResource(R.layout.item_spinner_period_dropdown);
         binding.periodSpinner.setAdapter(adapter);
         binding.periodSpinner.setSelection(0, false);
         binding.periodSpinner.setOnItemSelectedListener(new AdapterView.OnItemSelectedListener() {
@@ -415,6 +415,7 @@ public class DashboardActivity extends AppCompatActivity {
             TextView name = new TextView(this);
             name.setText(entry.label);
             name.setTextSize(13);
+            name.setTextColor(getColor(R.color.on_surface));
             name.setSingleLine(true);
             name.setEllipsize(android.text.TextUtils.TruncateAt.END);
             LinearLayout.LayoutParams nameParams = new LinearLayout.LayoutParams(

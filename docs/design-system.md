@@ -78,6 +78,7 @@ Documentação da fundação visual "Modern Tech & Sofisticado". Serve como refe
 | Estilo | Base | Uso |
 | :--- | :--- | :--- |
 | `ModernCard` | `Widget.Material3.CardView.Filled` | Card moderno: superfície sólida, raio 20dp, borda e elevação 2dp. |
+| `ModernListCard` | `ModernCard` | Variação para itens de lista: raio 16dp e sem elevação. |
 | `PrimaryCTAButton` | `Widget.Material3.Button` | Ação principal; fundo `colorTertiary`, altura mínima 52dp, raio 14dp. |
 | `BrandButton` | `Widget.Material3.Button` | Ação de marca; fundo `colorPrimary`, altura mínima 52dp. |
 | `ModernTextInput` | `Widget.Material3.TextInputLayout.OutlinedBox` | Campo arredondado (14dp) com fundo `surfaceVariant`, contorno do tema e hint em `colorOnSurfaceVariant`. |
@@ -91,6 +92,9 @@ Documentação da fundação visual "Modern Tech & Sofisticado". Serve como refe
 | :--- | :--- |
 | `bg_modern_card.xml` | Fundo de card moderno com `?attr/colorSurface` e `?attr/colorOutline`. |
 | `bg_cta_button.xml` | CTA esmeralda com ripple (`?attr/colorTertiary`). |
+| `bg_login_logo.xml` | Badge circular com gradiente de marca para o Login. |
+| `bg_icon_circle.xml` | Círculo `surfaceVariant` para ícones de itens de lista. |
+| `bg_period_selector.xml` | Seletor de período com `surfaceVariant` e contorno do tema. |
 | `bg_outlined_rounded.xml` | Contêiner arredondado com superfície e contorno do tema. |
 | `bg_dialog.xml` | Fundo de diálogo (raio 20dp) com superfície e contorno. |
 | `glass_card_background.xml` / `glass_button_background.xml` | Versões legadas rebaseadas nos tokens. |

@@ -13,6 +13,11 @@
         <item name="strokeWidth">1dp</item>
     </style>
 
+    <style name="ModernListCard" parent="ModernCard">
+        <item name="cardCornerRadius">16dp</item>
+        <item name="cardElevation">0dp</item>
+    </style>
+
     <style name="PrimaryCTAButton" parent="Widget.Material3.Button">
         <item name="backgroundTint">?attr/colorTertiary</item>
         <item name="android:textColor">?attr/colorOnTertiary</item>

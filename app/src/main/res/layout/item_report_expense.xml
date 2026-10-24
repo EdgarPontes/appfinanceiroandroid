@@ -1,24 +1,29 @@
 <?xml version="1.0" encoding="utf-8"?>
 <LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:tools="http://schemas.android.com/tools"
     android:layout_width="match_parent"
     android:layout_height="wrap_content"
+    android:layout_marginBottom="8dp"
     android:background="@drawable/bg_outlined_rounded"
     android:gravity="center_vertical"
-    android:layout_marginBottom="6dp"
     android:orientation="horizontal"
-    android:padding="10dp">
+    android:padding="12dp">
 
     <TextView
         android:id="@+id/reportExpenseDateTextView"
-        android:layout_width="76dp"
-        android:layout_height="wrap_content"
+        android:layout_width="64dp"
+        android:layout_height="40dp"
+        android:background="@drawable/bg_period_selector"
+        android:gravity="center"
+        android:padding="4dp"
         android:textColor="?attr/colorOnSurfaceVariant"
-        android:textSize="11sp" />
+        android:textSize="10sp"
+        tools:text="24/10/2026" />
 
     <LinearLayout
         android:layout_width="0dp"
         android:layout_height="wrap_content"
-        android:layout_marginStart="8dp"
+        android:layout_marginStart="10dp"
         android:layout_weight="1"
         android:orientation="vertical">
 
@@ -29,7 +34,9 @@
             android:ellipsize="end"
             android:maxLines="2"
             android:textColor="?attr/colorOnSurface"
-            android:textSize="14sp" />
+            android:textSize="14sp"
+            android:textStyle="bold"
+            tools:text="Compras no supermercado" />
 
         <TextView
             android:id="@+id/reportExpenseCategoryTextView"
@@ -39,7 +46,8 @@
             android:ellipsize="end"
             android:maxLines="1"
             android:textColor="?attr/colorOnSurfaceVariant"
-            android:textSize="11sp" />
+            android:textSize="11sp"
+            tools:text="Alimentação" />
     </LinearLayout>
 
     <TextView
@@ -48,6 +56,7 @@
         android:layout_height="wrap_content"
         android:layout_marginStart="8dp"
         android:textColor="@color/money_negative"
-        android:textSize="13sp"
-        android:textStyle="bold" />
+        android:textSize="14sp"
+        android:textStyle="bold"
+        tools:text="R$ 189,90" />
 </LinearLayout>

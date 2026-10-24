@@ -116,8 +116,8 @@ public class ReportsActivity extends AppCompatActivity {
 
     private void setupTypeSpinner() {
         ArrayAdapter<CharSequence> adapter = ArrayAdapter.createFromResource(
-                this, R.array.report_type_labels, android.R.layout.simple_spinner_item);
-        adapter.setDropDownViewResource(android.R.layout.simple_spinner_dropdown_item);
+                this, R.array.report_type_labels, R.layout.item_spinner_form);
+        adapter.setDropDownViewResource(R.layout.item_spinner_form_dropdown);
         binding.reportTypeSpinner.setAdapter(adapter);
 
         String[] values = getResources().getStringArray(R.array.report_type_values);
@@ -433,24 +433,36 @@ public class ReportsActivity extends AppCompatActivity {
         container.removeAllViews();
         emptyView.setVisibility(aggregates.isEmpty() ? View.VISIBLE : View.GONE);
 
+        double total = 0;
+        for (ReportExporter.Aggregate aggregate : aggregates) total += aggregate.amount;
+
         LayoutInflater inflater = LayoutInflater.from(this);
         for (ReportExporter.Aggregate aggregate : aggregates) {
             View row = inflater.inflate(R.layout.item_report_category, container, false);
             View colorView = row.findViewById(R.id.reportCategoryColorView);
             TextView nameView = row.findViewById(R.id.reportCategoryNameTextView);
+            TextView percentView = row.findViewById(R.id.reportCategoryPercentTextView);
             TextView amountView = row.findViewById(R.id.reportCategoryAmountTextView);
+            android.widget.ProgressBar progressView =
+                    row.findViewById(R.id.reportCategoryProgressBar);
 
             nameView.setText(aggregate.name);
             amountView.setText(PrivacyMode.format(this, aggregate.amount));
             amountView.setTextColor(ContextCompat.getColor(this, amountColor));
+            int percent = total <= 0 ? 0 : (int) Math.round(aggregate.amount * 100 / total);
+            percentView.setText(percent + "%");
 
+            int color;
             try {
-                colorView.setBackgroundTintList(ColorStateList.valueOf(
-                        Color.parseColor(aggregate.color)));
+                color = Color.parseColor(aggregate.color);
             } catch (IllegalArgumentException ignored) {
-                colorView.setBackgroundTintList(ColorStateList.valueOf(
-                        ContextCompat.getColor(this, R.color.money_neutral)));
+                color = ContextCompat.getColor(this, R.color.money_neutral);
             }
+            colorView.setBackgroundTintList(ColorStateList.valueOf(color));
+            progressView.setProgress(percent);
+            progressView.setProgressTintList(ColorStateList.valueOf(color));
+            progressView.setProgressBackgroundTintList(ColorStateList.valueOf(
+                    ContextCompat.getColor(this, R.color.outline)));
 
             container.addView(row);
         }

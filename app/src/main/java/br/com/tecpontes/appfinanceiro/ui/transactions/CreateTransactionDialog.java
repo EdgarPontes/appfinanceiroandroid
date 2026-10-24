@@ -49,6 +49,8 @@ public class CreateTransactionDialog extends Dialog {
     private boolean optionsLoading = true;
     private boolean formattingAmount;
     private boolean prefillApplied;
+    @Nullable private String presetCardId;
+    private boolean lockPaymentMethodToCard;
 
     public CreateTransactionDialog(
             @NonNull Context context,
@@ -83,6 +85,14 @@ public class CreateTransactionDialog extends Dialog {
         this.cloneMode = cloneMode;
     }
 
+    /** Fixa o lançamento como despesa no cartão informado. */
+    @NonNull
+    public CreateTransactionDialog presetCreditCard(@Nullable String cardId) {
+        this.presetCardId = cardId;
+        this.lockPaymentMethodToCard = cardId != null;
+        return this;
+    }
+
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
@@ -111,6 +121,7 @@ public class CreateTransactionDialog extends Dialog {
             binding.formSubtitleTextView.setText("Atualize os dados do lançamento");
             binding.transferTypeButton.setVisibility(View.GONE);
         }
+        applyPresetCard();
     }
 
     @Override
@@ -156,6 +167,7 @@ public class CreateTransactionDialog extends Dialog {
         refreshCategoryOptions();
         renderLoadingState();
         prefillIfReady();
+        applyPresetCard();
     }
 
     public void setOptionsLoading(boolean loading) {
@@ -180,6 +192,22 @@ public class CreateTransactionDialog extends Dialog {
         if (!hasSourceItem() || prefillApplied || binding == null || optionsLoading) return;
         prefillApplied = true;
         applyEditingItem(editingItem);
+    }
+
+    private void applyPresetCard() {
+        if (!lockPaymentMethodToCard || binding == null) return;
+        if (binding.typeChipGroup.getCheckedButtonId() == View.NO_ID) {
+            binding.typeChipGroup.check(R.id.expenseTypeButton);
+        }
+        binding.transferTypeButton.setVisibility(View.GONE);
+        binding.paymentMethodSpinner.setSelection(1, false);
+        binding.paymentMethodSpinner.setEnabled(false);
+        binding.paymentMethodSpinner.setAlpha(0.7f);
+        updatePaymentMethodVisibility();
+        if (presetCardId != null) selectCardById(presetCardId);
+        binding.formTitleTextView.setText("Novo lançamento");
+        binding.formSubtitleTextView.setText("Despesa ou crédito no cartão de crédito");
+        renderLoadingState();
     }
 
     private void applyEditingItem(@NonNull TransactionListItemDto item) {
@@ -578,12 +606,19 @@ public class CreateTransactionDialog extends Dialog {
     private void renderLoadingState() {
         if (binding == null) return;
         binding.loadingTextView.setVisibility(optionsLoading ? View.VISIBLE : View.GONE);
-        boolean requiredOptionsMissing = accounts.isEmpty() || categories.isEmpty();
+        boolean cardPayment = binding.paymentMethodSpinner.getSelectedItemPosition() == 1;
+        boolean requiredOptionsMissing = categories.isEmpty()
+                || (cardPayment ? cards.isEmpty() : accounts.isEmpty());
         if (!optionsLoading && requiredOptionsMissing && !isTransfer()) {
             String action = isEditMode() ? "editar" : "criar";
-            String message = accounts.isEmpty()
-                    ? "Cadastre uma conta bancária para " + action + " lançamentos."
-                    : "Cadastre ao menos uma categoria para " + action + " lançamentos.";
+            String message;
+            if (categories.isEmpty()) {
+                message = "Cadastre ao menos uma categoria para " + action + " lançamentos.";
+            } else if (cardPayment) {
+                message = "Cadastre um cartão de crédito para " + action + " lançamentos.";
+            } else {
+                message = "Cadastre uma conta bancária para " + action + " lançamentos.";
+            }
             binding.errorTextView.setText(message);
             binding.errorTextView.setVisibility(View.VISIBLE);
         } else if (!optionsLoading && accounts.size() < 2 && isTransfer()) {
@@ -597,7 +632,7 @@ public class CreateTransactionDialog extends Dialog {
         if (isTransfer()) return accounts.size() >= 2;
         boolean paymentOptionAvailable = binding.paymentMethodSpinner.getSelectedItemPosition() == 1
                 ? !cards.isEmpty() : !accounts.isEmpty();
-        return !accounts.isEmpty() && !categories.isEmpty() && paymentOptionAvailable;
+        return !categories.isEmpty() && paymentOptionAvailable;
     }
 
     private String[] namesOfAccounts() {

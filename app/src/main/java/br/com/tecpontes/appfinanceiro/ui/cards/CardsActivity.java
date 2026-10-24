@@ -29,8 +29,10 @@ import br.com.tecpontes.appfinanceiro.model.CreditCardDto;
 import br.com.tecpontes.appfinanceiro.model.InvoiceDetailsDto;
 import br.com.tecpontes.appfinanceiro.model.InvoicePaymentRequestDto;
 import br.com.tecpontes.appfinanceiro.model.TransactionListItemDto;
+import br.com.tecpontes.appfinanceiro.model.TransactionTransferRequestDto;
 import br.com.tecpontes.appfinanceiro.model.TransactionWriteDto;
 import br.com.tecpontes.appfinanceiro.ui.BottomNavigationHelper;
+import br.com.tecpontes.appfinanceiro.ui.transactions.CreateTransactionDialog;
 import br.com.tecpontes.appfinanceiro.ui.transactions.TransactionsAdapter;
 import br.com.tecpontes.appfinanceiro.utils.PrivacyMode;
 import br.com.tecpontes.appfinanceiro.utils.SessionExpiredNavigation;
@@ -70,6 +72,7 @@ public class CardsActivity extends AppCompatActivity {
     private String selectedCardId;
     private Calendar selectedMonth = Calendar.getInstance();
     private boolean suppressCardSelection;
+    @Nullable private CreateTransactionDialog createTransactionDialog;
 
     @Inject TokenManager tokenManager;
 
@@ -108,14 +111,18 @@ public class CardsActivity extends AppCompatActivity {
             cards = loadedCards == null ? new ArrayList<>() : new ArrayList<>(loadedCards);
             cards.sort(Comparator.comparing(card -> safe(card.getName()), String.CASE_INSENSITIVE_ORDER));
             renderCardSelection();
+            updateCreateTransactionDialogOptions();
         });
         viewModel.invoiceData.observe(this, this::renderInvoice);
         viewModel.accountsData.observe(this, loadedAccounts -> {
             accounts = loadedAccounts == null ? new ArrayList<>() : loadedAccounts;
             renderCardOverview(findSelectedCard());
+            updateCreateTransactionDialogOptions();
         });
-        viewModel.categoriesData.observe(this, loadedCategories ->
-                categories = loadedCategories == null ? new ArrayList<>() : loadedCategories);
+        viewModel.categoriesData.observe(this, loadedCategories -> {
+            categories = loadedCategories == null ? new ArrayList<>() : loadedCategories;
+            updateCreateTransactionDialogOptions();
+        });
         viewModel.isRefreshing.observe(this, loading ->
                 binding.swipeRefreshLayout.setRefreshing(Boolean.TRUE.equals(loading)));
         viewModel.errorMessage.observe(this, message -> {
@@ -149,14 +156,14 @@ public class CardsActivity extends AppCompatActivity {
         binding.invoiceStatusButton.setOnClickListener(v -> changeInvoiceStatus());
         binding.payInvoiceButton.setOnClickListener(v -> showPaymentDialog());
         binding.reversePaymentButton.setOnClickListener(v -> reverseLastPayment());
-        binding.addTransactionButton.setOnClickListener(v -> showTransactionDialog(null, false));
+        binding.addTransactionButton.setOnClickListener(v -> showCreateTransactionDialog());
         binding.exportInvoiceButton.setOnClickListener(v -> exportInvoice());
     }
 
     private void renderCardSelection() {
         ArrayAdapter<CreditCardDto> adapter = new ArrayAdapter<>(
-                this, android.R.layout.simple_spinner_item, cards);
-        adapter.setDropDownViewResource(android.R.layout.simple_spinner_dropdown_item);
+                this, R.layout.item_spinner_form, cards);
+        adapter.setDropDownViewResource(R.layout.item_spinner_form_dropdown);
         suppressCardSelection = true;
         binding.cardSpinner.setAdapter(adapter);
 
@@ -249,6 +256,7 @@ public class CardsActivity extends AppCompatActivity {
         double available = card.getAvailableLimit() == null ? limit - used : parseAmount(card.getAvailableLimit());
         binding.usedLimitTextView.setText("Utilizado " + formatSummaryCurrency(used) + " / " + formatSummaryCurrency(limit));
         binding.availableLimitTextView.setText("Disponível " + formatSummaryCurrency(available));
+        binding.availableLimitTextView.setTextColor(moneyColor(available));
         int percent = limit <= 0 ? 0 : (int) Math.max(0, Math.min(100, Math.round(used * 100 / limit)));
         binding.limitProgressBar.setProgress(percent);
     }
@@ -284,12 +292,16 @@ public class CardsActivity extends AppCompatActivity {
         content.setPadding(dp(24), dp(8), dp(24), 0);
         TextView monthLabel = new TextView(this);
         monthLabel.setText("Mês");
+        monthLabel.setTextColor(getColor(R.color.on_surface_variant));
+        monthLabel.setTextSize(12);
         content.addView(monthLabel);
         Spinner monthSpinner = createSpinner(monthOptions);
         monthSpinner.setSelection(selectedMonth.get(Calendar.MONTH));
         content.addView(monthSpinner);
         TextView yearLabel = new TextView(this);
         yearLabel.setText("Ano");
+        yearLabel.setTextColor(getColor(R.color.on_surface_variant));
+        yearLabel.setTextSize(12);
         yearLabel.setPadding(0, dp(12), 0, 0);
         content.addView(yearLabel);
         Spinner yearSpinner = createSpinner(years);
@@ -309,9 +321,12 @@ public class CardsActivity extends AppCompatActivity {
 
     private Spinner createSpinner(String[] values) {
         Spinner spinner = new Spinner(this);
-        ArrayAdapter<String> adapter = new ArrayAdapter<>(this, android.R.layout.simple_spinner_item, values);
-        adapter.setDropDownViewResource(android.R.layout.simple_spinner_dropdown_item);
+        ArrayAdapter<String> adapter = new ArrayAdapter<>(this, R.layout.item_spinner_form, values);
+        adapter.setDropDownViewResource(R.layout.item_spinner_form_dropdown);
         spinner.setAdapter(adapter);
+        spinner.setBackgroundResource(R.drawable.bg_spinner_selector);
+        spinner.setPadding(dp(16), 0, dp(44), 0);
+        spinner.setMinimumHeight(dp(52));
         return spinner;
     }
 
@@ -338,6 +353,7 @@ public class CardsActivity extends AppCompatActivity {
         if (invoice == null || invoice.id == null) {
             binding.invoiceUnavailableTextView.setVisibility(View.VISIBLE);
             summary.setVisibility(View.GONE);
+            binding.invoiceSummaryTitle.setVisibility(View.GONE);
             binding.invoiceStatusButton.setVisibility(View.GONE);
             binding.payInvoiceButton.setVisibility(View.GONE);
             binding.reversePaymentButton.setVisibility(View.GONE);
@@ -354,6 +370,7 @@ public class CardsActivity extends AppCompatActivity {
 
         binding.invoiceUnavailableTextView.setVisibility(View.GONE);
         summary.setVisibility(View.VISIBLE);
+        binding.invoiceSummaryTitle.setVisibility(View.VISIBLE);
         binding.invoiceStatusButton.setVisibility(View.VISIBLE);
         binding.payInvoiceButton.setVisibility(View.VISIBLE);
         binding.addTransactionButton.setEnabled(!"CLOSED".equalsIgnoreCase(invoice.status));
@@ -460,24 +477,49 @@ public class CardsActivity extends AppCompatActivity {
             row.setPadding(0, dp(8), 0, dp(8));
             LinearLayout heading = new LinearLayout(this);
             heading.setOrientation(LinearLayout.HORIZONTAL);
+            heading.setGravity(android.view.Gravity.CENTER_VERTICAL);
+
+            android.graphics.drawable.GradientDrawable dot = new android.graphics.drawable.GradientDrawable();
+            dot.setShape(android.graphics.drawable.GradientDrawable.OVAL);
+            dot.setColor(parseColor(total.color));
+            View dotView = new View(this);
+            dotView.setBackground(dot);
+            LinearLayout.LayoutParams dotParams = new LinearLayout.LayoutParams(dp(8), dp(8));
+            dotParams.setMarginEnd(dp(8));
+            heading.addView(dotView, dotParams);
+
             TextView categoryName = new TextView(this);
             categoryName.setText(total.name);
             categoryName.setTextColor(getColor(R.color.on_surface));
+            categoryName.setTextSize(13);
             heading.addView(categoryName, new LinearLayout.LayoutParams(0,
                     LinearLayout.LayoutParams.WRAP_CONTENT, 1));
+
+            int percent = grandTotal <= 0 ? 0 : (int) Math.round(total.amount * 100 / grandTotal);
+            TextView percentView = new TextView(this);
+            percentView.setText(percent + "%");
+            percentView.setTextColor(getColor(R.color.on_surface_variant));
+            percentView.setTextSize(12);
+            percentView.setPadding(0, 0, dp(8), 0);
+            heading.addView(percentView);
+
             TextView amount = new TextView(this);
             amount.setText(formatSummaryCurrency(total.amount));
             amount.setTextColor(getColor(R.color.money_negative));
+            amount.setTextSize(13);
+            amount.setTypeface(null, android.graphics.Typeface.BOLD);
             heading.addView(amount);
             row.addView(heading);
 
             ProgressBar progress = new ProgressBar(this, null, android.R.attr.progressBarStyleHorizontal);
             progress.setMax(100);
-            progress.setProgress(grandTotal <= 0 ? 0 : (int) Math.round(total.amount * 100 / grandTotal));
+            progress.setProgress(percent);
             progress.setProgressTintList(android.content.res.ColorStateList.valueOf(parseColor(total.color)));
+            progress.setProgressBackgroundTintList(android.content.res.ColorStateList.valueOf(
+                    getColor(R.color.outline)));
             LinearLayout.LayoutParams progressParams = new LinearLayout.LayoutParams(
-                    LinearLayout.LayoutParams.MATCH_PARENT, dp(6));
-            progressParams.topMargin = dp(5);
+                    LinearLayout.LayoutParams.MATCH_PARENT, dp(5));
+            progressParams.topMargin = dp(6);
             row.addView(progress, progressParams);
             container.addView(row);
         }
@@ -550,7 +592,7 @@ public class CardsActivity extends AppCompatActivity {
         Calendar paymentDate = Calendar.getInstance();
         updateDateButton(paymentDateButton, paymentDate);
         paymentDateButton.setPadding(dp(12), dp(12), dp(12), dp(12));
-        paymentDateButton.setBackgroundResource(R.drawable.glass_button_background);
+        paymentDateButton.setBackgroundResource(R.drawable.bg_period_selector);
         paymentDateButton.setOnClickListener(v -> showDatePicker(paymentDate, () -> updateDateButton(paymentDateButton, paymentDate)));
         form.addView(paymentDateLabel);
         form.addView(paymentDateButton);
@@ -658,6 +700,65 @@ public class CardsActivity extends AppCompatActivity {
                 .setPositiveButton("Fechar", null).show();
     }
 
+    private void showCreateTransactionDialog() {
+        InvoiceDetailsDto invoice = viewModel.invoiceData.getValue();
+        if (invoice != null && "CLOSED".equalsIgnoreCase(invoice.status)) {
+            Toast.makeText(this, "Reabra a fatura antes de adicionar lançamentos.", Toast.LENGTH_LONG).show();
+            return;
+        }
+        CreditCardDto card = findSelectedCard();
+        if (card == null || card.getId() == null) return;
+
+        createTransactionDialog = new CreateTransactionDialog(this,
+                new CreateTransactionDialog.OnTransactionCreatedListener() {
+                    @Override public void onCreateTransaction(TransactionWriteDto transaction) {
+                        transaction.accountId = null;
+                        transaction.cardId = card.getId();
+                        if (createTransactionDialog != null) createTransactionDialog.setSaving(true);
+                        viewModel.saveTransaction(null, transaction, new CreditCardRepository.ActionCallback() {
+                            @Override public void onSuccess() {
+                                runOnUiThread(() -> {
+                                    closeCreateTransactionDialog();
+                                    Toast.makeText(CardsActivity.this,
+                                            "Lançamento salvo", Toast.LENGTH_SHORT).show();
+                                    reloadCurrent();
+                                });
+                            }
+                            @Override public void onError(@NonNull String message) {
+                                runOnUiThread(() -> {
+                                    if (createTransactionDialog != null) {
+                                        createTransactionDialog.showError(message);
+                                    }
+                                });
+                            }
+                        });
+                    }
+
+                    @Override public void onCreateTransfer(TransactionTransferRequestDto transfer) {
+                        // Transferências não estão disponíveis no contexto do cartão.
+                    }
+                }).presetCreditCard(card.getId());
+        createTransactionDialog.setOnDismissListener(dialog -> createTransactionDialog = null);
+        createTransactionDialog.show();
+        createTransactionDialog.setOptionsLoading(true);
+        createTransactionDialog.setOptions(accounts, categories, cards);
+        createTransactionDialog.setOptionsLoading(false);
+        viewModel.loadPaymentOptions();
+    }
+
+    private void updateCreateTransactionDialogOptions() {
+        if (createTransactionDialog == null) return;
+        createTransactionDialog.setOptions(accounts, categories, cards);
+        createTransactionDialog.setOptionsLoading(false);
+    }
+
+    private void closeCreateTransactionDialog() {
+        if (createTransactionDialog == null) return;
+        CreateTransactionDialog dialog = createTransactionDialog;
+        createTransactionDialog = null;
+        dialog.dismiss();
+    }
+
     private void showTransactionDialog(@Nullable TransactionListItemDto transaction, boolean clone) {
         InvoiceDetailsDto invoice = viewModel.invoiceData.getValue();
         if (invoice == null) return;
@@ -698,7 +799,7 @@ public class CardsActivity extends AppCompatActivity {
         TextView dateButton = new TextView(this);
         updateDateButton(dateButton, transactionDate);
         dateButton.setPadding(dp(12), dp(12), dp(12), dp(12));
-        dateButton.setBackgroundResource(R.drawable.glass_button_background);
+        dateButton.setBackgroundResource(R.drawable.bg_period_selector);
         dateButton.setOnClickListener(v -> showDatePicker(transactionDate, () -> updateDateButton(dateButton, transactionDate)));
         form.addView(fieldLabel("Data"));
         form.addView(dateButton);
@@ -876,9 +977,12 @@ public class CardsActivity extends AppCompatActivity {
 
     private <T> Spinner createObjectSpinner(List<T> items) {
         Spinner spinner = new Spinner(this);
-        ArrayAdapter<T> adapter = new ArrayAdapter<>(this, android.R.layout.simple_spinner_item, items);
-        adapter.setDropDownViewResource(android.R.layout.simple_spinner_dropdown_item);
+        ArrayAdapter<T> adapter = new ArrayAdapter<>(this, R.layout.item_spinner_form, items);
+        adapter.setDropDownViewResource(R.layout.item_spinner_form_dropdown);
         spinner.setAdapter(adapter);
+        spinner.setBackgroundResource(R.drawable.bg_spinner_selector);
+        spinner.setPadding(dp(16), 0, dp(44), 0);
+        spinner.setMinimumHeight(dp(52));
         return spinner;
     }
 
@@ -915,6 +1019,8 @@ public class CardsActivity extends AppCompatActivity {
     private void updateDateButton(TextView button, Calendar date) {
         button.setText(new SimpleDateFormat("dd/MM/yyyy", new Locale("pt", "BR")).format(date.getTime()));
         button.setTextColor(getColor(R.color.on_surface));
+        button.setTextSize(14);
+        button.setGravity(android.view.Gravity.CENTER_VERTICAL);
     }
 
     private double parseLocalizedAmount(String raw) {
@@ -927,6 +1033,10 @@ public class CardsActivity extends AppCompatActivity {
         if (raw == null) return 0;
         try { return Double.parseDouble(raw.replace(',', '.')); }
         catch (NumberFormatException ignored) { return 0; }
+    }
+
+    private int moneyColor(double value) {
+        return getColor(value < 0 ? R.color.money_negative : R.color.money_positive);
     }
 
     private String formatCurrency(double value) {

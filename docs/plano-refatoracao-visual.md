@@ -2,9 +2,9 @@
 
 Documento vivo para acompanhar a modernização visual do app, com etapas, critérios de aceite e conclusões.
 
-- **Status geral:** Fase 3 em andamento; Login, Dashboard, Transações, Criar/editar lançamento, Contas, Importação de extrato, Cartões e Relatórios implementados.
+- **Status geral:** Fase 3 em andamento; Login, Dashboard, Transações, Criar/editar lançamento, Contas, Importação de extrato, Cartões, Relatórios e Configurações implementados; `F3-10` em andamento com Categorias ajustadas.
 - **Última atualização:** 2026-10-24.
-- **Próximo passo:** `F3-09` (Configurações).
+- **Próximo passo:** `F3-10` (Menu, perfil e notificações).
 - **Responsável:** equipe de desenvolvimento Android.
 
 ## Como atualizar este documento
@@ -33,7 +33,7 @@ Documento vivo para acompanhar a modernização visual do app, com etapas, crit�
 | Fase 0 | Diagnóstico técnico e definição do plano | Concluído | 100% |
 | Fase 1 | Fundação visual: tokens, temas, estilos e drawables | Concluído | 100% |
 | Fase 2 | Migração global de cores fixas e preparação do dark mode | Concluído | 100% |
-| Fase 3 | Redesenho estrutural das telas | Em andamento | 73% |
+| Fase 3 | Redesenho estrutural das telas | Em andamento | 82% |
 | Fase 4 | Validação final, dark mode e QA | Pendente | 0% |
 
 ## Decisões consolidadas
@@ -126,8 +126,8 @@ Objetivo: aplicar a identidade Modern Tech & Sofisticado em cada tela, mantendo 
 | F3-06 | Importação de extrato | `activity_statement_import.xml`, `StatementImportActivity.java` | Linhas, seleção e resumo legíveis em ambos os temas. | Concluído | Tela migrada para `CoordinatorLayout`/`AppBarLayout` com toolbar e botão de voltar; card da conta, card de importação, resumo em `ModernCard` tonal, CTA esmeralda e estados de vazio/erro. Correspondências e lançamentos novos usam `item_statement_match.xml`/`item_statement_new.xml` com `ModernListCard`, checkbox, valores nas cores financeiras, badge de confiança e spinner de categoria com `bg_spinner_selector`. Insets das barras do sistema aplicados e prévia limpa ao trocar de arquivo. IDs e fluxo de seleção/conciliação preservados; build/testes e `git diff --check` OK. |
 | F3-07 | Cartões | `activity_cards.xml`, `CardsActivity.java` | Visão do cartão, fatura e resumo modernizados. | Concluído | Tela migrada para `CoordinatorLayout`/`AppBarLayout` com toolbar, seletor de cartão temático e estado vazio. Visão do cartão em `ModernCard` com limite, progresso e disponibilidade em cores financeiras; fatura em `ModernCard` com seletor de mês em `bg_period_selector`, resumo com título próprio e CTAs esmeralda/outlined; lançamentos e categorias em `ModernCard` com percentuais, marcadores de cor e progresso. Spinners de cartão, período e formulários usam `bg_spinner_selector`/`item_spinner_form`; datas usam `bg_period_selector`. Após validação com prints, o card de categorias ganhou folga inferior e o botão “Novo lançamento” passou a abrir o `CreateTransactionDialog` compartilhado com a forma de pagamento travada no cartão selecionado, permitindo despesa ou crédito de reembolso. IDs e fluxos de fatura, pagamento, edição, estorno e exportação preservados; build/testes e `git diff --check` OK. |
 | F3-08 | Relatórios | `activity_reports.xml`, `ReportsActivity.java` | Filtros, cards de resumo e categorias no novo padrão. | Concluído | Tela migrada para `CoordinatorLayout`/`AppBarLayout` com progresso tonal no cabeçalho. Filtros, resumo e ações em `ModernCard`; botões de período/categoria e exportação em estilos outlined/`PrimaryCTAButton`; spinner de tipo com `bg_spinner_selector`. Categorias com marcador de cor, percentual e barra de progresso; itens de despesa e diálogo de detalhamento modernizados. Exportações CSV/PDF e filtros preservados; build/testes e `git diff --check` OK. |
-| F3-09 | Configurações | `activity_settings.xml`, `SettingsActivity.java` | Seções, campos e metas alinhados ao design system. | Pendente | Aguardando execução. |
-| F3-10 | Menu, categorias, perfil e notificações | Layouts e Activities correspondentes | Telas secundárias consistentes com o restante do app. | Pendente | Aguardando execução. |
+| F3-09 | Configurações | `activity_settings.xml`, `SettingsActivity.java` | Seções, campos e metas alinhados ao design system. | Concluído | Tela migrada para `CoordinatorLayout`/`AppBarLayout` com progresso tonal no cabeçalho. Metas financeiras, DND, retenção e metas por categoria em `ModernCard`, com ícones em círculo e campos `ModernTextInput`; CTAs esmeralda/outlined. Lista de metas usa `bg_period_selector` e diálogo de importação adotou `ModernCard`, spinner temático e campos do design system. Máscaras, validações, DND, importação e salvamento preservados; build/testes e `git diff --check` OK. |
+| F3-10 | Menu, categorias, perfil e notificações | Layouts e Activities correspondentes | Telas secundárias consistentes com o restante do app. | Em andamento | Categorias: seletor Despesas/Receitas migrado de `TabLayout` para `MaterialButtonToggleGroup` arredondado, com o mesmo padrão visual dos tipos de lançamento; FAB reposicionado mais próximo da barra inferior. Menu, perfil, notificações e diálogos correspondentes ainda pendentes. |
 | F3-11 | Barra inferior e toolbars | `bottom_navigation.xml`, layouts | Navegação e cabeçalhos consistentes em claro/escuro. | Pendente | Aguardando execução. |
 
 **Critérios de saída da Fase 3**
@@ -180,6 +180,8 @@ Objetivo: aplicar a identidade Modern Tech & Sofisticado em cada tela, mantendo 
 | 2026-10-24 | F3-07 | Cartões redesenhados | `activity_cards.xml` migrado para `CoordinatorLayout`/`AppBarLayout`; visão do cartão e fatura em `ModernCard`; seletor de mês em `bg_period_selector`; CTAs esmeralda/outlined; spinners com `bg_spinner_selector`; resumo da fatura com título, categorias com percentual e marcador de cor. IDs e fluxos de pagamento/estorno/exportação preservados; `./gradlew testDebugUnitTest assembleDebug` OK e `git diff --check` sem erros. |
 | 2026-10-24 | F3-07 | Ajustes após prints de validação | Card “Despesas por categoria” recebeu margem inferior e padding extra para não encostar na navegação; “Novo lançamento” passou a abrir o `CreateTransactionDialog` compartilhado com forma de pagamento travada no cartão selecionado. O modal mantém as opções de despesa e receita, oculta transferência e permite lançar créditos de reembolso. `CreateTransactionDialog` ganhou `presetCreditCard` e validação de opções por forma de pagamento. Build/testes OK. |
 | 2026-10-24 | F3-08 | Relatórios redesenhados | `activity_reports.xml` migrado para `CoordinatorLayout`/`AppBarLayout`; filtros, resumo, categorias e ações em `ModernCard`; período/categoria e exportações com estilos outlined/`PrimaryCTAButton`; categorias com percentual e progresso; `item_report_category`, `item_report_expense` e `dialog_report_expenses` modernizados. Filtros, exportações CSV/PDF e privacidade preservados; `./gradlew testDebugUnitTest assembleDebug` OK e `git diff --check` sem erros. |
+| 2026-10-24 | F3-09 | Configurações redesenhadas | `activity_settings.xml` migrado para `CoordinatorLayout`/`AppBarLayout`; metas financeiras, DND, retenção e metas por categoria em `ModernCard`; campos `ModernTextInput`, ícones em círculo e CTAs esmeralda/outlined; `item_category_goal` e `dialog_import_goals` modernizados com spinner temático. Validações, DND, importação e salvamento preservados; `./gradlew testDebugUnitTest assembleDebug` OK e `git diff --check` sem erros. |
+| 2026-10-24 | F3-10 | Categorias ajustadas após print | Seletor Despesas/Receitas substituído por `MaterialButtonToggleGroup` arredondado, alinhado aos seletores de tipo de lançamento; FAB movido para 4dp da barra inferior e lista com padding para não cobrir o último item. Build/testes OK. Demais telas do F3-10 pendentes. |
 
 ## Comandos de validação
 
@@ -214,6 +216,9 @@ git diff --check
 - `app/src/main/res/layout/item_report_category.xml`
 - `app/src/main/res/layout/item_report_expense.xml`
 - `app/src/main/res/layout/dialog_report_expenses.xml`
+- `app/src/main/res/layout/activity_settings.xml`
+- `app/src/main/res/layout/item_category_goal.xml`
+- `app/src/main/res/layout/dialog_import_goals.xml`
 - `app/src/main/res/layout/dialog_create_transaction.xml`
 - `app/src/main/res/layout/dialog_edit_transaction.xml`
 - `app/src/main/res/layout/dialog_account_form.xml`

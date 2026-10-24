@@ -334,8 +334,8 @@ public class SettingsActivity extends AppCompatActivity {
 
         String[] months = getResources().getStringArray(R.array.month_values);
         ArrayAdapter<String> adapter = new ArrayAdapter<>(
-                this, android.R.layout.simple_spinner_item, months);
-        adapter.setDropDownViewResource(android.R.layout.simple_spinner_dropdown_item);
+                this, R.layout.item_spinner_form, months);
+        adapter.setDropDownViewResource(R.layout.item_spinner_form_dropdown);
         dialogBinding.importMonthSpinner.setAdapter(adapter);
 
         LocalDate now = LocalDate.now();
@@ -367,7 +367,8 @@ public class SettingsActivity extends AppCompatActivity {
         dialog.show();
         window = dialog.getWindow();
         if (window != null) {
-            window.setLayout(WindowManager.LayoutParams.MATCH_PARENT,
+            window.setLayout(
+                    getResources().getDisplayMetrics().widthPixels - dp(32),
                     WindowManager.LayoutParams.WRAP_CONTENT);
         }
     }

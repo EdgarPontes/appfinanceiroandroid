@@ -1,58 +1,77 @@
 <?xml version="1.0" encoding="utf-8"?>
-<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+<androidx.coordinatorlayout.widget.CoordinatorLayout xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:app="http://schemas.android.com/apk/res-auto"
+    xmlns:tools="http://schemas.android.com/tools"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
     android:background="?android:attr/colorBackground"
-    android:orientation="vertical">
+    tools:context=".ui.settings.SettingsActivity">
 
-    <com.google.android.material.appbar.MaterialToolbar
-        android:id="@+id/toolbar"
+    <com.google.android.material.appbar.AppBarLayout
         android:layout_width="match_parent"
-        android:layout_height="?attr/actionBarSize"
-        android:background="?attr/colorSurface"
-        app:navigationContentDescription="@string/action_back"
-        app:navigationIcon="@drawable/ic_arrow_back"
-        app:navigationIconTint="?attr/colorOnSurface"
-        app:title="@string/settings_title"
-        app:titleTextColor="?attr/colorOnSurface" />
+        android:layout_height="wrap_content"
+        android:background="?attr/colorSurface">
 
-    <ProgressBar
-        android:id="@+id/settingsProgressBar"
-        style="?android:attr/progressBarStyleHorizontal"
-        android:layout_width="match_parent"
-        android:layout_height="4dp"
-        android:indeterminate="true"
-        android:visibility="gone" />
+        <com.google.android.material.appbar.MaterialToolbar
+            android:id="@+id/toolbar"
+            android:layout_width="match_parent"
+            android:layout_height="?attr/actionBarSize"
+            android:background="?attr/colorSurface"
+            app:navigationContentDescription="@string/action_back"
+            app:navigationIcon="@drawable/ic_arrow_back"
+            app:navigationIconTint="?attr/colorPrimary"
+            app:title="@string/settings_title"
+            app:titleTextColor="?attr/colorOnSurface" />
 
-    <ScrollView
+        <ProgressBar
+            android:id="@+id/settingsProgressBar"
+            style="?android:attr/progressBarStyleHorizontal"
+            android:layout_width="match_parent"
+            android:layout_height="3dp"
+            android:indeterminate="true"
+            android:indeterminateTint="?attr/colorTertiary"
+            android:visibility="gone"
+            tools:visibility="visible" />
+    </com.google.android.material.appbar.AppBarLayout>
+
+    <androidx.core.widget.NestedScrollView
         android:layout_width="match_parent"
-        android:layout_height="0dp"
-        android:layout_weight="1"
+        android:layout_height="match_parent"
         android:clipToPadding="false"
-        android:fillViewport="true">
+        android:fillViewport="true"
+        app:layout_behavior="@string/appbar_scrolling_view_behavior">
 
         <LinearLayout
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:orientation="vertical"
-            android:padding="16dp"
-            android:paddingBottom="24dp">
+            android:paddingStart="16dp"
+            android:paddingTop="12dp"
+            android:paddingEnd="16dp"
+            android:paddingBottom="104dp">
 
             <TextView
                 android:id="@+id/settingsErrorTextView"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
-                android:layout_marginBottom="8dp"
-                android:textColor="@color/money_negative"
-                android:visibility="gone" />
+                android:layout_marginBottom="12dp"
+                android:background="@drawable/bg_status_badge_error"
+                android:drawableStart="@drawable/ic_warning"
+                android:drawablePadding="8dp"
+                android:drawableTint="@color/on_error_container"
+                android:padding="12dp"
+                android:textColor="@color/on_error_container"
+                android:textSize="13sp"
+                android:visibility="gone"
+                tools:text="Não foi possível carregar as configurações."
+                tools:visibility="visible" />
 
             <!-- Metas Financeiras -->
             <com.google.android.material.card.MaterialCardView
-                style="@style/SettingsCard"
+                style="@style/ModernCard"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
-                android:layout_marginBottom="14dp">
+                android:layout_marginBottom="12dp">
 
                 <LinearLayout
                     android:layout_width="match_parent"
@@ -66,107 +85,138 @@
                         android:gravity="center_vertical"
                         android:orientation="horizontal">
 
-                        <ImageView
-                            style="@style/SettingsIcon"
-                            android:src="@drawable/ic_target" />
+                        <FrameLayout
+                            android:layout_width="36dp"
+                            android:layout_height="36dp"
+                            android:background="@drawable/bg_icon_circle">
+
+                            <ImageView
+                                android:layout_width="20dp"
+                                android:layout_height="20dp"
+                                android:layout_gravity="center"
+                                android:contentDescription="@null"
+                                android:src="@drawable/ic_target"
+                                app:tint="?attr/colorPrimary" />
+                        </FrameLayout>
 
                         <TextView
-                            style="@style/SettingsSectionTitle"
                             android:layout_width="0dp"
                             android:layout_height="wrap_content"
+                            android:layout_marginStart="10dp"
                             android:layout_weight="1"
-                            android:text="@string/settings_financial_goals" />
+                            android:text="@string/settings_financial_goals"
+                            android:textColor="?attr/colorOnSurface"
+                            android:textSize="17sp"
+                            android:textStyle="bold" />
                     </LinearLayout>
 
-                    <TextView
-                        style="@style/SettingsLabel"
+                    <com.google.android.material.textfield.TextInputLayout
+                        style="@style/ModernTextInput"
                         android:layout_width="match_parent"
                         android:layout_height="wrap_content"
-                        android:text="@string/settings_savings_label" />
+                        android:layout_marginTop="14dp"
+                        android:hint="@string/settings_savings_label">
 
-                    <EditText
-                        android:id="@+id/savingsGoalEditText"
-                        android:layout_width="match_parent"
-                        android:layout_height="wrap_content"
-                        android:hint="@string/settings_savings_hint"
-                        android:inputType="numberDecimal"
-                        android:maxLength="7"
-                        android:singleLine="true" />
-
-                    <TextView
-                        style="@style/SettingsHelper"
-                        android:layout_width="match_parent"
-                        android:layout_height="wrap_content"
-                        android:text="@string/settings_savings_helper" />
+                        <com.google.android.material.textfield.TextInputEditText
+                            android:id="@+id/savingsGoalEditText"
+                            android:layout_width="match_parent"
+                            android:layout_height="56dp"
+                            android:inputType="numberDecimal"
+                            android:maxLength="7"
+                            android:singleLine="true"
+                            android:textColor="?attr/colorOnSurface" />
+                    </com.google.android.material.textfield.TextInputLayout>
 
                     <TextView
-                        style="@style/SettingsLabel"
                         android:layout_width="match_parent"
                         android:layout_height="wrap_content"
-                        android:text="@string/settings_budget_label" />
+                        android:layout_marginTop="4dp"
+                        android:text="@string/settings_savings_helper"
+                        android:textColor="?attr/colorOnSurfaceVariant"
+                        android:textSize="11sp" />
 
-                    <EditText
-                        android:id="@+id/monthlyBudgetEditText"
+                    <com.google.android.material.textfield.TextInputLayout
+                        style="@style/ModernTextInput"
                         android:layout_width="match_parent"
                         android:layout_height="wrap_content"
-                        android:hint="@string/settings_budget_hint"
-                        android:inputType="numberDecimal"
-                        android:maxLength="12"
-                        android:singleLine="true" />
+                        android:layout_marginTop="12dp"
+                        android:hint="@string/settings_budget_label">
 
-                    <TextView
-                        style="@style/SettingsHelper"
-                        android:layout_width="match_parent"
-                        android:layout_height="wrap_content"
-                        android:text="@string/settings_budget_helper" />
-
-                    <TextView
-                        style="@style/SettingsLabel"
-                        android:layout_width="match_parent"
-                        android:layout_height="wrap_content"
-                        android:text="@string/settings_alert_label" />
-
-                    <EditText
-                        android:id="@+id/expenseAlertEditText"
-                        android:layout_width="match_parent"
-                        android:layout_height="wrap_content"
-                        android:hint="80"
-                        android:inputType="numberDecimal"
-                        android:maxLength="5"
-                        android:singleLine="true" />
+                        <com.google.android.material.textfield.TextInputEditText
+                            android:id="@+id/monthlyBudgetEditText"
+                            android:layout_width="match_parent"
+                            android:layout_height="56dp"
+                            android:inputType="numberDecimal"
+                            android:maxLength="12"
+                            android:singleLine="true"
+                            android:textColor="?attr/colorOnSurface" />
+                    </com.google.android.material.textfield.TextInputLayout>
 
                     <TextView
-                        style="@style/SettingsHelper"
                         android:layout_width="match_parent"
                         android:layout_height="wrap_content"
-                        android:text="@string/settings_alert_helper" />
+                        android:layout_marginTop="4dp"
+                        android:text="@string/settings_budget_helper"
+                        android:textColor="?attr/colorOnSurfaceVariant"
+                        android:textSize="11sp" />
+
+                    <com.google.android.material.textfield.TextInputLayout
+                        style="@style/ModernTextInput"
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:layout_marginTop="12dp"
+                        android:hint="@string/settings_alert_label">
+
+                        <com.google.android.material.textfield.TextInputEditText
+                            android:id="@+id/expenseAlertEditText"
+                            android:layout_width="match_parent"
+                            android:layout_height="56dp"
+                            android:inputType="numberDecimal"
+                            android:maxLength="5"
+                            android:singleLine="true"
+                            android:textColor="?attr/colorOnSurface" />
+                    </com.google.android.material.textfield.TextInputLayout>
 
                     <TextView
-                        style="@style/SettingsLabel"
                         android:layout_width="match_parent"
                         android:layout_height="wrap_content"
-                        android:text="@string/settings_currency_label" />
+                        android:layout_marginTop="4dp"
+                        android:text="@string/settings_alert_helper"
+                        android:textColor="?attr/colorOnSurfaceVariant"
+                        android:textSize="11sp" />
 
-                    <EditText
-                        android:id="@+id/currencyEditText"
+                    <com.google.android.material.textfield.TextInputLayout
+                        style="@style/ModernTextInput"
                         android:layout_width="match_parent"
                         android:layout_height="wrap_content"
-                        android:enabled="false"
-                        android:focusable="false"
-                        android:inputType="textCapCharacters"
-                        android:singleLine="true"
-                        android:text="BRL" />
+                        android:layout_marginTop="12dp"
+                        android:hint="@string/settings_currency_label">
+
+                        <com.google.android.material.textfield.TextInputEditText
+                            android:id="@+id/currencyEditText"
+                            android:layout_width="match_parent"
+                            android:layout_height="56dp"
+                            android:enabled="false"
+                            android:focusable="false"
+                            android:inputType="textCapCharacters"
+                            android:singleLine="true"
+                            android:text="BRL"
+                            android:textColor="?attr/colorOnSurfaceVariant" />
+                    </com.google.android.material.textfield.TextInputLayout>
 
                     <TextView
-                        style="@style/SettingsHelper"
                         android:layout_width="match_parent"
                         android:layout_height="wrap_content"
-                        android:text="@string/settings_currency_helper" />
+                        android:layout_marginTop="4dp"
+                        android:text="@string/settings_currency_helper"
+                        android:textColor="?attr/colorOnSurfaceVariant"
+                        android:textSize="11sp" />
 
                     <com.google.android.material.button.MaterialButton
                         android:id="@+id/saveGoalsButton"
+                        style="@style/PrimaryCTAButton"
                         android:layout_width="match_parent"
-                        android:layout_height="wrap_content"
+                        android:layout_height="52dp"
                         android:layout_marginTop="14dp"
                         android:text="@string/settings_save_goals" />
                 </LinearLayout>
@@ -174,10 +224,10 @@
 
             <!-- Não Perturbe -->
             <com.google.android.material.card.MaterialCardView
-                style="@style/SettingsCard"
+                style="@style/ModernCard"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
-                android:layout_marginBottom="14dp">
+                android:layout_marginBottom="12dp">
 
                 <LinearLayout
                     android:layout_width="match_parent"
@@ -191,22 +241,35 @@
                         android:gravity="center_vertical"
                         android:orientation="horizontal">
 
-                        <ImageView
-                            style="@style/SettingsIcon"
-                            android:src="@drawable/ic_bell_off" />
+                        <FrameLayout
+                            android:layout_width="36dp"
+                            android:layout_height="36dp"
+                            android:background="@drawable/bg_icon_circle">
+
+                            <ImageView
+                                android:layout_width="20dp"
+                                android:layout_height="20dp"
+                                android:layout_gravity="center"
+                                android:contentDescription="@null"
+                                android:src="@drawable/ic_bell_off"
+                                app:tint="?attr/colorPrimary" />
+                        </FrameLayout>
 
                         <TextView
-                            style="@style/SettingsSectionTitle"
                             android:layout_width="0dp"
                             android:layout_height="wrap_content"
+                            android:layout_marginStart="10dp"
                             android:layout_weight="1"
-                            android:text="@string/settings_dnd_title" />
+                            android:text="@string/settings_dnd_title"
+                            android:textColor="?attr/colorOnSurface"
+                            android:textSize="17sp"
+                            android:textStyle="bold" />
                     </LinearLayout>
 
                     <LinearLayout
                         android:layout_width="match_parent"
                         android:layout_height="wrap_content"
-                        android:layout_marginTop="8dp"
+                        android:layout_marginTop="12dp"
                         android:gravity="center_vertical"
                         android:orientation="horizontal">
 
@@ -221,14 +284,16 @@
                                 android:layout_height="wrap_content"
                                 android:text="@string/settings_dnd_switch"
                                 android:textColor="?attr/colorOnSurface"
+                                android:textSize="14sp"
                                 android:textStyle="bold" />
 
                             <TextView
                                 android:layout_width="match_parent"
                                 android:layout_height="wrap_content"
+                                android:layout_marginTop="2dp"
                                 android:text="@string/settings_dnd_helper"
                                 android:textColor="?attr/colorOnSurfaceVariant"
-                                android:textSize="12sp" />
+                                android:textSize="11sp" />
                         </LinearLayout>
 
                         <com.google.android.material.materialswitch.MaterialSwitch
@@ -242,80 +307,77 @@
                         android:id="@+id/dndTimesRow"
                         android:layout_width="match_parent"
                         android:layout_height="wrap_content"
-                        android:layout_marginTop="8dp"
+                        android:layout_marginTop="12dp"
                         android:orientation="horizontal"
-                        android:visibility="gone">
+                        android:visibility="gone"
+                        tools:visibility="visible">
 
-                        <LinearLayout
+                        <com.google.android.material.textfield.TextInputLayout
+                            style="@style/ModernTextInput"
                             android:layout_width="0dp"
                             android:layout_height="wrap_content"
-                            android:layout_marginEnd="8dp"
+                            android:layout_marginEnd="4dp"
                             android:layout_weight="1"
-                            android:orientation="vertical">
+                            android:hint="@string/settings_dnd_start">
 
-                            <TextView
-                                style="@style/SettingsHelper"
-                                android:layout_width="match_parent"
-                                android:layout_height="wrap_content"
-                                android:layout_marginTop="0dp"
-                                android:text="@string/settings_dnd_start" />
-
-                            <EditText
+                            <com.google.android.material.textfield.TextInputEditText
                                 android:id="@+id/dndStartEditText"
                                 android:layout_width="match_parent"
-                                android:layout_height="wrap_content"
+                                android:layout_height="56dp"
                                 android:clickable="true"
                                 android:cursorVisible="false"
                                 android:focusable="false"
-                                android:hint="22:00"
                                 android:inputType="none"
                                 android:longClickable="false"
-                                android:singleLine="true" />
-                        </LinearLayout>
+                                android:singleLine="true"
+                                android:textColor="?attr/colorOnSurface" />
+                        </com.google.android.material.textfield.TextInputLayout>
 
-                        <LinearLayout
+                        <com.google.android.material.textfield.TextInputLayout
+                            style="@style/ModernTextInput"
                             android:layout_width="0dp"
                             android:layout_height="wrap_content"
-                            android:layout_marginStart="8dp"
+                            android:layout_marginStart="4dp"
                             android:layout_weight="1"
-                            android:orientation="vertical">
+                            android:hint="@string/settings_dnd_end">
 
-                            <TextView
-                                style="@style/SettingsHelper"
-                                android:layout_width="match_parent"
-                                android:layout_height="wrap_content"
-                                android:layout_marginTop="0dp"
-                                android:text="@string/settings_dnd_end" />
-
-                            <EditText
+                            <com.google.android.material.textfield.TextInputEditText
                                 android:id="@+id/dndEndEditText"
                                 android:layout_width="match_parent"
-                                android:layout_height="wrap_content"
+                                android:layout_height="56dp"
                                 android:clickable="true"
                                 android:cursorVisible="false"
                                 android:focusable="false"
-                                android:hint="08:00"
                                 android:inputType="none"
                                 android:longClickable="false"
-                                android:singleLine="true" />
-                        </LinearLayout>
+                                android:singleLine="true"
+                                android:textColor="?attr/colorOnSurface" />
+                        </com.google.android.material.textfield.TextInputLayout>
                     </LinearLayout>
 
                     <com.google.android.material.button.MaterialButton
                         android:id="@+id/saveDndButton"
+                        style="@style/Widget.Material3.Button.OutlinedButton"
                         android:layout_width="match_parent"
-                        android:layout_height="wrap_content"
+                        android:layout_height="52dp"
                         android:layout_marginTop="14dp"
-                        android:text="@string/settings_save_dnd" />
+                        android:insetTop="0dp"
+                        android:insetBottom="0dp"
+                        android:text="@string/settings_save_dnd"
+                        android:textAllCaps="false"
+                        android:textColor="?attr/colorOnSurface"
+                        android:textSize="13sp"
+                        app:cornerRadius="14dp"
+                        app:strokeColor="?attr/colorOutline" />
                 </LinearLayout>
             </com.google.android.material.card.MaterialCardView>
 
             <!-- Retenção -->
             <com.google.android.material.card.MaterialCardView
-                style="@style/SettingsCard"
+                style="@style/ModernCard"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
-                android:layout_marginBottom="14dp">
+                android:layout_marginBottom="12dp">
 
                 <LinearLayout
                     android:layout_width="match_parent"
@@ -329,53 +391,79 @@
                         android:gravity="center_vertical"
                         android:orientation="horizontal">
 
-                        <ImageView
-                            style="@style/SettingsIcon"
-                            android:src="@drawable/ic_clock" />
+                        <FrameLayout
+                            android:layout_width="36dp"
+                            android:layout_height="36dp"
+                            android:background="@drawable/bg_icon_circle">
+
+                            <ImageView
+                                android:layout_width="20dp"
+                                android:layout_height="20dp"
+                                android:layout_gravity="center"
+                                android:contentDescription="@null"
+                                android:src="@drawable/ic_clock"
+                                app:tint="?attr/colorPrimary" />
+                        </FrameLayout>
 
                         <TextView
-                            style="@style/SettingsSectionTitle"
                             android:layout_width="0dp"
                             android:layout_height="wrap_content"
+                            android:layout_marginStart="10dp"
                             android:layout_weight="1"
-                            android:text="@string/settings_retention_title" />
+                            android:text="@string/settings_retention_title"
+                            android:textColor="?attr/colorOnSurface"
+                            android:textSize="17sp"
+                            android:textStyle="bold" />
                     </LinearLayout>
 
-                    <TextView
-                        style="@style/SettingsLabel"
-                        android:layout_width="match_parent"
-                        android:layout_height="wrap_content"
-                        android:text="@string/settings_retention_label" />
-
-                    <EditText
-                        android:id="@+id/retentionEditText"
-                        android:layout_width="match_parent"
-                        android:layout_height="wrap_content"
-                        android:hint="90"
-                        android:inputType="number"
-                        android:maxLength="3"
-                        android:singleLine="true" />
-
-                    <TextView
-                        style="@style/SettingsHelper"
-                        android:layout_width="match_parent"
-                        android:layout_height="wrap_content"
-                        android:text="@string/settings_retention_helper" />
-
-                    <com.google.android.material.button.MaterialButton
-                        android:id="@+id/saveRetentionButton"
+                    <com.google.android.material.textfield.TextInputLayout
+                        style="@style/ModernTextInput"
                         android:layout_width="match_parent"
                         android:layout_height="wrap_content"
                         android:layout_marginTop="14dp"
-                        android:text="@string/settings_save_retention" />
+                        android:hint="@string/settings_retention_label">
+
+                        <com.google.android.material.textfield.TextInputEditText
+                            android:id="@+id/retentionEditText"
+                            android:layout_width="match_parent"
+                            android:layout_height="56dp"
+                            android:inputType="number"
+                            android:maxLength="3"
+                            android:singleLine="true"
+                            android:textColor="?attr/colorOnSurface" />
+                    </com.google.android.material.textfield.TextInputLayout>
+
+                    <TextView
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:layout_marginTop="4dp"
+                        android:text="@string/settings_retention_helper"
+                        android:textColor="?attr/colorOnSurfaceVariant"
+                        android:textSize="11sp" />
+
+                    <com.google.android.material.button.MaterialButton
+                        android:id="@+id/saveRetentionButton"
+                        style="@style/Widget.Material3.Button.OutlinedButton"
+                        android:layout_width="match_parent"
+                        android:layout_height="52dp"
+                        android:layout_marginTop="14dp"
+                        android:insetTop="0dp"
+                        android:insetBottom="0dp"
+                        android:text="@string/settings_save_retention"
+                        android:textAllCaps="false"
+                        android:textColor="?attr/colorOnSurface"
+                        android:textSize="13sp"
+                        app:cornerRadius="14dp"
+                        app:strokeColor="?attr/colorOutline" />
                 </LinearLayout>
             </com.google.android.material.card.MaterialCardView>
 
             <!-- Metas por categoria -->
             <com.google.android.material.card.MaterialCardView
-                style="@style/SettingsCard"
+                style="@style/ModernCard"
                 android:layout_width="match_parent"
-                android:layout_height="wrap_content">
+                android:layout_height="wrap_content"
+                android:layout_marginBottom="24dp">
 
                 <LinearLayout
                     android:layout_width="match_parent"
@@ -389,32 +477,54 @@
                         android:gravity="center_vertical"
                         android:orientation="horizontal">
 
-                        <ImageView
-                            style="@style/SettingsIcon"
-                            android:src="@drawable/ic_target" />
+                        <FrameLayout
+                            android:layout_width="36dp"
+                            android:layout_height="36dp"
+                            android:background="@drawable/bg_icon_circle">
+
+                            <ImageView
+                                android:layout_width="20dp"
+                                android:layout_height="20dp"
+                                android:layout_gravity="center"
+                                android:contentDescription="@null"
+                                android:src="@drawable/ic_target"
+                                app:tint="?attr/colorPrimary" />
+                        </FrameLayout>
 
                         <TextView
-                            style="@style/SettingsSectionTitle"
                             android:layout_width="0dp"
                             android:layout_height="wrap_content"
+                            android:layout_marginStart="10dp"
                             android:layout_weight="1"
-                            android:text="@string/settings_category_goals_title" />
+                            android:text="@string/settings_category_goals_title"
+                            android:textColor="?attr/colorOnSurface"
+                            android:textSize="17sp"
+                            android:textStyle="bold" />
 
                         <com.google.android.material.button.MaterialButton
                             android:id="@+id/importGoalsButton"
-                            style="@style/Widget.MaterialComponents.Button.OutlinedButton"
+                            style="@style/Widget.Material3.Button.OutlinedButton"
                             android:layout_width="wrap_content"
-                            android:layout_height="wrap_content"
+                            android:layout_height="40dp"
+                            android:insetTop="0dp"
+                            android:insetBottom="0dp"
                             android:minWidth="0dp"
+                            android:paddingHorizontal="12dp"
                             android:text="@string/settings_import_goals"
-                            android:textSize="11sp" />
+                            android:textAllCaps="false"
+                            android:textColor="?attr/colorPrimary"
+                            android:textSize="11sp"
+                            app:cornerRadius="12dp"
+                            app:strokeColor="?attr/colorPrimary" />
                     </LinearLayout>
 
                     <TextView
-                        style="@style/SettingsHelper"
                         android:layout_width="match_parent"
                         android:layout_height="wrap_content"
-                        android:text="@string/settings_category_goals_helper" />
+                        android:layout_marginTop="4dp"
+                        android:text="@string/settings_category_goals_helper"
+                        android:textColor="?attr/colorOnSurfaceVariant"
+                        android:textSize="11sp" />
 
                     <LinearLayout
                         android:id="@+id/categoryGoalsContainer"
@@ -427,8 +537,10 @@
                         android:id="@+id/categoryGoalsEmptyTextView"
                         android:layout_width="match_parent"
                         android:layout_height="wrap_content"
-                        android:layout_marginTop="8dp"
+                        android:layout_marginTop="10dp"
+                        android:background="@drawable/bg_outlined_rounded"
                         android:gravity="center"
+                        android:padding="20dp"
                         android:text="Nenhuma categoria encontrada."
                         android:textColor="?attr/colorOnSurfaceVariant"
                         android:textSize="12sp"
@@ -436,14 +548,21 @@
 
                     <com.google.android.material.button.MaterialButton
                         android:id="@+id/saveCategoryGoalsButton"
+                        style="@style/PrimaryCTAButton"
                         android:layout_width="match_parent"
-                        android:layout_height="wrap_content"
+                        android:layout_height="52dp"
                         android:layout_marginTop="14dp"
                         android:text="@string/settings_save_category_goals" />
                 </LinearLayout>
             </com.google.android.material.card.MaterialCardView>
         </LinearLayout>
-    </ScrollView>
+    </androidx.core.widget.NestedScrollView>
 
-    <include layout="@layout/bottom_navigation" />
-</LinearLayout>
+    <include
+        android:id="@+id/bottomNavigation"
+        layout="@layout/bottom_navigation"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_gravity="bottom" />
+
+</androidx.coordinatorlayout.widget.CoordinatorLayout>

@@ -17,7 +17,6 @@ import br.com.tecpontes.appfinanceiro.utils.SessionExpiredNavigation;
 import br.com.tecpontes.appfinanceiro.utils.TokenManager;
 import br.com.tecpontes.appfinanceiro.viewmodel.CategoriesViewModel;
 import com.google.android.material.dialog.MaterialAlertDialogBuilder;
-import com.google.android.material.tabs.TabLayout;
 import dagger.hilt.android.AndroidEntryPoint;
 import java.util.ArrayList;
 import java.util.List;
@@ -69,8 +68,7 @@ public class CategoriesActivity extends AppCompatActivity {
 
         setupTabs();
         if (CategoriesViewModel.TYPE_INCOME.equals(currentType)) {
-            TabLayout.Tab incomeTab = binding.categoryTabLayout.getTabAt(1);
-            if (incomeTab != null) incomeTab.select();
+            binding.categoryTypeToggleGroup.check(R.id.incomeTypeButton);
         }
         setupListeners();
         setupObservers();
@@ -79,27 +77,13 @@ public class CategoriesActivity extends AppCompatActivity {
     }
 
     private void setupTabs() {
-        binding.categoryTabLayout.addTab(binding.categoryTabLayout.newTab()
-                .setText(R.string.categories_tab_expenses));
-        binding.categoryTabLayout.addTab(binding.categoryTabLayout.newTab()
-                .setText(R.string.categories_tab_income));
-
-        binding.categoryTabLayout.addOnTabSelectedListener(new TabLayout.OnTabSelectedListener() {
-            @Override public void onTabSelected(TabLayout.Tab tab) {
-                currentType = tab.getPosition() == 1
-                        ? CategoriesViewModel.TYPE_INCOME
-                        : CategoriesViewModel.TYPE_EXPENSE;
-                renderCurrentTab();
-                updateEmptyState();
-            }
-
-            @Override public void onTabUnselected(TabLayout.Tab tab) {
-                // Nada a fazer.
-            }
-
-            @Override public void onTabReselected(TabLayout.Tab tab) {
-                // Nada a fazer.
-            }
+        binding.categoryTypeToggleGroup.addOnButtonCheckedListener((group, checkedId, isChecked) -> {
+            if (!isChecked) return;
+            currentType = checkedId == R.id.incomeTypeButton
+                    ? CategoriesViewModel.TYPE_INCOME
+                    : CategoriesViewModel.TYPE_EXPENSE;
+            renderCurrentTab();
+            updateEmptyState();
         });
     }
 

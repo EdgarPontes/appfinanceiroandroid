@@ -9,4 +9,5 @@
     <color name="white">#FFFFFFFF</color>
     <color name="money_positive">#18996F</color>
     <color name="money_negative">#D5485E</color>
+    <color name="password_strength_medium">#F5A623</color>
 </resources>

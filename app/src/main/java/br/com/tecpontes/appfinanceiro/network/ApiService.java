@@ -13,6 +13,7 @@ import br.com.tecpontes.appfinanceiro.model.CategoryGoalDto;
 import br.com.tecpontes.appfinanceiro.model.CategoryGoalRequestDto;
 import br.com.tecpontes.appfinanceiro.model.CategoryRequestDto;
 import br.com.tecpontes.appfinanceiro.model.DashboardDto;
+import br.com.tecpontes.appfinanceiro.model.ForgotPasswordRequestDto;
 import br.com.tecpontes.appfinanceiro.model.CreditCardDto;
 import br.com.tecpontes.appfinanceiro.model.CreditCardRequestDto;
 import br.com.tecpontes.appfinanceiro.model.ImportCategoryGoalsRequestDto;
@@ -65,6 +66,9 @@ public interface ApiService {
 
     @POST("auth/register")
     Call<AuthResponse> register(@Body AuthRequest request);
+
+    @POST("auth/forgot-password")
+    Call<ResponseBody> forgotPassword(@Body ForgotPasswordRequestDto request);
 
     // ========== PERFIL ==========
 

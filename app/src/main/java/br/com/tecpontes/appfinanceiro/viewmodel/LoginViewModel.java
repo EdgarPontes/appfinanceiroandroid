@@ -40,6 +40,12 @@ public class LoginViewModel extends ViewModel {
     private final MutableLiveData<String> _passwordError = new MutableLiveData<>();
     public final LiveData<String> passwordError = _passwordError;
 
+    private final MutableLiveData<String> _forgotPasswordMessage = new MutableLiveData<>();
+    public final LiveData<String> forgotPasswordMessage = _forgotPasswordMessage;
+
+    private final MutableLiveData<String> _forgotPasswordError = new MutableLiveData<>();
+    public final LiveData<String> forgotPasswordError = _forgotPasswordError;
+
     @Inject
     public LoginViewModel(AuthRepository authRepository) {
         this.authRepository = authRepository;
@@ -81,7 +87,8 @@ public class LoginViewModel extends ViewModel {
     /**
      * Realiza registro do usuário
      */
-    public void register(@NonNull String email, @NonNull String password) {
+    public void register(@NonNull String name, @NonNull String email,
+                         @NonNull String cellphone, @NonNull String password) {
         Log.d(TAG, "Tentando registro para: " + email);
 
         // Valida formulário
@@ -93,21 +100,40 @@ public class LoginViewModel extends ViewModel {
         _loading.setValue(true);
         _error.setValue(null);
 
-        authRepository.register(email, password, new AuthRepository.AuthCallback() {
-            @Override
-            public void onSuccess(AuthResponse response) {
-                _loading.postValue(false);
-                _registerSuccess.postValue(true);
-                Log.d(TAG, "Registro realizado com sucesso");
-            }
+        authRepository.register(name, email, cellphone, password,
+                new AuthRepository.AuthCallback() {
+                    @Override
+                    public void onSuccess(AuthResponse response) {
+                        _loading.postValue(false);
+                        _registerSuccess.postValue(true);
+                        Log.d(TAG, "Registro realizado com sucesso");
+                    }
 
-            @Override
-            public void onError(String error) {
-                _loading.postValue(false);
-                _error.postValue(error);
-                Log.d(TAG, "Erro no registro: " + error);
-            }
-        });
+                    @Override
+                    public void onError(String error) {
+                        _loading.postValue(false);
+                        _error.postValue(error);
+                        Log.d(TAG, "Erro no registro: " + error);
+                    }
+                });
+    }
+
+    /** Solicita a recuperação de senha por e-mail e celular. */
+    public void requestPasswordReset(@NonNull String email, @NonNull String cellphone) {
+        _forgotPasswordMessage.setValue(null);
+        _forgotPasswordError.setValue(null);
+        authRepository.requestPasswordReset(email, cellphone,
+                new AuthRepository.ForgotPasswordCallback() {
+                    @Override
+                    public void onSuccess(@NonNull String message) {
+                        _forgotPasswordMessage.postValue(message);
+                    }
+
+                    @Override
+                    public void onError(@NonNull String error) {
+                        _forgotPasswordError.postValue(error);
+                    }
+                });
     }
 
     /**

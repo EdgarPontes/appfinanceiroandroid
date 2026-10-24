@@ -34,6 +34,7 @@ import br.com.tecpontes.appfinanceiro.model.ProfileUpdateRequestDto;
 import br.com.tecpontes.appfinanceiro.model.TransactionDto;
 import br.com.tecpontes.appfinanceiro.model.TransactionListItemDto;
 import br.com.tecpontes.appfinanceiro.model.TransactionWriteDto;
+import br.com.tecpontes.appfinanceiro.model.TransactionTransferRequestDto;
 import br.com.tecpontes.appfinanceiro.model.UserSettingsDto;
 import br.com.tecpontes.appfinanceiro.model.UserSettingsUpdateRequestDto;
 import java.util.List;
@@ -178,6 +179,9 @@ public interface ApiService {
 
     @POST("transactions")
     Call<ResponseBody> createTransactionFromList(@Body TransactionWriteDto transaction);
+
+    @POST("transactions/transfer")
+    Call<ResponseBody> createTransactionTransfer(@Body TransactionTransferRequestDto transfer);
 
     @PUT("transactions/{id}")
     Call<ResponseBody> updateTransaction(

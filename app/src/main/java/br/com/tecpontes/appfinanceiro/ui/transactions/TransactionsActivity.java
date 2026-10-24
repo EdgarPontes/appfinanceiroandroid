@@ -27,6 +27,10 @@ import br.com.tecpontes.appfinanceiro.R;
 import br.com.tecpontes.appfinanceiro.data.local.entity.Account;
 import br.com.tecpontes.appfinanceiro.databinding.ActivityTransactionsBinding;
 import br.com.tecpontes.appfinanceiro.model.TransactionListItemDto;
+import br.com.tecpontes.appfinanceiro.model.AccountDto;
+import br.com.tecpontes.appfinanceiro.model.CategoryDto;
+import br.com.tecpontes.appfinanceiro.model.CreditCardDto;
+import br.com.tecpontes.appfinanceiro.model.TransactionTransferRequestDto;
 import br.com.tecpontes.appfinanceiro.model.TransactionWriteDto;
 import br.com.tecpontes.appfinanceiro.ui.BottomNavigationHelper;
 import br.com.tecpontes.appfinanceiro.utils.SessionExpiredNavigation;
@@ -58,6 +62,7 @@ public class TransactionsActivity extends AppCompatActivity {
     private ActivityTransactionsBinding binding;
     private TransactionsViewModel transactionsViewModel;
     private TransactionsAdapter transactionsAdapter;
+    @Nullable private CreateTransactionDialog createTransactionDialog;
 
     @Inject
     TokenManager tokenManager;
@@ -330,6 +335,19 @@ public class TransactionsActivity extends AppCompatActivity {
                 requestBalanceForPeriod();
             } else {
                 updateAccountButton();
+            }
+        });
+        transactionsViewModel.formAccounts.observe(this, loadedAccounts -> updateTransactionDialogOptions());
+        transactionsViewModel.formCategories.observe(this, loadedCategories -> updateTransactionDialogOptions());
+        transactionsViewModel.formCards.observe(this, loadedCards -> updateTransactionDialogOptions());
+        transactionsViewModel.formOptionsLoading.observe(this, loading -> {
+            if (createTransactionDialog != null) {
+                createTransactionDialog.setOptionsLoading(Boolean.TRUE.equals(loading));
+            }
+        });
+        transactionsViewModel.formOptionsError.observe(this, error -> {
+            if (error != null && !error.trim().isEmpty() && createTransactionDialog != null) {
+                createTransactionDialog.showError(error);
             }
         });
         transactionsViewModel.balanceAtDate.observe(this, balance -> {
@@ -686,11 +704,69 @@ public class TransactionsActivity extends AppCompatActivity {
     }
 
     private void showCreateTransactionDialog() {
-        CreateTransactionDialog dialog = new CreateTransactionDialog(
-                this,
-                (amount, category, note, type) -> Toast.makeText(
-                        this, "Cadastro de transações pelo app ainda não está disponível", Toast.LENGTH_SHORT).show());
-        dialog.show();
+        createTransactionDialog = new CreateTransactionDialog(this,
+                new CreateTransactionDialog.OnTransactionCreatedListener() {
+                    @Override
+                    public void onCreateTransaction(TransactionWriteDto transaction) {
+                        createTransactionDialog.setSaving(true);
+                        transactionsViewModel.createTransactionFromList(transaction, new TransactionsViewModel.ActionCallback() {
+                            @Override public void onSuccess() {
+                                runOnUiThread(() -> {
+                                    closeCreateTransactionDialog();
+                                    Toast.makeText(TransactionsActivity.this,
+                                            "Lançamento salvo", Toast.LENGTH_SHORT).show();
+                                    reloadData();
+                                });
+                            }
+                            @Override public void onError(String error) {
+                                runOnUiThread(() -> {
+                                    if (createTransactionDialog != null) createTransactionDialog.showError(error);
+                                });
+                            }
+                        });
+                    }
+
+                    @Override
+                    public void onCreateTransfer(TransactionTransferRequestDto transfer) {
+                        createTransactionDialog.setSaving(true);
+                        transactionsViewModel.createTransactionTransfer(transfer, new TransactionsViewModel.ActionCallback() {
+                            @Override public void onSuccess() {
+                                runOnUiThread(() -> {
+                                    closeCreateTransactionDialog();
+                                    Toast.makeText(TransactionsActivity.this,
+                                            "Transferência salva", Toast.LENGTH_SHORT).show();
+                                    reloadData();
+                                });
+                            }
+                            @Override public void onError(String error) {
+                                runOnUiThread(() -> {
+                                    if (createTransactionDialog != null) createTransactionDialog.showError(error);
+                                });
+                            }
+                        });
+                    }
+                });
+        createTransactionDialog.setOnDismissListener(dialog -> createTransactionDialog = null);
+        createTransactionDialog.show();
+        updateTransactionDialogOptions();
+        createTransactionDialog.setOptionsLoading(true);
+        transactionsViewModel.loadTransactionFormOptions();
+    }
+
+    private void updateTransactionDialogOptions() {
+        if (createTransactionDialog == null) return;
+        List<AccountDto> formAccounts = transactionsViewModel.formAccounts.getValue();
+        List<CategoryDto> formCategories = transactionsViewModel.formCategories.getValue();
+        List<CreditCardDto> formCards = transactionsViewModel.formCards.getValue();
+        createTransactionDialog.setOptions(formAccounts, formCategories, formCards);
+    }
+
+    private void closeCreateTransactionDialog() {
+        if (createTransactionDialog != null) {
+            CreateTransactionDialog dialog = createTransactionDialog;
+            createTransactionDialog = null;
+            dialog.dismiss();
+        }
     }
 
     private void showTransactionDetails(TransactionListItemDto item) {

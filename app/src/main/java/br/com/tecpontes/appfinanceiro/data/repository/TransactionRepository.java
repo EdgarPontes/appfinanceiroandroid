@@ -11,7 +11,9 @@ import br.com.tecpontes.appfinanceiro.model.TransactionDto;
 import br.com.tecpontes.appfinanceiro.model.TransactionListItemDto;
 import br.com.tecpontes.appfinanceiro.model.BalanceHistoryDto;
 import br.com.tecpontes.appfinanceiro.model.TransactionWriteDto;
+import br.com.tecpontes.appfinanceiro.model.TransactionTransferRequestDto;
 import br.com.tecpontes.appfinanceiro.network.ApiService;
+import br.com.tecpontes.appfinanceiro.utils.ApiErrorUtils;
 import java.io.File;
 import java.util.List;
 import java.util.concurrent.ExecutorService;
@@ -137,13 +139,39 @@ public class TransactionRepository {
             @Override
             public void onResponse(@NonNull Call<ResponseBody> call,
                                    @NonNull Response<ResponseBody> response) {
-                if (response.isSuccessful()) callback.onSuccess();
-                else callback.onError("Não foi possível clonar o lançamento: " + response.message());
+                if (response.isSuccessful()) {
+                    ApiErrorUtils.closeBody(response.body());
+                    callback.onSuccess();
+                } else {
+                    callback.onError(ApiErrorUtils.readError(response, "Não foi possível salvar o lançamento"));
+                }
             }
 
             @Override
             public void onFailure(@NonNull Call<ResponseBody> call, @NonNull Throwable error) {
-                callback.onError("Erro de conexão ao clonar: " + error.getMessage());
+                callback.onError("Erro de conexão ao salvar: " + error.getMessage());
+            }
+        });
+    }
+
+    public void createTransactionTransfer(
+            @NonNull TransactionTransferRequestDto transfer,
+            @NonNull RemoteActionCallback callback) {
+        apiService.createTransactionTransfer(transfer).enqueue(new Callback<ResponseBody>() {
+            @Override
+            public void onResponse(@NonNull Call<ResponseBody> call,
+                                   @NonNull Response<ResponseBody> response) {
+                if (response.isSuccessful()) {
+                    ApiErrorUtils.closeBody(response.body());
+                    callback.onSuccess();
+                } else {
+                    callback.onError(ApiErrorUtils.readError(response, "Não foi possível salvar a transferência"));
+                }
+            }
+
+            @Override
+            public void onFailure(@NonNull Call<ResponseBody> call, @NonNull Throwable error) {
+                callback.onError("Erro de conexão ao salvar: " + error.getMessage());
             }
         });
     }

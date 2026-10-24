@@ -11,11 +11,17 @@ import androidx.lifecycle.ViewModel;
 import br.com.tecpontes.appfinanceiro.data.local.entity.Account;
 import br.com.tecpontes.appfinanceiro.data.local.entity.Transaction;
 import br.com.tecpontes.appfinanceiro.data.repository.AccountRepository;
+import br.com.tecpontes.appfinanceiro.data.repository.CategoryRepository;
+import br.com.tecpontes.appfinanceiro.data.repository.CreditCardRepository;
 import br.com.tecpontes.appfinanceiro.data.repository.TransactionRepository;
 import br.com.tecpontes.appfinanceiro.model.BalanceHistoryDto;
 import br.com.tecpontes.appfinanceiro.model.TransactionDto;
 import br.com.tecpontes.appfinanceiro.model.TransactionListItemDto;
 import br.com.tecpontes.appfinanceiro.model.TransactionWriteDto;
+import br.com.tecpontes.appfinanceiro.model.AccountDto;
+import br.com.tecpontes.appfinanceiro.model.CategoryDto;
+import br.com.tecpontes.appfinanceiro.model.CreditCardDto;
+import br.com.tecpontes.appfinanceiro.model.TransactionTransferRequestDto;
 import dagger.hilt.android.lifecycle.HiltViewModel;
 import java.util.List;
 import javax.inject.Inject;
@@ -30,6 +36,7 @@ public class TransactionsViewModel extends ViewModel {
 
     private final TransactionRepository transactionRepository;
     private final AccountRepository accountRepository;
+    private final CreditCardRepository creditCardRepository;
 
     // LiveData para estados da UI
     private final MutableLiveData<Boolean> _loading = new MutableLiveData<>(false);
@@ -61,6 +68,17 @@ public class TransactionsViewModel extends ViewModel {
 
     public final LiveData<List<Account>> accounts;
 
+    private final MutableLiveData<List<AccountDto>> _formAccounts = new MutableLiveData<>(new java.util.ArrayList<>());
+    public final LiveData<List<AccountDto>> formAccounts = _formAccounts;
+    private final MutableLiveData<List<CategoryDto>> _formCategories = new MutableLiveData<>(new java.util.ArrayList<>());
+    public final LiveData<List<CategoryDto>> formCategories = _formCategories;
+    private final MutableLiveData<List<CreditCardDto>> _formCards = new MutableLiveData<>(new java.util.ArrayList<>());
+    public final LiveData<List<CreditCardDto>> formCards = _formCards;
+    private final MutableLiveData<Boolean> _formOptionsLoading = new MutableLiveData<>(false);
+    public final LiveData<Boolean> formOptionsLoading = _formOptionsLoading;
+    private final MutableLiveData<String> _formOptionsError = new MutableLiveData<>();
+    public final LiveData<String> formOptionsError = _formOptionsError;
+
     private final MutableLiveData<Transaction> _selectedTransaction = new MutableLiveData<>();
     public final LiveData<Transaction> selectedTransaction = _selectedTransaction;
 
@@ -70,9 +88,11 @@ public class TransactionsViewModel extends ViewModel {
     @Inject
     public TransactionsViewModel(
             TransactionRepository transactionRepository,
-            AccountRepository accountRepository) {
+            AccountRepository accountRepository,
+            CreditCardRepository creditCardRepository) {
         this.transactionRepository = transactionRepository;
         this.accountRepository = accountRepository;
+        this.creditCardRepository = creditCardRepository;
         this.accounts = accountRepository.getAllAccounts();
         this.transactions = transactionRepository.getAllTransactions();
         this.transactionsByAccount = Transformations.switchMap(_selectedAccountId, accountId -> {
@@ -82,6 +102,47 @@ public class TransactionsViewModel extends ViewModel {
             return transactionRepository.getTransactionsByAccount(accountId);
         });
         Log.d(TAG, "TransactionsViewModel inicializado");
+    }
+
+    /** Carrega as opções atualizadas necessárias ao formulário de criação. */
+    public void loadTransactionFormOptions() {
+        _formOptionsLoading.setValue(true);
+        _formOptionsError.setValue(null);
+        final int[] pending = {3};
+        Runnable finished = () -> {
+            pending[0]--;
+            if (pending[0] <= 0) _formOptionsLoading.postValue(false);
+        };
+        creditCardRepository.getAccounts(new CreditCardRepository.ResultCallback<List<AccountDto>>() {
+            @Override public void onSuccess(List<AccountDto> result) {
+                _formAccounts.postValue(result == null ? new java.util.ArrayList<>() : result);
+                finished.run();
+            }
+            @Override public void onError(String error) {
+                _formOptionsError.postValue(error);
+                finished.run();
+            }
+        });
+        creditCardRepository.getCategories(new CreditCardRepository.ResultCallback<List<CategoryDto>>() {
+            @Override public void onSuccess(List<CategoryDto> result) {
+                _formCategories.postValue(result == null ? new java.util.ArrayList<>() : result);
+                finished.run();
+            }
+            @Override public void onError(String error) {
+                _formOptionsError.postValue(error);
+                finished.run();
+            }
+        });
+        creditCardRepository.getCards(new CreditCardRepository.ResultCallback<List<CreditCardDto>>() {
+            @Override public void onSuccess(List<CreditCardDto> result) {
+                _formCards.postValue(result == null ? new java.util.ArrayList<>() : result);
+                finished.run();
+            }
+            @Override public void onError(String error) {
+                _formOptionsError.postValue(error);
+                finished.run();
+            }
+        });
     }
 
     /** Busca a lista detalhada da API com os filtros selecionados na tela. */
@@ -188,6 +249,24 @@ public class TransactionsViewModel extends ViewModel {
             public void onError(String error) {
                 callback.onError(error);
             }
+        });
+    }
+
+    public void createTransactionFromList(
+            @NonNull TransactionWriteDto transaction,
+            @NonNull ActionCallback callback) {
+        transactionRepository.createTransactionFromList(transaction, new TransactionRepository.RemoteActionCallback() {
+            @Override public void onSuccess() { callback.onSuccess(); }
+            @Override public void onError(String error) { callback.onError(error); }
+        });
+    }
+
+    public void createTransactionTransfer(
+            @NonNull TransactionTransferRequestDto transfer,
+            @NonNull ActionCallback callback) {
+        transactionRepository.createTransactionTransfer(transfer, new TransactionRepository.RemoteActionCallback() {
+            @Override public void onSuccess() { callback.onSuccess(); }
+            @Override public void onError(String error) { callback.onError(error); }
         });
     }
 

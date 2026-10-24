@@ -95,6 +95,10 @@ Documentação da fundação visual "Modern Tech & Sofisticado". Serve como refe
 | `bg_login_logo.xml` | Badge circular com gradiente de marca para o Login. |
 | `bg_icon_circle.xml` | Círculo `surfaceVariant` para ícones de itens de lista. |
 | `bg_period_selector.xml` | Seletor de período com `surfaceVariant` e contorno do tema. |
+| `bg_spinner_selector.xml` | Fundo de `Spinner` com `surfaceVariant`, contorno e chevron; usar `paddingEnd="44dp"`. |
+| `bg_text_action.xml` | Ripple para ações textuais compactas em cards. |
+| `bg_status_badge_error.xml` / `bg_status_badge_success.xml` | Pills de status com tokens de erro/sucesso. |
+| `ic_chevron_down.xml` | Indicador de dropdown usado por `bg_spinner_selector`. |
 | `bg_outlined_rounded.xml` | Contêiner arredondado com superfície e contorno do tema. |
 | `bg_dialog.xml` | Fundo de diálogo (raio 20dp) com superfície e contorno. |
 | `glass_card_background.xml` / `glass_button_background.xml` | Versões legadas rebaseadas nos tokens. |
@@ -114,6 +118,12 @@ Documentação da fundação visual "Modern Tech & Sofisticado". Serve como refe
 - Preferir `ModernCard`, `PrimaryCTAButton`, `BrandButton` e `ModernTextInput` em telas novas ou redesenhadas.
 - Botões em `MaterialButton` devem usar `backgroundTint` com atributos do tema; evitar `android:background` em botões Material.
 - Campos de formulário usam `ModernTextInput`; o hint deve usar `?attr/colorOnSurfaceVariant`.
+- Campos de texto com hint devem ter altura mínima de 56dp para evitar corte de ascendentes em maiúsculas.
+- Campos somente leitura (ex.: data) reutilizam `ModernTextInput` com `TextInputEditText` não focável, mantendo o mesmo box dos demais campos.
+- Campos de texto livre não devem receber filtros de caracteres; o teclado do sistema é responsável pelo layout/acentuação.
+- Spinners usam `bg_spinner_selector` com `paddingEnd="44dp"` para reservar o espaço do chevron; `bg_period_selector` fica restrito a contêineres de período.
+- Diálogos de formulário usam `ModernCard` como shell, cabeçalho com título/subtítulo, corpo rolável e rodapé com `PrimaryCTAButton`.
+- Cards de conta/cartão podem usar `bg_icon_circle`, `bg_status_badge_*` e `bg_text_action` para manter o padrão visual.
 - Ícones interativos devem ter `contentDescription`.
 
 ### Migração

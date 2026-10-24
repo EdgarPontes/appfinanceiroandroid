@@ -19,10 +19,12 @@ import br.com.tecpontes.appfinanceiro.databinding.DialogCreateTransactionBinding
 import br.com.tecpontes.appfinanceiro.model.AccountDto;
 import br.com.tecpontes.appfinanceiro.model.CategoryDto;
 import br.com.tecpontes.appfinanceiro.model.CreditCardDto;
+import br.com.tecpontes.appfinanceiro.model.TransactionListItemDto;
 import br.com.tecpontes.appfinanceiro.model.TransactionTransferRequestDto;
 import br.com.tecpontes.appfinanceiro.model.TransactionWriteDto;
 import com.google.android.material.textfield.TextInputEditText;
 import java.math.BigDecimal;
+import java.math.RoundingMode;
 import java.text.NumberFormat;
 import java.text.SimpleDateFormat;
 import java.util.ArrayList;
@@ -30,10 +32,13 @@ import java.util.Calendar;
 import java.util.List;
 import java.util.Locale;
 
-/** Formulário de criação de lançamento, correspondente às opções do modal web. */
+/** Formulário de criação/edição de lançamento, correspondente às opções do modal web. */
 public class CreateTransactionDialog extends Dialog {
 
-    private final OnTransactionCreatedListener listener;
+    @Nullable private final OnTransactionCreatedListener listener;
+    @Nullable private final OnTransactionEditedListener editListener;
+    @Nullable private final TransactionListItemDto editingItem;
+    private final boolean cloneMode;
     private DialogCreateTransactionBinding binding;
     private final Calendar selectedDate = Calendar.getInstance();
     private final List<AccountDto> accounts = new ArrayList<>();
@@ -43,12 +48,39 @@ public class CreateTransactionDialog extends Dialog {
     private boolean saving;
     private boolean optionsLoading = true;
     private boolean formattingAmount;
+    private boolean prefillApplied;
 
     public CreateTransactionDialog(
             @NonNull Context context,
             @NonNull OnTransactionCreatedListener listener) {
         super(context);
         this.listener = listener;
+        this.editListener = null;
+        this.editingItem = null;
+        this.cloneMode = false;
+    }
+
+    public CreateTransactionDialog(
+            @NonNull Context context,
+            @NonNull TransactionListItemDto editingItem,
+            @NonNull OnTransactionEditedListener editListener) {
+        super(context);
+        this.listener = null;
+        this.editListener = editListener;
+        this.editingItem = editingItem;
+        this.cloneMode = false;
+    }
+
+    public CreateTransactionDialog(
+            @NonNull Context context,
+            @NonNull TransactionListItemDto sourceItem,
+            boolean cloneMode,
+            @NonNull OnTransactionCreatedListener listener) {
+        super(context);
+        this.listener = listener;
+        this.editListener = null;
+        this.editingItem = sourceItem;
+        this.cloneMode = cloneMode;
     }
 
     @Override
@@ -69,6 +101,16 @@ public class CreateTransactionDialog extends Dialog {
         updateDateButton();
         updateFormForType();
         renderLoadingState();
+        if (isCloneMode()) {
+            binding.formTitleTextView.setText("Clonar lançamento");
+            binding.formSubtitleTextView.setText("Revise os dados e crie uma nova cópia");
+            binding.transferTypeButton.setVisibility(View.GONE);
+            binding.saveButton.setText("Criar");
+        } else if (isEditMode()) {
+            binding.formTitleTextView.setText("Editar lançamento");
+            binding.formSubtitleTextView.setText("Atualize os dados do lançamento");
+            binding.transferTypeButton.setVisibility(View.GONE);
+        }
     }
 
     @Override
@@ -92,7 +134,8 @@ public class CreateTransactionDialog extends Dialog {
         categories.clear();
         if (loadedAccounts != null) {
             for (AccountDto account : loadedAccounts) {
-                if (account != null && account.isActive() && account.getId() != null) accounts.add(account);
+                if (account == null || account.getId() == null) continue;
+                if (hasSourceItem() || account.isActive()) accounts.add(account);
             }
         }
         if (loadedCategories != null) {
@@ -102,7 +145,8 @@ public class CreateTransactionDialog extends Dialog {
         }
         if (loadedCards != null) {
             for (CreditCardDto card : loadedCards) {
-                if (card != null && card.isActive() && card.getId() != null) cards.add(card);
+                if (card == null || card.getId() == null) continue;
+                if (hasSourceItem() || card.isActive()) cards.add(card);
             }
         }
         setSpinnerItems(binding.accountSpinner, namesOfAccounts(), "Selecione uma conta");
@@ -111,18 +155,162 @@ public class CreateTransactionDialog extends Dialog {
         setSpinnerItems(binding.toAccountSpinner, namesOfAccounts(), "Selecione a conta de destino");
         refreshCategoryOptions();
         renderLoadingState();
+        prefillIfReady();
     }
 
     public void setOptionsLoading(boolean loading) {
         optionsLoading = loading;
         renderLoadingState();
+        if (!loading) prefillIfReady();
+    }
+
+    private boolean hasSourceItem() {
+        return editingItem != null;
+    }
+
+    private boolean isEditMode() {
+        return editingItem != null && !cloneMode;
+    }
+
+    private boolean isCloneMode() {
+        return editingItem != null && cloneMode;
+    }
+
+    private void prefillIfReady() {
+        if (!hasSourceItem() || prefillApplied || binding == null || optionsLoading) return;
+        prefillApplied = true;
+        applyEditingItem(editingItem);
+    }
+
+    private void applyEditingItem(@NonNull TransactionListItemDto item) {
+        String type = item.type == null ? "EXPENSE" : item.type.toUpperCase(Locale.US);
+        if ("TRANSFER".equals(type)) {
+            binding.typeChipGroup.check(R.id.transferTypeButton);
+        } else if ("INCOME".equals(type) || "INITIAL_BALANCE".equals(type)) {
+            binding.typeChipGroup.check(R.id.incomeTypeButton);
+        } else {
+            binding.typeChipGroup.check(R.id.expenseTypeButton);
+        }
+
+        binding.descriptionEditText.setText(item.description == null ? "" : item.description);
+        binding.noteEditText.setText(item.note == null ? "" : item.note);
+
+        if (item.getDateMillis() > 0) {
+            selectedDate.setTimeInMillis(item.getDateMillis());
+            selectedDate.set(Calendar.HOUR_OF_DAY, 12);
+            selectedDate.set(Calendar.MINUTE, 0);
+            selectedDate.set(Calendar.SECOND, 0);
+            selectedDate.set(Calendar.MILLISECOND, 0);
+            updateDateButton();
+        }
+
+        boolean useCard = item.cardId != null;
+        binding.paymentMethodSpinner.setSelection(useCard ? 1 : 0, false);
+        updatePaymentMethodVisibility();
+        if (useCard) {
+            selectCardById(item.cardId);
+        } else {
+            selectAccountFromSpinner(binding.accountSpinner, item.accountId);
+        }
+
+        if (!isTransfer()) {
+            selectCategoryById(item.categoryId);
+        }
+
+        boolean installment = Boolean.TRUE.equals(item.isInstallment)
+                || item.installmentGroupId != null;
+        boolean fixedExpense = Boolean.TRUE.equals(item.isFixedExpense)
+                || item.fixedExpenseGroupId != null;
+        if (installment) {
+            binding.repetitionToggleGroup.check(R.id.repetitionInstallmentButton);
+            binding.installmentCountEditText.setText(
+                    item.totalInstallments == null ? "" : String.valueOf(item.totalInstallments));
+            boolean totalValue = "total".equalsIgnoreCase(item.installmentValueType);
+            binding.installmentValueTypeSpinner.setSelection(totalValue ? 1 : 0, false);
+            String amountText = item.amount;
+            if (totalValue) {
+                amountText = item.totalValue;
+                String normalizedAmount = normalizeAmount(item.amount);
+                if (amountText == null && normalizedAmount != null && item.totalInstallments != null) {
+                    try {
+                        amountText = new BigDecimal(normalizedAmount)
+                                .multiply(BigDecimal.valueOf(item.totalInstallments))
+                                .setScale(2, RoundingMode.HALF_UP)
+                                .toPlainString();
+                    } catch (NumberFormatException ignored) {
+                        amountText = normalizedAmount;
+                    }
+                }
+            }
+            setAmountValue(amountText);
+        } else if (fixedExpense) {
+            binding.repetitionToggleGroup.check(R.id.repetitionMonthlyButton);
+            setAmountValue(item.amount);
+        } else {
+            binding.repetitionToggleGroup.check(R.id.repetitionOnceButton);
+            setAmountValue(item.amount);
+        }
+
+        if (isTransfer()) {
+            selectAccountFromSpinner(binding.fromAccountSpinner, item.accountId);
+        }
+
+        updateDateLabel();
+        renderLoadingState();
+    }
+
+    private void selectAccountFromSpinner(Spinner spinner, @Nullable String accountId) {
+        if (accountId == null) return;
+        for (int i = 0; i < accounts.size(); i++) {
+            if (accountId.equals(accounts.get(i).getId())) {
+                spinner.setSelection(i + 1, false);
+                return;
+            }
+        }
+    }
+
+    private void selectCardById(@Nullable String cardId) {
+        if (cardId == null) return;
+        for (int i = 0; i < cards.size(); i++) {
+            if (cardId.equals(cards.get(i).getId())) {
+                binding.cardSpinner.setSelection(i + 1, false);
+                return;
+            }
+        }
+    }
+
+    private void selectCategoryById(@Nullable String categoryId) {
+        if (categoryId == null) return;
+        for (int i = 0; i < visibleCategories.size(); i++) {
+            CategoryOption option = visibleCategories.get(i);
+            if (categoryId.equals(option.id)) {
+                binding.categorySpinner.setSelection(i, false);
+                return;
+            }
+        }
+    }
+
+    private void setAmountValue(@Nullable String normalizedAmount) {
+        String normalized = normalizeAmount(normalizedAmount);
+        if (normalized == null) return;
+        String digits = normalized.replaceAll("\\D", "");
+        if (digits.isEmpty()) return;
+        String formatted = formatCurrencyDigits(digits);
+        formattingAmount = true;
+        binding.amountEditText.setText(formatted);
+        binding.amountEditText.setSelection(formatted.length());
+        formattingAmount = false;
     }
 
     public void setSaving(boolean saving) {
         this.saving = saving;
         if (binding == null) return;
         binding.saveButton.setEnabled(!saving && !optionsLoading && canSubmitWithOptions());
-        binding.saveButton.setText(saving ? "Salvando..." : "Salvar");
+        if (isCloneMode()) {
+            binding.saveButton.setText(saving ? "Criando..." : "Criar");
+        } else {
+            binding.saveButton.setText(saving ? "Salvando..." : "Salvar");
+        }
         binding.cancelButton.setEnabled(!saving);
         setCancelable(!saving);
         setCanceledOnTouchOutside(!saving);
@@ -138,7 +326,7 @@ public class CreateTransactionDialog extends Dialog {
         setSpinnerItems(binding.paymentMethodSpinner,
                 new String[]{"Conta bancária", "Cartão de crédito"}, null);
         setSpinnerItems(binding.installmentValueTypeSpinner,
-                new String[]{"Valor da parcela", "Valor total"}, null);
+                new String[]{"Por parcela", "Total"}, null);
         binding.typeChipGroup.addOnButtonCheckedListener((group, checkedId, isChecked) -> {
             if (isChecked) updateFormForType();
         });
@@ -156,7 +344,7 @@ public class CreateTransactionDialog extends Dialog {
     private void setupListeners() {
         setupAmountFormatter();
         binding.closeButton.setOnClickListener(v -> dismiss());
-        binding.dateButton.setOnClickListener(v -> new DatePickerDialog(
+        View.OnClickListener dateClickListener = v -> new DatePickerDialog(
                 getContext(),
                 (picker, year, month, dayOfMonth) -> {
                     selectedDate.set(year, month, dayOfMonth, 12, 0, 0);
@@ -165,7 +353,9 @@ public class CreateTransactionDialog extends Dialog {
                 },
                 selectedDate.get(Calendar.YEAR),
                 selectedDate.get(Calendar.MONTH),
-                selectedDate.get(Calendar.DAY_OF_MONTH)).show());
+                selectedDate.get(Calendar.DAY_OF_MONTH)).show();
+        binding.dateEditText.setOnClickListener(dateClickListener);
+        binding.dateLayout.setOnClickListener(dateClickListener);
         binding.cancelButton.setOnClickListener(v -> dismiss());
         binding.saveButton.setOnClickListener(v -> submit());
     }
@@ -243,7 +433,7 @@ public class CreateTransactionDialog extends Dialog {
     private void updateRepetitionVisibility() {
         boolean installment = isInstallment();
         binding.installmentRow.setVisibility(installment ? View.VISIBLE : View.GONE);
-        binding.installmentCountLayout.setVisibility(installment ? View.VISIBLE : View.GONE);
+        binding.installmentCountEditText.setVisibility(installment ? View.VISIBLE : View.GONE);
         binding.installmentValueTypeSpinner.setVisibility(installment ? View.VISIBLE : View.GONE);
     }
 
@@ -274,6 +464,7 @@ public class CreateTransactionDialog extends Dialog {
     }
 
     private void submit() {
+        if (saving || optionsLoading) return;
         clearError();
         String description = textOf(binding.descriptionEditText).trim();
         String normalizedAmount = normalizeAmount(textOf(binding.amountEditText));
@@ -343,7 +534,21 @@ public class CreateTransactionDialog extends Dialog {
                 request.totalValue = String.format(Locale.US, "%.2f", parseAmount(normalizedAmount) * count);
             }
         }
-        listener.onCreateTransaction(request);
+        if (isCloneMode()) {
+            request.installmentGroupId = null;
+            request.fixedExpenseGroupId = null;
+            request.updateScope = null;
+            if (listener != null) listener.onCreateTransaction(request);
+        } else if (isEditMode()) {
+            TransactionListItemDto item = editingItem;
+            if (item != null) {
+                request.installmentGroupId = item.installmentGroupId;
+                request.fixedExpenseGroupId = item.fixedExpenseGroupId;
+            }
+            if (editListener != null) editListener.onUpdateTransaction(request);
+        } else if (listener != null) {
+            listener.onCreateTransaction(request);
+        }
     }
 
     private void submitTransfer(String description, String amount) {
@@ -363,7 +568,11 @@ public class CreateTransactionDialog extends Dialog {
         transfer.date = selectedDateIso();
         transfer.fromAccountId = from.getId();
         transfer.toAccountId = to.getId();
-        listener.onCreateTransfer(transfer);
+        if (hasSourceItem()) {
+            showError("Transferências não estão disponíveis neste formulário.");
+            return;
+        }
+        if (listener != null) listener.onCreateTransfer(transfer);
     }
 
     private void renderLoadingState() {
@@ -371,9 +580,10 @@ public class CreateTransactionDialog extends Dialog {
         binding.loadingTextView.setVisibility(optionsLoading ? View.VISIBLE : View.GONE);
         boolean requiredOptionsMissing = accounts.isEmpty() || categories.isEmpty();
         if (!optionsLoading && requiredOptionsMissing && !isTransfer()) {
+            String action = isEditMode() ? "editar" : "criar";
             String message = accounts.isEmpty()
-                    ? "Cadastre uma conta bancária para criar lançamentos."
-                    : "Cadastre ao menos uma categoria para criar lançamentos.";
+                    ? "Cadastre uma conta bancária para " + action + " lançamentos."
+                    : "Cadastre ao menos uma categoria para " + action + " lançamentos.";
             binding.errorTextView.setText(message);
             binding.errorTextView.setVisibility(View.VISIBLE);
         } else if (!optionsLoading && accounts.size() < 2 && isTransfer()) {
@@ -461,7 +671,7 @@ public class CreateTransactionDialog extends Dialog {
     }
 
     private void updateDateButton() {
-        binding.dateButton.setText(new SimpleDateFormat("dd/MM/yyyy", new Locale("pt", "BR"))
+        binding.dateEditText.setText(new SimpleDateFormat("dd/MM/yyyy", new Locale("pt", "BR"))
                 .format(selectedDate.getTime()));
     }
 
@@ -500,6 +710,10 @@ public class CreateTransactionDialog extends Dialog {
     public interface OnTransactionCreatedListener {
         void onCreateTransaction(@NonNull TransactionWriteDto transaction);
         void onCreateTransfer(@NonNull TransactionTransferRequestDto transfer);
+    }
+
+    public interface OnTransactionEditedListener {
+        void onUpdateTransaction(@NonNull TransactionWriteDto transaction);
     }
 
     private static final class CategoryOption {

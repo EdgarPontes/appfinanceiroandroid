@@ -2,9 +2,9 @@
 
 Documento vivo para acompanhar a modernização visual do app, com etapas, critérios de aceite e conclusões.
 
-- **Status geral:** Fase 3 em andamento; Login, Dashboard e Transações concluídos; diálogo de lançamento redesenhado aguardando validação visual.
+- **Status geral:** Fase 3 em andamento; Login, Dashboard, Transações, Criar/editar lançamento e Contas implementados; validação visual de `F3-04` e `F3-05` pendente.
 - **Última atualização:** 2026-10-24.
-- **Próximo passo:** validar `F3-04` (Criar/editar lançamento) e seguir para `F3-05` (Contas).
+- **Próximo passo:** validar `F3-04` e `F3-05` com prints em claro/escuro e seguir para `F3-06` (Importação de extrato).
 - **Responsável:** equipe de desenvolvimento Android.
 
 ## Como atualizar este documento
@@ -33,7 +33,7 @@ Documento vivo para acompanhar a modernização visual do app, com etapas, crit�
 | Fase 0 | Diagnóstico técnico e definição do plano | Concluído | 100% |
 | Fase 1 | Fundação visual: tokens, temas, estilos e drawables | Concluído | 100% |
 | Fase 2 | Migração global de cores fixas e preparação do dark mode | Concluído | 100% |
-| Fase 3 | Redesenho estrutural das telas | Em andamento | 36% |
+| Fase 3 | Redesenho estrutural das telas | Em andamento | 45% |
 | Fase 4 | Validação final, dark mode e QA | Pendente | 0% |
 
 ## Decisões consolidadas
@@ -121,8 +121,8 @@ Objetivo: aplicar a identidade Modern Tech & Sofisticado em cada tela, mantendo 
 | F3-01 | Login | `activity_login.xml`, `LoginActivity.java` | Estrutura moderna, CTA esmeralda, dark mode e estados de erro preservados. | Concluído | Branding em gradiente, `ModernCard`, `ModernTextInput`, CTA esmeralda e dark mode; IDs e estados de erro preservados; build OK. |
 | F3-02 | Dashboard | `activity_dashboard.xml`, `DashboardActivity.java` | Cards de saldo/patrimônio/resumo modernos e legíveis nos dois temas. | Concluído | Cards migrados para `ModernCard`, seletor de período estilizado, CTA esmeralda de adicionar transação, botão secundário outlined e itens recentes com `ModernListCard`; build OK. |
 | F3-03 | Transações | `activity_transactions.xml`, `TransactionsActivity.java` | Filtros, resumo, lista e FAB alinhados ao novo design. | Concluído | Toolbar e seletores modernizados, resumo em `ModernCard`, filtros tonal, FAB esmeralda e itens com `ModernListCard`; build OK. |
-| F3-04 | Criar/editar lançamento | `dialog_create_transaction.xml`, `CreateTransactionDialog.java` | Formulário moderno, teclado, máscara de valor e privacidade preservados. | Em andamento | Diálogo com `ModernCard`, campos `ModernTextInput`, spinners com `bg_period_selector` e itens temáticos, labels em sentence case e CTA esmeralda; no parcelamento, seletor de valor à esquerda e nº de parcelas à direita. Máscara/regras/IDs preservados; build OK. Falta validação visual. |
-| F3-05 | Contas | `activity_accounts.xml`, `AccountsActivity.java` | Cards de conta e cartão modernizados sem perder ações. | Pendente | Aguardando execução. |
+| F3-04 | Criar/editar lançamento | `dialog_create_transaction.xml`, `dialog_edit_transaction.xml`, `CreateTransactionDialog.java`, `TransactionsActivity.java` | Formulário moderno, teclado, máscara de valor e privacidade preservados. | Em andamento | Diálogo de criação com `ModernCard`, subtítulo, campos `ModernTextInput`, spinners com `bg_spinner_selector`, labels em sentence case e CTA esmeralda; botão de data alinhado aos campos. A edição de despesas/receitas reutiliza o formulário completo de criação, com tipo, descrição, valor, data, forma de pagamento, conta/cartão, categoria, parcelamento/mensal e observação carregados do lançamento; a edição em série preserva o diálogo de escopo. Clonar abre o mesmo formulário preenchido e cria uma cópia sem vínculo de grupo. Valor e data usam o mesmo `TextInputLayout`; campos com hint têm 56dp para não cortar ascendentes. Transferências e saldo inicial mantêm o editor reduzido porque o endpoint `PUT /transactions/{id}` não expõe os dois lados da transferência. Máscara/regras/IDs mantidos; build e testes OK. Pendente validação visual. |
+| F3-05 | Contas | `activity_accounts.xml`, `AccountsActivity.java`, `dialog_account_form.xml`, `dialog_credit_card_form.xml`, `dialog_balance_history.xml` | Cards de conta e cartão modernizados sem perder ações. | Em andamento | Tela migrada para `CoordinatorLayout`/`AppBarLayout`, com card de resumo (saldo, limite disponível e faturas pendentes), conciliação em `ModernCard`, controles de “Inativos” e “Recalcular” no cabeçalho, CTAs e estados vazios. Cards com ícones em círculo, badges de status, valores nas cores financeiras, ações em pills e overflow com `contentDescription`. Formulários e histórico em diálogos próprios com `ModernTextInput`, spinners com chevron e CTA esmeralda. Máscara de privacidade e todos os IDs preservados; build/testes e `git diff --check` OK. Pendente validação visual em claro/escuro. |
 | F3-06 | Importação de extrato | `activity_statement_import.xml`, `StatementImportActivity.java` | Linhas, seleção e resumo legíveis em ambos os temas. | Pendente | Aguardando execução. |
 | F3-07 | Cartões | `activity_cards.xml`, `CardsActivity.java` | Visão do cartão, fatura e resumo modernizados. | Pendente | Aguardando execução. |
 | F3-08 | Relatórios | `activity_reports.xml`, `ReportsActivity.java` | Filtros, cards de resumo e categorias no novo padrão. | Pendente | Aguardando execução. |
@@ -168,6 +168,13 @@ Objetivo: aplicar a identidade Modern Tech & Sofisticado em cada tela, mantendo 
 | 2026-10-24 | F3-02 | Dashboard redesenhado | Cards `ModernCard`, seletor de período com `bg_period_selector` e itens customizados, CTA esmeralda e botão outlined; `ModernListCard` nos itens recentes; build OK. |
 | 2026-10-24 | F3-03 | Transações redesenhadas | Toolbar sem `Dark.ActionBar`, seletor de mês em card `surfaceVariant`, contas com botão outlined, filtros tonal, resumo `ModernCard`, FAB e itens em esmeralda/`ModernListCard`; build OK. |
 | 2026-10-24 | F3-04 | Diálogo de lançamento redesenhado | Cabeçalho com subtítulo, `ModernCard`, `ModernTextInput`, spinners `bg_period_selector` com `item_spinner_form`, labels em sentence case, erro em `@color/error` e CTA esmeralda; parcelamento com valor à esquerda e nº de parcelas à direita; máscara de valor e IDs preservados; build OK. Pendente validação visual. |
+| 2026-10-24 | F3-04 | Ajustes após validação com prints | Diálogo de edição migrado para `dialog_edit_transaction.xml` com o mesmo shell visual; botão de data com fundo/contorno alinhado aos campos; spinners com `bg_spinner_selector` e chevron; subtítulo no cabeçalho do criação. Validação por campo no editar; escopo de série preservado. Build/testes OK. Aguardando novos prints. |
+| 2026-10-24 | F3-04 | Edição completa de lançamentos | `CreateTransactionDialog` passou a suportar modo de edição: carrega tipo, descrição, valor, data, forma de pagamento, conta/cartão, categoria, parcelamento/mensal e observação a partir do `TransactionListItemDto`, incluindo opções inativas. O `PUT` recebe o formulário completo e o escopo `current`/`future` é aplicado aos lançamentos em série. Transferências/saldo inicial usam o editor reduzido por limitação da API. Build/testes OK. |
+| 2026-10-24 | F3-04 | Ajustes de alinhamento e legibilidade | Valor e data passaram a usar o mesmo `TextInputLayout` (campo de data somente leitura com ícone), alinhando os boxes. Campos com hint subiram para 56dp para evitar corte de ascendentes em maiúsculas; observações receberam `textLocale="pt-BR"` e `textAutoCorrect`, sem filtros de caracteres. Build/testes OK. |
+| 2026-10-24 | F3-04 | Clonar com formulário preenchido | O menu “Clonar” passou a abrir o formulário completo de lançamento com tipo, descrição, valor, data, forma de pagamento, conta/cartão, categoria, parcelamento/mensal e observação preenchidos. O botão “Criar” envia um novo lançamento sem `installmentGroupId`/`fixedExpenseGroupId` e sem vínculo de conciliação. Data e demais campos podem ser alterados antes de criar. Build/testes OK. |
+| 2026-10-24 | F3-04 | Ajuste do seletor de parcelas | O campo “Número de parcelas” deixou de usar hint flutuante e passou a usar o mesmo visual de 53dp do spinner, com label externo. O seletor de valor foi renomeado para “Por parcela”/“Total” para não quebrar em duas linhas. Build/testes OK. |
+| 2026-10-24 | F3-05 | Contas redesenhadas | `activity_accounts.xml` com AppBar, card de resumo, conciliação, filtros e estados vazios; cards programáticos com `ModernListCard`, ícones em círculo, badges e ações acessíveis; formulários de conta/cartão e histórico em diálogos próprios. Máscara de privacidade e IDs preservados; `./gradlew testDebugUnitTest assembleDebug` OK; `git diff --check` sem erros. Pendente validação visual. |
+| 2026-10-24 | F3-05 | Controles de inativos e recálculo no cabeçalho | `showInactiveCheckBox` (“Inativos”) e `recalculateButton` (ícone de sincronização) foram movidos para o `Toolbar` de Contas. A linha de filtros do corpo foi removida; o resumo e a conciliação subiram. IDs e listeners Java preservados; `ImageButton` mantém `contentDescription` e `tooltipText`. Build OK. |
 
 ## Comandos de validação
 
@@ -187,8 +194,18 @@ git diff --check
 - `app/src/main/res/drawable/glass_button_background.xml`
 - `app/src/main/res/drawable/bg_outlined_rounded.xml`
 - `app/src/main/res/drawable/bg_dialog.xml`
+- `app/src/main/res/drawable/bg_spinner_selector.xml`
+- `app/src/main/res/drawable/bg_text_action.xml`
+- `app/src/main/res/drawable/bg_status_badge_error.xml`
+- `app/src/main/res/drawable/bg_status_badge_success.xml`
+- `app/src/main/res/drawable/ic_chevron_down.xml`
 - `app/src/main/res/color/navigation_item_tint.xml`
 - `app/src/main/res/layout/bottom_navigation.xml`
+- `app/src/main/res/layout/dialog_create_transaction.xml`
+- `app/src/main/res/layout/dialog_edit_transaction.xml`
+- `app/src/main/res/layout/dialog_account_form.xml`
+- `app/src/main/res/layout/dialog_credit_card_form.xml`
+- `app/src/main/res/layout/dialog_balance_history.xml`
 - `app/src/main/java/br/com/tecpontes/appfinanceiro/ui/theme/Color.kt`
 - `app/src/main/java/br/com/tecpontes/appfinanceiro/ui/theme/Theme.kt`
 - Layouts `activity_*.xml`, `dialog_*.xml` e `item_*.xml`

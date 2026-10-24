@@ -1,18 +1,17 @@
 package br.com.tecpontes.appfinanceiro.ui.accounts;
 
+import android.app.Dialog;
 import android.content.Intent;
-import android.graphics.Color;
 import android.graphics.Typeface;
 import android.os.Bundle;
-import android.text.InputType;
+import android.view.Gravity;
 import android.view.View;
+import android.view.Window;
+import android.view.WindowManager;
 import android.widget.ArrayAdapter;
-import android.widget.CheckBox;
-import android.widget.EditText;
 import android.widget.ImageView;
 import android.widget.LinearLayout;
 import android.widget.PopupMenu;
-import android.widget.ScrollView;
 import android.widget.Spinner;
 import android.widget.TextView;
 import android.widget.Toast;
@@ -25,6 +24,9 @@ import androidx.lifecycle.ViewModelProvider;
 import br.com.tecpontes.appfinanceiro.R;
 import br.com.tecpontes.appfinanceiro.data.repository.AccountsRepository;
 import br.com.tecpontes.appfinanceiro.databinding.ActivityAccountsBinding;
+import br.com.tecpontes.appfinanceiro.databinding.DialogAccountFormBinding;
+import br.com.tecpontes.appfinanceiro.databinding.DialogBalanceHistoryBinding;
+import br.com.tecpontes.appfinanceiro.databinding.DialogCreditCardFormBinding;
 import br.com.tecpontes.appfinanceiro.model.AccountBalanceHistoryDto;
 import br.com.tecpontes.appfinanceiro.model.AccountDto;
 import br.com.tecpontes.appfinanceiro.model.AccountRequestDto;
@@ -63,7 +65,6 @@ public class AccountsActivity extends AppCompatActivity {
     @Nullable private ReconciliationSummaryDto lastReconciliationSummary;
     private LinearLayout historyRows;
     private TextView historyState;
-    private AlertDialog historyDialog;
 
     @Inject TokenManager tokenManager;
 
@@ -149,79 +150,84 @@ public class AccountsActivity extends AppCompatActivity {
         container.removeAllViews();
         binding.accountsEmptyTextView.setVisibility(accounts.isEmpty() ? View.VISIBLE : View.GONE);
         for (AccountDto account : accounts) container.addView(createAccountCard(account));
+        renderSummary();
     }
 
     private View createAccountCard(AccountDto account) {
         MaterialCardView card = createCard();
         LinearLayout content = verticalLayout();
-        content.setPadding(dp(14), dp(14), dp(14), dp(12));
+        content.setPadding(dp(16), dp(16), dp(16), dp(12));
         card.addView(content);
 
         LinearLayout titleRow = horizontalLayout();
-        ImageView icon = new ImageView(this);
-        icon.setImageResource(R.drawable.ic_nav_accounts);
-        icon.setColorFilter(getColor(R.color.brand_primary));
-        titleRow.addView(icon, new LinearLayout.LayoutParams(dp(34), dp(34)));
+        titleRow.addView(iconCircle(R.drawable.ic_nav_accounts),
+                new LinearLayout.LayoutParams(dp(40), dp(40)));
         LinearLayout titleColumn = verticalLayout();
-        titleColumn.setPadding(dp(10), 0, 0, 0);
-        TextView name = titleText(safe(account.getName()), 17);
-        titleColumn.addView(name);
+        titleColumn.setPadding(dp(12), 0, 0, 0);
+        titleColumn.addView(titleText(safe(account.getName()), 16));
         TextView type = secondaryText(accountTypeLabel(account.getType()));
+        type.setTextSize(12);
         titleColumn.addView(type);
         titleRow.addView(titleColumn, new LinearLayout.LayoutParams(0, -2, 1));
-        if (!account.isActive()) titleRow.addView(statusBadge("Inativa", R.color.money_negative));
+        if (!account.isActive()) titleRow.addView(statusBadge("Inativa", true));
         content.addView(titleRow);
 
         LinearLayout balances = horizontalLayout();
         LinearLayout currentColumn = verticalLayout();
         TextView currentLabel = secondaryText("Saldo atual");
+        currentLabel.setTextSize(11);
         currentColumn.addView(currentLabel);
-        TextView currentValue = titleText(formatCurrency(account.getBalance()), 20);
+        TextView currentValue = titleText(formatCurrency(account.getBalance()), 19);
         currentValue.setTextColor(moneyColor(account.getBalance()));
         currentColumn.addView(currentValue);
         balances.addView(currentColumn, new LinearLayout.LayoutParams(0, -2, 1));
 
         LinearLayout effectiveColumn = verticalLayout();
         TextView effectiveLabel = secondaryText("Saldo final");
+        effectiveLabel.setTextSize(11);
         effectiveColumn.addView(effectiveLabel);
         double effective = account.getEffectiveBalance() == null
                 ? account.getBalance() : parseAmount(account.getEffectiveBalance());
-        TextView effectiveValue = titleText(formatCurrency(effective), 20);
+        TextView effectiveValue = titleText(formatCurrency(effective), 19);
         effectiveValue.setTextColor(moneyColor(effective));
         effectiveColumn.addView(effectiveValue);
         balances.addView(effectiveColumn, new LinearLayout.LayoutParams(0, -2, 1));
-        content.addView(balances, marginTop(dp(12)));
+        content.addView(balances, marginTop(dp(14)));
 
         double pending = parseAmount(account.getPendingInvoices());
         if (pending > 0) {
             TextView pendingLabel = secondaryText("Faturas pendentes afetam o saldo: −" + formatCurrency(pending));
             pendingLabel.setTextColor(getColor(R.color.money_negative));
+            pendingLabel.setTextSize(12);
             content.addView(pendingLabel, marginTop(dp(6)));
         }
 
         String bankDetails = account.getBranch() == null && account.getAccountNumber() == null ? ""
                 : "Agência " + safe(account.getBranch()) + " · Conta " + safe(account.getAccountNumber());
-        if (!bankDetails.trim().isEmpty()) content.addView(secondaryText(bankDetails), marginTop(dp(4)));
+        if (!bankDetails.trim().isEmpty()) {
+            TextView details = secondaryText(bankDetails);
+            details.setTextSize(12);
+            content.addView(details, marginTop(dp(4)));
+        }
+
+        content.addView(divider(), dividerParams(dp(12)));
 
         LinearLayout actions = horizontalLayout();
-        TextView history = actionText("Histórico");
-        history.setOnClickListener(v -> showBalanceHistory(account));
-        actions.addView(history, new LinearLayout.LayoutParams(0, dp(42), 1));
-        TextView edit = actionText("Editar");
+        TextView history = actionButton("Histórico", v -> showBalanceHistory(account));
+        actions.addView(history, new LinearLayout.LayoutParams(0, dp(44), 1));
+        TextView edit = actionButton("Editar", v -> showAccountForm(account));
         edit.setEnabled(account.isActive());
         edit.setAlpha(account.isActive() ? 1f : .45f);
-        edit.setOnClickListener(v -> showAccountForm(account));
-        actions.addView(edit, new LinearLayout.LayoutParams(0, dp(42), 1));
-        TextView importButton = actionText("Importar");
+        actions.addView(edit, new LinearLayout.LayoutParams(0, dp(44), 1));
+        TextView importButton = actionButton("Importar",
+                v -> showImportOptions(v, account));
         importButton.setEnabled(account.isActive() && account.getAccountNumber() != null
                 && !account.getAccountNumber().trim().isEmpty());
         importButton.setAlpha(importButton.isEnabled() ? 1f : .45f);
-        importButton.setOnClickListener(v -> showImportOptions(importButton, account));
-        actions.addView(importButton, new LinearLayout.LayoutParams(0, dp(42), 1));
-        TextView more = actionText("•••");
-        more.setOnClickListener(v -> showAccountMenu(more, account));
-        actions.addView(more, new LinearLayout.LayoutParams(dp(48), dp(42)));
-        content.addView(actions, marginTop(dp(10)));
+        actions.addView(importButton, new LinearLayout.LayoutParams(0, dp(44), 1));
+        ImageView more = moreButton(v -> showAccountMenu(v, account));
+        actions.addView(more, new LinearLayout.LayoutParams(dp(44), dp(44)));
+        content.addView(actions, marginTop(dp(6)));
         return card;
     }
 
@@ -230,173 +236,231 @@ public class AccountsActivity extends AppCompatActivity {
         container.removeAllViews();
         binding.cardsEmptyTextView.setVisibility(cards.isEmpty() ? View.VISIBLE : View.GONE);
         for (CreditCardDto creditCard : cards) container.addView(createCreditCard(creditCard));
+        renderSummary();
+    }
+
+    private void renderSummary() {
+        boolean empty = accounts.isEmpty() && cards.isEmpty();
+        binding.summaryCard.setVisibility(empty ? View.GONE : View.VISIBLE);
+        if (empty) return;
+
+        double totalBalance = 0;
+        double pendingInvoices = 0;
+        int activeAccounts = 0;
+        for (AccountDto account : accounts) {
+            if (!account.isActive()) continue;
+            activeAccounts++;
+            totalBalance += account.getBalance();
+            pendingInvoices += parseAmount(account.getPendingInvoices());
+        }
+
+        double availableLimit = 0;
+        int activeCards = 0;
+        for (CreditCardDto creditCard : cards) {
+            if (!creditCard.isActive()) continue;
+            activeCards++;
+            availableLimit += parseAmount(creditCard.getAvailableLimit());
+        }
+
+        binding.summaryBalanceTextView.setText(formatCurrency(totalBalance));
+        binding.summaryBalanceTextView.setTextColor(moneyColor(totalBalance));
+        binding.summaryAccountsInfoTextView.setText(activeAccounts
+                + (activeAccounts == 1 ? " conta ativa" : " contas ativas"));
+        binding.summaryAvailableLimitTextView.setText(formatCurrency(availableLimit));
+        binding.summaryAvailableLimitTextView.setTextColor(moneyColor(availableLimit));
+        binding.summaryCardsInfoTextView.setText(activeCards
+                + (activeCards == 1 ? " cartão ativo" : " cartões ativos"));
+
+        if (pendingInvoices > 0) {
+            binding.summaryPendingRow.setVisibility(View.VISIBLE);
+            binding.summaryPendingTextView.setText("Faturas pendentes: " + formatCurrency(pendingInvoices));
+        } else {
+            binding.summaryPendingRow.setVisibility(View.GONE);
+        }
     }
 
     private View createCreditCard(CreditCardDto creditCard) {
         MaterialCardView card = createCard();
         LinearLayout content = verticalLayout();
-        content.setPadding(dp(14), dp(14), dp(14), dp(12));
+        content.setPadding(dp(16), dp(16), dp(16), dp(12));
         card.addView(content);
         LinearLayout titleRow = horizontalLayout();
-        ImageView icon = new ImageView(this);
-        icon.setImageResource(R.drawable.ic_nav_cards);
-        icon.setColorFilter(getColor(R.color.brand_primary));
-        titleRow.addView(icon, new LinearLayout.LayoutParams(dp(34), dp(34)));
+        titleRow.addView(iconCircle(R.drawable.ic_nav_cards),
+                new LinearLayout.LayoutParams(dp(40), dp(40)));
         LinearLayout titleColumn = verticalLayout();
-        titleColumn.setPadding(dp(10), 0, 0, 0);
-        titleColumn.addView(titleText(safe(creditCard.getName()), 17));
-        titleColumn.addView(secondaryText(safe(creditCard.getBandeira())));
+        titleColumn.setPadding(dp(12), 0, 0, 0);
+        titleColumn.addView(titleText(safe(creditCard.getName()), 16));
+        TextView brand = secondaryText(safe(creditCard.getBandeira()));
+        brand.setTextSize(12);
+        titleColumn.addView(brand);
         titleRow.addView(titleColumn, new LinearLayout.LayoutParams(0, -2, 1));
-        if (!creditCard.isActive()) titleRow.addView(statusBadge("Inativo", R.color.money_negative));
+        if (!creditCard.isActive()) titleRow.addView(statusBadge("Inativo", true));
         content.addView(titleRow);
 
         LinearLayout limitRow = horizontalLayout();
         LinearLayout limitColumn = verticalLayout();
-        limitColumn.addView(secondaryText("Limite de crédito"));
-        limitColumn.addView(titleText(formatCurrency(parseAmount(creditCard.getLimit())), 17));
+        TextView limitLabel = secondaryText("Limite de crédito");
+        limitLabel.setTextSize(11);
+        limitColumn.addView(limitLabel);
+        limitColumn.addView(titleText(formatCurrency(parseAmount(creditCard.getLimit())), 16));
         limitRow.addView(limitColumn, new LinearLayout.LayoutParams(0, -2, 1));
         LinearLayout availableColumn = verticalLayout();
-        availableColumn.addView(secondaryText("Disponível"));
-        TextView available = titleText(formatCurrency(parseAmount(creditCard.getAvailableLimit())), 17);
-        available.setTextColor(getColor(R.color.money_positive));
+        TextView availableLabel = secondaryText("Disponível");
+        availableLabel.setTextSize(11);
+        availableColumn.addView(availableLabel);
+        double availableValue = parseAmount(creditCard.getAvailableLimit());
+        TextView available = titleText(formatCurrency(availableValue), 16);
+        available.setTextColor(moneyColor(availableValue));
         availableColumn.addView(available);
         limitRow.addView(availableColumn, new LinearLayout.LayoutParams(0, -2, 1));
-        content.addView(limitRow, marginTop(dp(12)));
+        content.addView(limitRow, marginTop(dp(14)));
 
         String debitName = creditCard.getDebitAccount() == null ? null : creditCard.getDebitAccount().getName();
         if (debitName == null) debitName = accountName(creditCard.getDebitAccountId());
         String days = "Fecha dia " + (creditCard.getClosingDay() == null ? "—" : creditCard.getClosingDay())
                 + " · vence dia " + (creditCard.getDueDay() == null ? "—" : creditCard.getDueDay());
-        content.addView(secondaryText(days + (debitName == null ? "" : "\nConta de débito: " + debitName)),
-                marginTop(dp(6)));
+        TextView details = secondaryText(days + (debitName == null ? "" : "\nConta de débito: " + debitName));
+        details.setTextSize(12);
+        content.addView(details, marginTop(dp(6)));
+
+        content.addView(divider(), dividerParams(dp(12)));
 
         LinearLayout actions = horizontalLayout();
-        TextView edit = actionText("Editar");
+        TextView edit = actionButton("Editar", v -> showCardForm(creditCard));
         edit.setEnabled(creditCard.isActive());
         edit.setAlpha(creditCard.isActive() ? 1f : .45f);
-        edit.setOnClickListener(v -> showCardForm(creditCard));
-        actions.addView(edit, new LinearLayout.LayoutParams(0, dp(42), 1));
-        TextView more = actionText("•••");
-        more.setOnClickListener(v -> showCardMenu(more, creditCard));
-        actions.addView(more, new LinearLayout.LayoutParams(dp(48), dp(42)));
-        content.addView(actions, marginTop(dp(8)));
+        actions.addView(edit, new LinearLayout.LayoutParams(0, dp(44), 1));
+        ImageView more = moreButton(v -> showCardMenu(v, creditCard));
+        actions.addView(more, new LinearLayout.LayoutParams(dp(44), dp(44)));
+        content.addView(actions, marginTop(dp(6)));
         return card;
     }
 
     private void showAccountForm(@Nullable AccountDto account) {
-        LinearLayout form = dialogForm();
-        EditText name = input("Nome da conta", account == null ? "" : safe(account.getName()), InputType.TYPE_CLASS_TEXT);
-        form.addView(fieldLabel("Nome da conta *"));
-        form.addView(name);
-        EditText balance = input("Saldo atual", account == null ? "0,00"
-                : String.format(Locale.US, "%.2f", account.getBalance()),
-                InputType.TYPE_CLASS_NUMBER | InputType.TYPE_NUMBER_FLAG_DECIMAL | InputType.TYPE_NUMBER_FLAG_SIGNED);
-        form.addView(fieldLabel("Saldo atual *"));
-        form.addView(balance);
+        DialogAccountFormBinding form = DialogAccountFormBinding.inflate(getLayoutInflater());
+        Dialog dialog = buildDialog(form.getRoot());
+        form.formTitleTextView.setText(account == null ? "Nova conta bancária" : "Editar conta");
+        form.nameEditText.setText(account == null ? "" : safe(account.getName()));
+        form.balanceEditText.setText(account == null ? "0,00"
+                : String.format(Locale.US, "%.2f", account.getBalance()));
         String[] labels = {"Conta Corrente", "Poupança", "Investimento", "Dinheiro"};
         String[] types = {"CHECKING", "SAVINGS", "INVESTMENT", "CASH"};
-        Spinner type = createSpinner(labels);
-        if (account != null) type.setSelection(indexOf(types, account.getType()));
-        form.addView(fieldLabel("Tipo de conta *"));
-        form.addView(type);
-        EditText branch = input("Agência", account == null ? "" : safe(account.getBranch()), InputType.TYPE_CLASS_TEXT);
-        form.addView(fieldLabel("Agência"));
-        form.addView(branch);
-        EditText number = input("Número da conta", account == null ? "" : safe(account.getAccountNumber()), InputType.TYPE_CLASS_TEXT);
-        form.addView(fieldLabel("Conta"));
-        form.addView(number);
+        setSpinnerItems(form.typeSpinner, labels);
+        if (account != null) form.typeSpinner.setSelection(indexOf(types, account.getType()));
+        form.branchEditText.setText(account == null ? "" : safe(account.getBranch()));
+        form.numberEditText.setText(account == null ? "" : safe(account.getAccountNumber()));
 
-        AlertDialog dialog = new AlertDialog.Builder(this)
-                .setTitle(account == null ? "Nova conta bancária" : "Editar conta")
-                .setView(form).setNegativeButton("Cancelar", null)
-                .setPositiveButton(account == null ? "Criar conta" : "Atualizar", null).create();
-        dialog.setOnShowListener(ignored -> dialog.getButton(AlertDialog.BUTTON_POSITIVE).setOnClickListener(v -> {
-            if (name.getText().toString().trim().isEmpty()) {
-                name.setError("Informe o nome da conta");
+        form.closeButton.setOnClickListener(v -> dialog.dismiss());
+        form.cancelButton.setOnClickListener(v -> dialog.dismiss());
+        form.saveButton.setText(account == null ? "Criar conta" : "Atualizar");
+        form.saveButton.setOnClickListener(v -> {
+            form.nameLayout.setError(null);
+            form.balanceLayout.setError(null);
+            String accountName = form.nameEditText.getText().toString().trim();
+            if (accountName.isEmpty()) {
+                form.nameLayout.setError("Informe o nome da conta");
                 return;
             }
             double amount;
-            try { amount = parseLocalizedAmount(balance.getText().toString()); }
-            catch (NumberFormatException error) { balance.setError("Informe um saldo válido"); return; }
+            try {
+                amount = parseLocalizedAmount(form.balanceEditText.getText().toString());
+            } catch (NumberFormatException error) {
+                form.balanceLayout.setError("Informe um saldo válido");
+                return;
+            }
             AccountRequestDto request = new AccountRequestDto();
-            request.name = name.getText().toString().trim();
+            request.name = accountName;
             request.balance = BigDecimal.valueOf(amount).setScale(2, RoundingMode.HALF_UP).toPlainString();
-            request.type = types[type.getSelectedItemPosition()];
-            request.branch = branch.getText().toString().trim();
-            request.accountNumber = number.getText().toString().trim();
+            int typeIndex = Math.max(0, form.typeSpinner.getSelectedItemPosition());
+            request.type = types[typeIndex];
+            request.branch = form.branchEditText.getText().toString().trim();
+            request.accountNumber = form.numberEditText.getText().toString().trim();
             dialog.dismiss();
             viewModel.saveAccount(account == null ? null : account.getId(), request,
                     actionCallback(account == null ? "Conta criada." : "Conta atualizada."));
-        }));
-        dialog.show();
+        });
+
+        showSizedDialog(dialog, 0.88f);
     }
 
     private void showCardForm(@Nullable CreditCardDto card) {
-        LinearLayout form = dialogForm();
-        EditText name = input("Nome do cartão", card == null ? "" : safe(card.getName()), InputType.TYPE_CLASS_TEXT);
-        form.addView(fieldLabel("Nome *"));
-        form.addView(name);
-        EditText limit = input("Limite", card == null ? "0,00" : safe(card.getLimit()),
-                InputType.TYPE_CLASS_NUMBER | InputType.TYPE_NUMBER_FLAG_DECIMAL);
-        form.addView(fieldLabel("Limite *"));
-        form.addView(limit);
-        EditText brand = input("Bandeira", card == null ? "" : safe(card.getBandeira()), InputType.TYPE_CLASS_TEXT);
-        form.addView(fieldLabel("Bandeira"));
-        form.addView(brand);
-        EditText closingDay = input("Dia de fechamento", card == null ? "1" : safe(card.getClosingDay()), InputType.TYPE_CLASS_NUMBER);
-        form.addView(fieldLabel("Dia de fechamento *"));
-        form.addView(closingDay);
-        EditText dueDay = input("Dia de vencimento", card == null ? "10" : safe(card.getDueDay()), InputType.TYPE_CLASS_NUMBER);
-        form.addView(fieldLabel("Dia de vencimento *"));
-        form.addView(dueDay);
+        DialogCreditCardFormBinding form = DialogCreditCardFormBinding.inflate(getLayoutInflater());
+        Dialog dialog = buildDialog(form.getRoot());
+        form.formTitleTextView.setText(card == null ? "Novo cartão de crédito" : "Editar cartão");
+        form.nameEditText.setText(card == null ? "" : safe(card.getName()));
+        form.limitEditText.setText(card == null ? "0,00" : safe(card.getLimit()));
+        form.brandEditText.setText(card == null ? "" : safe(card.getBandeira()));
+        form.closingDayEditText.setText(card == null ? "1" : safe(card.getClosingDay()));
+        form.dueDayEditText.setText(card == null ? "10" : safe(card.getDueDay()));
 
         List<String> accountOptions = new ArrayList<>();
         accountOptions.add("Nenhuma conta");
         for (AccountDto accountDto : accounts) accountOptions.add(safe(accountDto.getName()));
-        Spinner debitAccount = createSpinner(accountOptions.toArray(new String[0]));
+        setSpinnerItems(form.debitAccountSpinner, accountOptions.toArray(new String[0]));
         int selectedAccount = 0;
         if (card != null && card.getDebitAccountId() != null) {
             for (int i = 0; i < accounts.size(); i++) {
                 if (card.getDebitAccountId().equals(accounts.get(i).getId())) selectedAccount = i + 1;
             }
         }
-        debitAccount.setSelection(selectedAccount);
-        form.addView(fieldLabel("Conta de débito"));
-        form.addView(debitAccount);
+        form.debitAccountSpinner.setSelection(selectedAccount);
 
-        AlertDialog dialog = new AlertDialog.Builder(this)
-                .setTitle(card == null ? "Novo cartão de crédito" : "Editar cartão")
-                .setView(form).setNegativeButton("Cancelar", null)
-                .setPositiveButton("Salvar", null).create();
-        dialog.setOnShowListener(ignored -> dialog.getButton(AlertDialog.BUTTON_POSITIVE).setOnClickListener(v -> {
-            String cardName = name.getText().toString().trim();
-            if (cardName.length() < 2) { name.setError("Informe ao menos 2 caracteres"); return; }
+        form.closeButton.setOnClickListener(v -> dialog.dismiss());
+        form.cancelButton.setOnClickListener(v -> dialog.dismiss());
+        form.saveButton.setOnClickListener(v -> {
+            form.nameLayout.setError(null);
+            form.limitLayout.setError(null);
+            form.closingDayLayout.setError(null);
+            form.dueDayLayout.setError(null);
+
+            String cardName = form.nameEditText.getText().toString().trim();
+            if (cardName.length() < 2) {
+                form.nameLayout.setError("Informe ao menos 2 caracteres");
+                return;
+            }
             double limitAmount;
+            try {
+                limitAmount = parseLocalizedAmount(form.limitEditText.getText().toString());
+            } catch (NumberFormatException error) {
+                form.limitLayout.setError("Informe um limite válido");
+                return;
+            }
             int closeDay;
             int paymentDay;
             try {
-                limitAmount = parseLocalizedAmount(limit.getText().toString());
-                closeDay = Integer.parseInt(closingDay.getText().toString().trim());
-                paymentDay = Integer.parseInt(dueDay.getText().toString().trim());
-            } catch (RuntimeException error) { Toast.makeText(this, "Confira limite e dias da fatura.", Toast.LENGTH_LONG).show(); return; }
-            if (limitAmount < 0 || closeDay < 1 || closeDay > 31 || paymentDay < 1 || paymentDay > 31) {
-                Toast.makeText(this, "O limite deve ser positivo e os dias devem ficar entre 1 e 31.", Toast.LENGTH_LONG).show();
+                closeDay = Integer.parseInt(form.closingDayEditText.getText().toString().trim());
+                paymentDay = Integer.parseInt(form.dueDayEditText.getText().toString().trim());
+            } catch (NumberFormatException error) {
+                Toast.makeText(this, "Confira os dias da fatura.", Toast.LENGTH_LONG).show();
+                return;
+            }
+            if (limitAmount < 0) {
+                form.limitLayout.setError("O limite deve ser positivo");
+                return;
+            }
+            if (closeDay < 1 || closeDay > 31) {
+                form.closingDayLayout.setError("Informe um dia entre 1 e 31");
+                return;
+            }
+            if (paymentDay < 1 || paymentDay > 31) {
+                form.dueDayLayout.setError("Informe um dia entre 1 e 31");
                 return;
             }
             CreditCardRequestDto request = new CreditCardRequestDto();
             request.name = cardName;
             request.limit = BigDecimal.valueOf(limitAmount).setScale(2, RoundingMode.HALF_UP).toPlainString();
-            request.bandeira = brand.getText().toString().trim();
+            request.bandeira = form.brandEditText.getText().toString().trim();
             request.closingDay = closeDay;
             request.dueDay = paymentDay;
-            int accountIndex = debitAccount.getSelectedItemPosition() - 1;
+            int accountIndex = form.debitAccountSpinner.getSelectedItemPosition() - 1;
             request.debitAccountId = accountIndex >= 0 && accountIndex < accounts.size()
                     ? accounts.get(accountIndex).getId() : null;
             dialog.dismiss();
             viewModel.saveCard(card == null ? null : card.getId(), request,
                     actionCallback(card == null ? "Cartão criado." : "Cartão atualizado."));
-        }));
-        dialog.show();
+        });
+
+        showSizedDialog(dialog, 0.88f);
     }
 
     private void showAccountMenu(View anchor, AccountDto account) {
@@ -464,19 +528,24 @@ public class AccountsActivity extends AppCompatActivity {
                 .setMessage("Os saldos das contas, os totais das faturas e o histórico diário serão recalculados.")
                 .setNegativeButton("Cancelar", null)
                 .setPositiveButton("Recalcular", (dialog, which) -> {
-                    binding.recalculateButton.setEnabled(false);
+                    setRecalculateEnabled(false);
                     viewModel.recalculate(new AccountsRepository.ActionCallback() {
                         @Override public void onSuccess() {
-                            binding.recalculateButton.setEnabled(true);
+                            setRecalculateEnabled(true);
                             Toast.makeText(AccountsActivity.this, "Saldos e faturas recalculados.", Toast.LENGTH_LONG).show();
                             viewModel.load(includeInactive);
                         }
                         @Override public void onError(@NonNull String message) {
-                            binding.recalculateButton.setEnabled(true);
+                            setRecalculateEnabled(true);
                             Toast.makeText(AccountsActivity.this, message, Toast.LENGTH_LONG).show();
                         }
                     });
                 }).show();
+    }
+
+    private void setRecalculateEnabled(boolean enabled) {
+        binding.recalculateButton.setEnabled(enabled);
+        binding.recalculateButton.setAlpha(enabled ? 1f : .4f);
     }
 
     private void showImportOptions(View anchor, AccountDto account) {
@@ -502,17 +571,17 @@ public class AccountsActivity extends AppCompatActivity {
 
     private void showBalanceHistory(AccountDto account) {
         selectedHistoryAccount = account;
-        historyRows = verticalLayout();
-        historyState = secondaryText("Carregando histórico…");
-        ScrollView scroll = new ScrollView(this);
-        scroll.addView(historyRows);
-        LinearLayout content = verticalLayout();
-        content.addView(historyState);
-        content.addView(scroll, new LinearLayout.LayoutParams(-1, dp(420)));
-        historyDialog = new AlertDialog.Builder(this).setTitle("Histórico de saldo · " + safe(account.getName()))
-                .setView(content).setPositiveButton("Fechar", (dialog, which) -> clearHistoryDialog()).create();
-        historyDialog.setOnDismissListener(dialog -> clearHistoryDialog());
-        historyDialog.show();
+        DialogBalanceHistoryBinding historyBinding =
+                DialogBalanceHistoryBinding.inflate(getLayoutInflater());
+        historyRows = historyBinding.historyRowsContainer;
+        historyState = historyBinding.historyStateTextView;
+        historyState.setText("Carregando histórico…");
+        historyBinding.historySubtitleTextView.setText(safe(account.getName()));
+        Dialog dialog = buildDialog(historyBinding.getRoot());
+        historyBinding.closeButton.setOnClickListener(v -> dialog.dismiss());
+        historyBinding.footerCloseButton.setOnClickListener(v -> dialog.dismiss());
+        dialog.setOnDismissListener(ignored -> clearHistoryDialog());
+        showSizedDialog(dialog, 0.72f);
         viewModel.loadHistory(account.getId());
     }
 
@@ -528,19 +597,22 @@ public class AccountsActivity extends AppCompatActivity {
         for (AccountBalanceHistoryDto.Item item : data.getHistory()) {
             LinearLayout row = horizontalLayout();
             TextView date = bodyText(formatDate(item.date));
+            date.setTextSize(12);
             row.addView(date, new LinearLayout.LayoutParams(0, -2, 1));
             TextView balance = bodyText(formatCurrency(parseAmount(item.balance)));
+            balance.setTextSize(12);
             balance.setTypeface(null, Typeface.BOLD);
+            balance.setGravity(Gravity.END);
             balance.setTextColor(moneyColor(parseAmount(item.balance)));
             row.addView(balance, new LinearLayout.LayoutParams(0, -2, 1));
             TextView change = bodyText(formatCurrency(parseAmount(item.change)));
+            change.setTextSize(12);
+            change.setGravity(Gravity.END);
             change.setTextColor(moneyColor(parseAmount(item.change)));
             row.addView(change, new LinearLayout.LayoutParams(0, -2, 1));
             row.setPadding(0, dp(10), 0, dp(10));
             historyRows.addView(row);
-            View divider = new View(this);
-            divider.setBackgroundColor(getColor(R.color.outline));
-            historyRows.addView(divider, new LinearLayout.LayoutParams(-1, dp(1)));
+            historyRows.addView(divider(), new LinearLayout.LayoutParams(-1, dp(1)));
         }
     }
 
@@ -548,7 +620,6 @@ public class AccountsActivity extends AppCompatActivity {
         selectedHistoryAccount = null;
         historyRows = null;
         historyState = null;
-        historyDialog = null;
     }
 
     private AccountsRepository.ActionCallback actionCallback(String successMessage) {
@@ -569,11 +640,23 @@ public class AccountsActivity extends AppCompatActivity {
         params.topMargin = dp(10);
         card.setLayoutParams(params);
         card.setCardBackgroundColor(getColor(R.color.surface));
-        card.setRadius(dp(14));
-        card.setCardElevation(dp(2));
+        card.setRadius(dp(16));
+        card.setCardElevation(dp(1));
         card.setStrokeWidth(dp(1));
         card.setStrokeColor(getColor(R.color.outline));
         return card;
+    }
+
+    private View iconCircle(int drawableRes) {
+        LinearLayout circle = new LinearLayout(this);
+        circle.setBackgroundResource(R.drawable.bg_icon_circle);
+        circle.setGravity(Gravity.CENTER);
+        ImageView icon = new ImageView(this);
+        icon.setImageResource(drawableRes);
+        icon.setColorFilter(getColor(R.color.brand_primary));
+        icon.setContentDescription(null);
+        circle.addView(icon, new LinearLayout.LayoutParams(dp(20), dp(20)));
+        return circle;
     }
 
     private LinearLayout verticalLayout() {
@@ -585,7 +668,7 @@ public class AccountsActivity extends AppCompatActivity {
     private LinearLayout horizontalLayout() {
         LinearLayout layout = new LinearLayout(this);
         layout.setOrientation(LinearLayout.HORIZONTAL);
-        layout.setGravity(android.view.Gravity.CENTER_VERTICAL);
+        layout.setGravity(Gravity.CENTER_VERTICAL);
         return layout;
     }
 
@@ -612,23 +695,49 @@ public class AccountsActivity extends AppCompatActivity {
         return text;
     }
 
-    private TextView actionText(String value) {
+    private TextView actionButton(String value, View.OnClickListener listener) {
         TextView text = bodyText(value);
         text.setTextColor(getColor(R.color.brand_primary));
-        text.setGravity(android.view.Gravity.CENTER);
-        text.setBackgroundResource(android.R.drawable.list_selector_background);
+        text.setTextSize(12);
+        text.setTypeface(null, Typeface.BOLD);
+        text.setGravity(Gravity.CENTER);
+        text.setPadding(dp(4), 0, dp(4), 0);
+        text.setBackgroundResource(R.drawable.bg_text_action);
         text.setClickable(true);
         text.setFocusable(true);
+        text.setOnClickListener(listener);
         return text;
     }
 
-    private TextView statusBadge(String value, int colorResource) {
+    private ImageView moreButton(View.OnClickListener listener) {
+        ImageView more = new ImageView(this);
+        more.setImageResource(R.drawable.ic_transaction_more);
+        more.setColorFilter(getColor(R.color.brand_primary));
+        more.setContentDescription("Mais ações");
+        more.setPadding(dp(10), dp(10), dp(10), dp(10));
+        more.setBackgroundResource(R.drawable.bg_text_action);
+        more.setClickable(true);
+        more.setFocusable(true);
+        more.setOnClickListener(listener);
+        return more;
+    }
+
+    private TextView statusBadge(String value, boolean error) {
         TextView text = bodyText(value);
-        text.setTextColor(getColor(colorResource));
+        text.setTextSize(11);
+        text.setTextColor(getColor(error ? R.color.on_error_container : R.color.on_success_container));
         text.setTypeface(null, Typeface.BOLD);
         text.setPadding(dp(8), dp(4), dp(8), dp(4));
-        text.setBackgroundColor(getColor(R.color.error_container));
+        text.setBackgroundResource(error
+                ? R.drawable.bg_status_badge_error
+                : R.drawable.bg_status_badge_success);
         return text;
+    }
+
+    private View divider() {
+        View divider = new View(this);
+        divider.setBackgroundColor(getColor(R.color.outline));
+        return divider;
     }
 
     private LinearLayout.LayoutParams marginTop(int margin) {
@@ -637,33 +746,38 @@ public class AccountsActivity extends AppCompatActivity {
         return params;
     }
 
-    private LinearLayout dialogForm() {
-        LinearLayout form = verticalLayout();
-        form.setPadding(dp(24), dp(8), dp(24), 0);
-        return form;
+    private LinearLayout.LayoutParams dividerParams(int topMargin) {
+        LinearLayout.LayoutParams params = new LinearLayout.LayoutParams(-1, dp(1));
+        params.topMargin = topMargin;
+        return params;
     }
 
-    private TextView fieldLabel(String label) {
-        TextView text = secondaryText(label);
-        text.setPadding(0, dp(9), 0, dp(3));
-        return text;
+    private Dialog buildDialog(View content) {
+        Dialog dialog = new Dialog(this);
+        dialog.requestWindowFeature(Window.FEATURE_NO_TITLE);
+        dialog.setContentView(content);
+        Window window = dialog.getWindow();
+        if (window != null) {
+            window.setBackgroundDrawableResource(android.R.color.transparent);
+            window.setSoftInputMode(WindowManager.LayoutParams.SOFT_INPUT_ADJUST_RESIZE
+                    | WindowManager.LayoutParams.SOFT_INPUT_STATE_ALWAYS_HIDDEN);
+        }
+        return dialog;
     }
 
-    private EditText input(String hint, String value, int inputType) {
-        EditText input = new EditText(this);
-        input.setSingleLine(true);
-        input.setHint(hint);
-        input.setInputType(inputType);
-        input.setText(value);
-        return input;
+    private void showSizedDialog(Dialog dialog, float heightFactor) {
+        dialog.show();
+        Window window = dialog.getWindow();
+        if (window == null) return;
+        int width = getResources().getDisplayMetrics().widthPixels - dp(32);
+        int height = (int) (getResources().getDisplayMetrics().heightPixels * heightFactor);
+        window.setLayout(width, height);
     }
 
-    private Spinner createSpinner(String[] values) {
-        Spinner spinner = new Spinner(this);
-        ArrayAdapter<String> adapter = new ArrayAdapter<>(this, android.R.layout.simple_spinner_item, values);
-        adapter.setDropDownViewResource(android.R.layout.simple_spinner_dropdown_item);
+    private void setSpinnerItems(Spinner spinner, String[] values) {
+        ArrayAdapter<String> adapter = new ArrayAdapter<>(this, R.layout.item_spinner_form, values);
+        adapter.setDropDownViewResource(R.layout.item_spinner_form_dropdown);
         spinner.setAdapter(adapter);
-        return spinner;
     }
 
     private int indexOf(String[] values, @Nullable String target) {
@@ -702,7 +816,9 @@ public class AccountsActivity extends AppCompatActivity {
     }
 
     private int moneyColor(double value) {
-        return getColor(value >= 0 ? R.color.money_positive : R.color.money_negative);
+        if (value > 0) return getColor(R.color.money_positive);
+        if (value < 0) return getColor(R.color.money_negative);
+        return getColor(R.color.money_neutral);
     }
 
     private String formatDate(@Nullable String value) {

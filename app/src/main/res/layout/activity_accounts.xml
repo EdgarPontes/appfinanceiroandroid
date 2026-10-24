@@ -1,25 +1,68 @@
 <?xml version="1.0" encoding="utf-8"?>
-<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+<androidx.coordinatorlayout.widget.CoordinatorLayout xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:app="http://schemas.android.com/apk/res-auto"
+    xmlns:tools="http://schemas.android.com/tools"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
     android:background="?android:attr/colorBackground"
-    android:orientation="vertical">
+    tools:context=".ui.accounts.AccountsActivity">
 
-    <com.google.android.material.appbar.MaterialToolbar
+    <com.google.android.material.appbar.AppBarLayout
         android:layout_width="match_parent"
-        android:layout_height="?attr/actionBarSize"
-        android:background="?attr/colorSurface"
-        app:title="Contas"
-        app:titleTextColor="?attr/colorOnSurface" />
+        android:layout_height="wrap_content"
+        android:background="?attr/colorSurface">
+
+        <androidx.appcompat.widget.Toolbar
+            android:id="@+id/toolbar"
+            android:layout_width="match_parent"
+            android:layout_height="?attr/actionBarSize"
+            android:background="?attr/colorSurface"
+            app:title="Contas"
+            app:titleTextColor="?attr/colorOnSurface">
+
+            <LinearLayout
+                android:layout_width="wrap_content"
+                android:layout_height="match_parent"
+                android:layout_gravity="end"
+                android:gravity="center_vertical"
+                android:orientation="horizontal"
+                android:paddingEnd="4dp">
+
+                <com.google.android.material.checkbox.MaterialCheckBox
+                    android:id="@+id/showInactiveCheckBox"
+                    android:layout_width="wrap_content"
+                    android:layout_height="48dp"
+                    android:contentDescription="Mostrar contas e cartões inativos"
+                    android:gravity="center_vertical"
+                    android:minWidth="0dp"
+                    android:paddingStart="4dp"
+                    android:paddingEnd="2dp"
+                    android:text="Inativos"
+                    android:textColor="?attr/colorOnSurface"
+                    android:textSize="12sp" />
+
+                <ImageButton
+                    android:id="@+id/recalculateButton"
+                    android:layout_width="48dp"
+                    android:layout_height="48dp"
+                    android:background="?attr/selectableItemBackgroundBorderless"
+                    android:contentDescription="Recalcular saldos"
+                    android:padding="12dp"
+                    android:src="@android:drawable/ic_popup_sync"
+                    android:tooltipText="Recalcular saldos"
+                    app:tint="?attr/colorPrimary" />
+            </LinearLayout>
+        </androidx.appcompat.widget.Toolbar>
+
+    </com.google.android.material.appbar.AppBarLayout>
 
     <androidx.swiperefreshlayout.widget.SwipeRefreshLayout
         android:id="@+id/swipeRefreshLayout"
         android:layout_width="match_parent"
-        android:layout_height="0dp"
-        android:layout_weight="1">
+        android:layout_height="match_parent"
+        app:layout_behavior="@string/appbar_scrolling_view_behavior">
 
-        <ScrollView
+        <androidx.core.widget.NestedScrollView
             android:layout_width="match_parent"
             android:layout_height="match_parent"
             android:clipToPadding="false"
@@ -29,37 +72,174 @@
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
                 android:orientation="vertical"
-                android:padding="16dp"
-                android:paddingBottom="24dp">
+                android:paddingStart="16dp"
+                android:paddingTop="12dp"
+                android:paddingEnd="16dp"
+                android:paddingBottom="104dp">
 
                 <TextView
                     android:id="@+id/errorTextView"
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
                     android:layout_marginBottom="8dp"
-                    android:textColor="@color/money_negative"
-                    android:visibility="gone" />
+                    android:textColor="@color/error"
+                    android:textSize="13sp"
+                    android:visibility="gone"
+                    tools:text="Não foi possível carregar as contas." />
 
+                <!-- Resumo geral de contas e cartões -->
+                <com.google.android.material.card.MaterialCardView
+                    android:id="@+id/summaryCard"
+                    style="@style/ModernCard"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:layout_marginBottom="12dp"
+                    android:visibility="gone">
+
+                    <LinearLayout
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:orientation="vertical"
+                        android:padding="18dp">
+
+                        <LinearLayout
+                            android:layout_width="match_parent"
+                            android:layout_height="wrap_content"
+                            android:orientation="horizontal">
+
+                            <LinearLayout
+                                android:layout_width="0dp"
+                                android:layout_height="wrap_content"
+                                android:layout_weight="1"
+                                android:orientation="vertical">
+
+                                <TextView
+                                    android:layout_width="wrap_content"
+                                    android:layout_height="wrap_content"
+                                    android:text="Saldo em contas"
+                                    android:textColor="?attr/colorOnSurfaceVariant"
+                                    android:textSize="11sp" />
+
+                                <TextView
+                                    android:id="@+id/summaryBalanceTextView"
+                                    android:layout_width="wrap_content"
+                                    android:layout_height="wrap_content"
+                                    android:layout_marginTop="3dp"
+                                    android:text="R$ 0,00"
+                                    android:textColor="?attr/colorPrimary"
+                                    android:textSize="22sp"
+                                    android:textStyle="bold" />
+
+                                <TextView
+                                    android:id="@+id/summaryAccountsInfoTextView"
+                                    android:layout_width="wrap_content"
+                                    android:layout_height="wrap_content"
+                                    android:layout_marginTop="2dp"
+                                    android:text="0 contas ativas"
+                                    android:textColor="?attr/colorOnSurfaceVariant"
+                                    android:textSize="11sp" />
+                            </LinearLayout>
+
+                            <View
+                                android:layout_width="1dp"
+                                android:layout_height="match_parent"
+                                android:layout_marginHorizontal="12dp"
+                                android:background="@color/outline" />
+
+                            <LinearLayout
+                                android:layout_width="0dp"
+                                android:layout_height="wrap_content"
+                                android:layout_weight="1"
+                                android:orientation="vertical">
+
+                                <TextView
+                                    android:layout_width="wrap_content"
+                                    android:layout_height="wrap_content"
+                                    android:text="Limite disponível"
+                                    android:textColor="?attr/colorOnSurfaceVariant"
+                                    android:textSize="11sp" />
+
+                                <TextView
+                                    android:id="@+id/summaryAvailableLimitTextView"
+                                    android:layout_width="wrap_content"
+                                    android:layout_height="wrap_content"
+                                    android:layout_marginTop="3dp"
+                                    android:text="R$ 0,00"
+                                    android:textColor="@color/money_positive"
+                                    android:textSize="22sp"
+                                    android:textStyle="bold" />
+
+                                <TextView
+                                    android:id="@+id/summaryCardsInfoTextView"
+                                    android:layout_width="wrap_content"
+                                    android:layout_height="wrap_content"
+                                    android:layout_marginTop="2dp"
+                                    android:text="0 cartões ativos"
+                                    android:textColor="?attr/colorOnSurfaceVariant"
+                                    android:textSize="11sp" />
+                            </LinearLayout>
+                        </LinearLayout>
+
+                        <LinearLayout
+                            android:id="@+id/summaryPendingRow"
+                            android:layout_width="match_parent"
+                            android:layout_height="wrap_content"
+                            android:layout_marginTop="12dp"
+                            android:gravity="center_vertical"
+                            android:orientation="horizontal"
+                            android:visibility="gone"
+                            tools:visibility="visible">
+
+                            <ImageView
+                                android:layout_width="16dp"
+                                android:layout_height="16dp"
+                                android:contentDescription="@null"
+                                android:src="@drawable/ic_warning"
+                                app:tint="@color/error" />
+
+                            <TextView
+                                android:id="@+id/summaryPendingTextView"
+                                android:layout_width="0dp"
+                                android:layout_height="wrap_content"
+                                android:layout_marginStart="6dp"
+                                android:layout_weight="1"
+                                android:textColor="@color/error"
+                                android:textSize="12sp"
+                                tools:text="Faturas pendentes: R$ 1.250,00" />
+                        </LinearLayout>
+                    </LinearLayout>
+                </com.google.android.material.card.MaterialCardView>
+
+                <!-- Conciliação pendente -->
                 <com.google.android.material.card.MaterialCardView
                     android:id="@+id/reconciliationCard"
+                    style="@style/ModernCard"
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
                     android:layout_marginBottom="12dp"
                     android:visibility="gone"
                     app:cardBackgroundColor="@color/surface_brand"
-                    app:cardCornerRadius="14dp"
-                    app:cardElevation="1dp">
+                    app:cardElevation="0dp"
+                    tools:visibility="visible">
 
                     <LinearLayout
                         android:layout_width="match_parent"
                         android:layout_height="wrap_content"
                         android:gravity="center_vertical"
                         android:orientation="horizontal"
-                        android:padding="14dp">
+                        android:padding="16dp">
+
+                        <ImageView
+                            android:layout_width="20dp"
+                            android:layout_height="20dp"
+                            android:contentDescription="@null"
+                            android:src="@drawable/ic_warning"
+                            app:tint="?attr/colorPrimary" />
 
                         <LinearLayout
                             android:layout_width="0dp"
                             android:layout_height="wrap_content"
+                            android:layout_marginStart="10dp"
                             android:layout_weight="1"
                             android:orientation="vertical">
 
@@ -68,133 +248,160 @@
                                 android:layout_height="wrap_content"
                                 android:text="Conciliação pendente"
                                 android:textColor="?attr/colorPrimary"
+                                android:textSize="14sp"
                                 android:textStyle="bold" />
 
                             <TextView
                                 android:id="@+id/reconciliationSummaryTextView"
                                 android:layout_width="match_parent"
                                 android:layout_height="wrap_content"
-                                android:layout_marginTop="4dp"
+                                android:layout_marginTop="3dp"
                                 android:textColor="?attr/colorOnSurfaceVariant"
-                                android:textSize="12sp" />
+                                android:textSize="12sp"
+                                tools:text="3 lançamentos pendentes · 72% conciliado · R$ 450,00 pendente" />
                         </LinearLayout>
 
                         <com.google.android.material.button.MaterialButton
                             android:id="@+id/viewPendingButton"
-                            style="@style/Widget.MaterialComponents.Button.OutlinedButton"
+                            style="@style/Widget.Material3.Button.OutlinedButton"
                             android:layout_width="wrap_content"
-                            android:layout_height="wrap_content"
+                            android:layout_height="44dp"
+                            android:layout_marginStart="8dp"
+                            android:insetTop="0dp"
+                            android:insetBottom="0dp"
+                            android:minWidth="56dp"
+                            android:paddingHorizontal="14dp"
                             android:text="Ver"
-                            android:textSize="12sp" />
+                            android:textAllCaps="false"
+                            android:textColor="?attr/colorPrimary"
+                            android:textSize="12sp"
+                            app:cornerRadius="12dp"
+                            app:strokeColor="?attr/colorPrimary"
+                            app:strokeWidth="1dp" />
                     </LinearLayout>
                 </com.google.android.material.card.MaterialCardView>
 
-                <LinearLayout
-                    android:layout_width="match_parent"
-                    android:layout_height="wrap_content"
-                    android:gravity="center_vertical"
-                    android:orientation="horizontal">
-
-                    <CheckBox
-                        android:id="@+id/showInactiveCheckBox"
-                        android:layout_width="0dp"
-                        android:layout_height="wrap_content"
-                        android:layout_weight="1"
-                        android:text="Mostrar inativos"
-                        android:textColor="?attr/colorOnSurface"
-                        android:textSize="13sp" />
-
-                    <com.google.android.material.button.MaterialButton
-                        android:id="@+id/recalculateButton"
-                        style="@style/Widget.MaterialComponents.Button.OutlinedButton"
-                        android:layout_width="wrap_content"
-                        android:layout_height="wrap_content"
-                        android:text="Recalcular"
-                        android:textSize="12sp"
-                        app:icon="@drawable/ic_month_calendar"
-                        app:iconSize="16dp" />
-                </LinearLayout>
-
+                <!-- Contas bancárias -->
                 <TextView
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
-                    android:layout_marginTop="14dp"
+                    android:layout_marginTop="18dp"
                     android:text="Contas bancárias"
                     android:textColor="?attr/colorOnSurface"
-                    android:textSize="21sp"
+                    android:textSize="20sp"
                     android:textStyle="bold" />
 
                 <TextView
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
-                    android:layout_marginBottom="8dp"
                     android:text="Gerencie suas contas e saldos"
                     android:textColor="?attr/colorOnSurfaceVariant"
                     android:textSize="13sp" />
 
                 <com.google.android.material.button.MaterialButton
                     android:id="@+id/addAccountButton"
+                    style="@style/PrimaryCTAButton"
                     android:layout_width="match_parent"
-                    android:layout_height="wrap_content"
-                    android:text="＋ Nova conta" />
+                    android:layout_height="52dp"
+                    android:layout_marginTop="10dp"
+                    android:text="Nova conta"
+                    app:icon="@drawable/ic_add"
+                    app:iconGravity="textStart"
+                    app:iconPadding="8dp"
+                    app:iconSize="18dp"
+                    app:iconTint="?attr/colorOnTertiary" />
 
                 <LinearLayout
                     android:id="@+id/accountsContainer"
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
+                    android:layout_marginTop="4dp"
                     android:orientation="vertical" />
 
                 <TextView
                     android:id="@+id/accountsEmptyTextView"
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
+                    android:layout_marginTop="8dp"
+                    android:background="@drawable/bg_outlined_rounded"
+                    android:drawableTop="@drawable/ic_nav_accounts"
+                    android:drawablePadding="10dp"
+                    android:drawableTint="?attr/colorOnSurfaceVariant"
                     android:gravity="center"
                     android:padding="24dp"
                     android:text="Nenhuma conta cadastrada. Adicione sua primeira conta para acompanhar seus saldos."
                     android:textColor="?attr/colorOnSurfaceVariant"
+                    android:textSize="13sp"
                     android:visibility="gone" />
 
+                <!-- Cartões de crédito -->
                 <TextView
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
-                    android:layout_marginTop="18dp"
+                    android:layout_marginTop="24dp"
                     android:text="Cartões de crédito"
                     android:textColor="?attr/colorOnSurface"
-                    android:textSize="21sp"
+                    android:textSize="20sp"
                     android:textStyle="bold" />
 
                 <TextView
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
-                    android:layout_marginBottom="8dp"
                     android:text="Gerencie seus cartões e limites"
                     android:textColor="?attr/colorOnSurfaceVariant"
                     android:textSize="13sp" />
 
                 <com.google.android.material.button.MaterialButton
                     android:id="@+id/addCardButton"
+                    style="@style/Widget.Material3.Button.OutlinedButton"
                     android:layout_width="match_parent"
-                    android:layout_height="wrap_content"
-                    android:text="＋ Novo cartão" />
+                    android:layout_height="48dp"
+                    android:layout_marginTop="10dp"
+                    android:text="Novo cartão"
+                    android:textAllCaps="false"
+                    android:textColor="?attr/colorPrimary"
+                    android:textSize="14sp"
+                    app:backgroundTint="?attr/colorSurfaceVariant"
+                    app:cornerRadius="14dp"
+                    app:icon="@drawable/ic_add"
+                    app:iconGravity="textStart"
+                    app:iconPadding="8dp"
+                    app:iconSize="18dp"
+                    app:iconTint="?attr/colorPrimary"
+                    app:strokeColor="?attr/colorOutline"
+                    app:strokeWidth="1dp" />
 
                 <LinearLayout
                     android:id="@+id/cardsContainer"
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
+                    android:layout_marginTop="4dp"
                     android:orientation="vertical" />
 
                 <TextView
                     android:id="@+id/cardsEmptyTextView"
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
+                    android:layout_marginTop="8dp"
+                    android:background="@drawable/bg_outlined_rounded"
+                    android:drawableTop="@drawable/ic_nav_cards"
+                    android:drawablePadding="10dp"
+                    android:drawableTint="?attr/colorOnSurfaceVariant"
                     android:gravity="center"
                     android:padding="24dp"
                     android:text="Nenhum cartão de crédito cadastrado."
                     android:textColor="?attr/colorOnSurfaceVariant"
+                    android:textSize="13sp"
                     android:visibility="gone" />
             </LinearLayout>
-        </ScrollView>
+        </androidx.core.widget.NestedScrollView>
     </androidx.swiperefreshlayout.widget.SwipeRefreshLayout>
 
-    <include layout="@layout/bottom_navigation" />
-</LinearLayout>
+    <include
+        android:id="@+id/bottomNavigation"
+        layout="@layout/bottom_navigation"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_gravity="bottom" />
+
+</androidx.coordinatorlayout.widget.CoordinatorLayout>

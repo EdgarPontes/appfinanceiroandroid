@@ -1,11 +1,14 @@
 package br.com.tecpontes.appfinanceiro.ui.transactions;
 
+import android.app.Dialog;
 import android.content.Intent;
 import android.net.Uri;
 import android.os.Bundle;
 import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
+import android.view.Window;
+import android.view.WindowManager;
 import android.widget.ArrayAdapter;
 import android.widget.EditText;
 import android.widget.LinearLayout;
@@ -26,6 +29,7 @@ import androidx.recyclerview.widget.LinearLayoutManager;
 import br.com.tecpontes.appfinanceiro.R;
 import br.com.tecpontes.appfinanceiro.data.local.entity.Account;
 import br.com.tecpontes.appfinanceiro.databinding.ActivityTransactionsBinding;
+import br.com.tecpontes.appfinanceiro.databinding.DialogEditTransactionBinding;
 import br.com.tecpontes.appfinanceiro.model.TransactionListItemDto;
 import br.com.tecpontes.appfinanceiro.model.AccountDto;
 import br.com.tecpontes.appfinanceiro.model.CategoryDto;
@@ -37,6 +41,7 @@ import br.com.tecpontes.appfinanceiro.utils.PrivacyMode;
 import br.com.tecpontes.appfinanceiro.utils.SessionExpiredNavigation;
 import br.com.tecpontes.appfinanceiro.utils.TokenManager;
 import br.com.tecpontes.appfinanceiro.viewmodel.TransactionsViewModel;
+import com.google.android.material.dialog.MaterialAlertDialogBuilder;
 import dagger.hilt.android.AndroidEntryPoint;
 import javax.inject.Inject;
 import java.text.NumberFormat;
@@ -805,85 +810,140 @@ public class TransactionsActivity extends AppCompatActivity {
             return true;
         });
         menu.getMenu().add("Clonar").setOnMenuItemClickListener(clicked -> {
-            confirmTransactionClone(item);
+            showCloneTransactionDialog(item);
             return true;
         });
         menu.show();
     }
 
     private void showEditTransactionDialog(TransactionListItemDto item) {
-        LinearLayout fields = new LinearLayout(this);
-        fields.setOrientation(LinearLayout.VERTICAL);
-        fields.setPadding(dp(20), dp(8), dp(20), 0);
+        String type = item.type == null ? "" : item.type.toUpperCase(Locale.US);
+        if ("EXPENSE".equals(type) || "INCOME".equals(type)) {
+            showFullEditTransactionDialog(item);
+        } else {
+            showSimpleEditTransactionDialog(item);
+        }
+    }
 
-        EditText descriptionInput = new EditText(this);
-        descriptionInput.setSingleLine(true);
-        descriptionInput.setHint("Descrição");
-        descriptionInput.setText(item.description == null ? "" : item.description);
-        fields.addView(descriptionInput, new LinearLayout.LayoutParams(
-                LinearLayout.LayoutParams.MATCH_PARENT, LinearLayout.LayoutParams.WRAP_CONTENT));
-
-        EditText amountInput = new EditText(this);
-        amountInput.setSingleLine(true);
-        amountInput.setHint("Valor");
-        amountInput.setInputType(android.text.InputType.TYPE_CLASS_NUMBER
-                | android.text.InputType.TYPE_NUMBER_FLAG_DECIMAL
-                | android.text.InputType.TYPE_NUMBER_FLAG_SIGNED);
-        amountInput.setText(item.amount == null ? "" : item.amount);
-        fields.addView(amountInput, new LinearLayout.LayoutParams(
-                LinearLayout.LayoutParams.MATCH_PARENT, LinearLayout.LayoutParams.WRAP_CONTENT));
-
-        EditText noteInput = new EditText(this);
-        noteInput.setHint("Observação (opcional)");
-        noteInput.setText(item.note == null ? "" : item.note);
-        fields.addView(noteInput, new LinearLayout.LayoutParams(
-                LinearLayout.LayoutParams.MATCH_PARENT, LinearLayout.LayoutParams.WRAP_CONTENT));
-
-        new AlertDialog.Builder(this)
-                .setTitle("Editar lançamento")
-                .setView(fields)
-                .setNegativeButton("Cancelar", null)
-                .setPositiveButton("Continuar", (dialog, which) -> {
-                    String description = descriptionInput.getText().toString().trim();
-                    String amount = normalizeAmount(amountInput.getText().toString());
-                    if (description.isEmpty() || amount.isEmpty()) {
-                        Toast.makeText(this, "Descrição e valor são obrigatórios", Toast.LENGTH_SHORT).show();
-                        return;
-                    }
-                    String note = noteInput.getText().toString().trim();
-                    if (item.isInstallmentTransaction() || item.isFixedExpenseTransaction()) {
-                        new AlertDialog.Builder(this)
+    private void showFullEditTransactionDialog(TransactionListItemDto item) {
+        createTransactionDialog = new CreateTransactionDialog(this, item,
+                transaction -> {
+                    if (isSeriesTransaction(item)) {
+                        new MaterialAlertDialogBuilder(TransactionsActivity.this)
                                 .setTitle("Aplicar alteração")
                                 .setItems(new String[]{"Somente este lançamento", "Este e os futuros"},
                                         (scopeDialog, selected) -> updateRemoteTransaction(
-                                                item, description, amount, note,
-                                                selected == 0 ? "current" : "future"))
+                                                item, transaction,
+                                                selected == 0 ? "current" : "future", true))
+                                .setNegativeButton("Cancelar", null)
                                 .show();
                     } else {
-                        updateRemoteTransaction(item, description, amount, note, null);
+                        updateRemoteTransaction(item, transaction, null, true);
                     }
-                })
-                .show();
+                });
+        createTransactionDialog.setOnDismissListener(dialog -> createTransactionDialog = null);
+        createTransactionDialog.show();
+        updateTransactionDialogOptions();
+        createTransactionDialog.setOptionsLoading(true);
+        transactionsViewModel.loadTransactionFormOptions();
+    }
+
+    private void showSimpleEditTransactionDialog(TransactionListItemDto item) {
+        DialogEditTransactionBinding dialogBinding =
+                DialogEditTransactionBinding.inflate(getLayoutInflater());
+        Dialog dialog = new Dialog(this);
+        dialog.requestWindowFeature(Window.FEATURE_NO_TITLE);
+        dialog.setContentView(dialogBinding.getRoot());
+        Window window = dialog.getWindow();
+        if (window != null) {
+            window.setBackgroundDrawableResource(android.R.color.transparent);
+            window.setSoftInputMode(WindowManager.LayoutParams.SOFT_INPUT_ADJUST_RESIZE
+                    | WindowManager.LayoutParams.SOFT_INPUT_STATE_ALWAYS_HIDDEN);
+        }
+
+        dialogBinding.descriptionEditText.setText(item.description == null ? "" : item.description);
+        String normalizedAmount = normalizeAmount(item.amount == null ? "" : item.amount);
+        dialogBinding.amountEditText.setText(
+                normalizedAmount.isEmpty() ? "" : normalizedAmount.replace('.', ','));
+        dialogBinding.noteEditText.setText(item.note == null ? "" : item.note);
+
+        dialogBinding.closeButton.setOnClickListener(v -> dialog.dismiss());
+        dialogBinding.cancelButton.setOnClickListener(v -> dialog.dismiss());
+        dialogBinding.saveButton.setOnClickListener(v -> {
+            dialogBinding.descriptionLayout.setError(null);
+            dialogBinding.amountLayout.setError(null);
+
+            String description = dialogBinding.descriptionEditText.getText().toString().trim();
+            String amount = normalizeAmount(dialogBinding.amountEditText.getText().toString());
+            if (description.isEmpty()) {
+                dialogBinding.descriptionLayout.setError("Informe uma descrição");
+                return;
+            }
+            if (amount.isEmpty()) {
+                dialogBinding.amountLayout.setError("Informe um valor válido");
+                return;
+            }
+            String note = dialogBinding.noteEditText.getText().toString().trim();
+            if (isSeriesTransaction(item)) {
+                new MaterialAlertDialogBuilder(this)
+                        .setTitle("Aplicar alteração")
+                        .setItems(new String[]{"Somente este lançamento", "Este e os futuros"},
+                                (scopeDialog, selected) -> {
+                                    dialog.dismiss();
+                                    updateRemoteTransaction(
+                                            item, description, amount, note,
+                                            selected == 0 ? "current" : "future");
+                                })
+                        .setNegativeButton("Cancelar", null)
+                        .show();
+            } else {
+                dialog.dismiss();
+                updateRemoteTransaction(item, description, amount, note, null);
+            }
+        });
+
+        dialog.show();
+        Window shownWindow = dialog.getWindow();
+        if (shownWindow != null) {
+            int width = getResources().getDisplayMetrics().widthPixels - dp(32);
+            shownWindow.setLayout(width, WindowManager.LayoutParams.WRAP_CONTENT);
+        }
     }
 
     private void updateRemoteTransaction(
             TransactionListItemDto item, String description, String amount,
             String note, @Nullable String scope) {
-        if (item.id == null || item.id.isEmpty()) {
-            Toast.makeText(this, "ID do lançamento indisponível", Toast.LENGTH_LONG).show();
-            return;
-        }
         TransactionWriteDto request = toWriteDto(item);
         request.description = description;
         request.amount = amount;
         request.note = note;
+        updateRemoteTransaction(item, request, scope, false);
+    }
+
+    private void updateRemoteTransaction(
+            TransactionListItemDto item, TransactionWriteDto request,
+            @Nullable String scope, boolean closeDialogOnSuccess) {
+        if (item.id == null || item.id.isEmpty()) {
+            Toast.makeText(this, "ID do lançamento indisponível", Toast.LENGTH_LONG).show();
+            if (closeDialogOnSuccess && createTransactionDialog != null) {
+                createTransactionDialog.setSaving(false);
+            }
+            return;
+        }
         request.updateScope = scope;
         request.installmentGroupId = item.installmentGroupId;
+        if (request.fixedExpenseGroupId == null) {
+            request.fixedExpenseGroupId = item.fixedExpenseGroupId;
+        }
+        if (closeDialogOnSuccess && createTransactionDialog != null) {
+            createTransactionDialog.setSaving(true);
+        }
 
         transactionsViewModel.updateTransactionFromList(item.id, request,
                 new TransactionsViewModel.ActionCallback() {
                     @Override
                     public void onSuccess() {
+                        if (closeDialogOnSuccess) closeCreateTransactionDialog();
                         Toast.makeText(TransactionsActivity.this,
                                 "Lançamento atualizado", Toast.LENGTH_SHORT).show();
                         reloadData();
@@ -891,7 +951,11 @@ public class TransactionsActivity extends AppCompatActivity {
 
                     @Override
                     public void onError(String error) {
-                        Toast.makeText(TransactionsActivity.this, error, Toast.LENGTH_LONG).show();
+                        if (closeDialogOnSuccess && createTransactionDialog != null) {
+                            createTransactionDialog.showError(error);
+                        } else {
+                            Toast.makeText(TransactionsActivity.this, error, Toast.LENGTH_LONG).show();
+                        }
                     }
                 });
     }
@@ -942,56 +1006,50 @@ public class TransactionsActivity extends AppCompatActivity {
                 .show();
     }
 
-    private void confirmTransactionClone(TransactionListItemDto item) {
-        if (item.categoryId == null || item.date == null || item.type == null) {
-            Toast.makeText(this, "Não é possível clonar: faltam dados obrigatórios", Toast.LENGTH_LONG).show();
-            return;
-        }
-        if (item.isInstallmentTransaction() && item.totalInstallments == null) {
-            Toast.makeText(this, "Não é possível clonar: número de parcelas indisponível", Toast.LENGTH_LONG).show();
-            return;
-        }
+    private void showCloneTransactionDialog(TransactionListItemDto item) {
         if (!"INCOME".equals(item.type) && !"EXPENSE".equals(item.type)) {
             Toast.makeText(this, "Este tipo de lançamento não pode ser clonado", Toast.LENGTH_LONG).show();
             return;
         }
-        String description = item.description == null ? item.getCategoryName() : item.description;
-        String message = "Criar uma cópia de \"" + description + "\"?";
-        if (item.isInstallmentTransaction()) message += " A nova cópia manterá as parcelas.";
-        if (item.isFixedExpenseTransaction()) message += " A nova cópia criará uma nova série fixa.";
-        new AlertDialog.Builder(this)
-                .setTitle("Clonar lançamento")
-                .setMessage(message)
-                .setNegativeButton("Cancelar", null)
-                .setPositiveButton("Clonar", (dialog, which) -> {
-                    TransactionWriteDto request = toWriteDto(item);
-                    request.type = item.type;
-                    request.installmentGroupId = null;
-                    request.fixedExpenseGroupId = null;
-                    if (item.isInstallmentTransaction()) {
-                        request.isInstallment = true;
-                        request.installmentValueType = "total";
-                        if (request.totalValue == null) {
-                            request.totalValue = java.math.BigDecimal.valueOf(item.getAmountValue())
-                                    .multiply(java.math.BigDecimal.valueOf(item.totalInstallments))
-                                    .setScale(2, java.math.RoundingMode.HALF_UP).toPlainString();
-                        }
-                    }
-                    transactionsViewModel.cloneTransaction(request, new TransactionsViewModel.ActionCallback() {
-                        @Override
-                        public void onSuccess() {
-                            Toast.makeText(TransactionsActivity.this,
-                                    "Lançamento clonado", Toast.LENGTH_SHORT).show();
-                            reloadData();
-                        }
 
-                        @Override
-                        public void onError(String error) {
-                            Toast.makeText(TransactionsActivity.this, error, Toast.LENGTH_LONG).show();
-                        }
-                    });
-                })
-                .show();
+        createTransactionDialog = new CreateTransactionDialog(this, item, true,
+                new CreateTransactionDialog.OnTransactionCreatedListener() {
+                    @Override
+                    public void onCreateTransaction(TransactionWriteDto transaction) {
+                        CreateTransactionDialog dialog = createTransactionDialog;
+                        if (dialog != null) dialog.setSaving(true);
+                        transactionsViewModel.createTransactionFromList(transaction,
+                                new TransactionsViewModel.ActionCallback() {
+                                    @Override public void onSuccess() {
+                                        closeCreateTransactionDialog();
+                                        Toast.makeText(TransactionsActivity.this,
+                                                "Lançamento clonado", Toast.LENGTH_SHORT).show();
+                                        reloadData();
+                                    }
+
+                                    @Override public void onError(String error) {
+                                        if (createTransactionDialog != null) {
+                                            createTransactionDialog.showError(error);
+                                        }
+                                    }
+                                });
+                    }
+
+                    @Override
+                    public void onCreateTransfer(TransactionTransferRequestDto transfer) {
+                        // Clone de transferência não é oferecido neste formulário.
+                    }
+                });
+        createTransactionDialog.setOnDismissListener(dialog -> createTransactionDialog = null);
+        createTransactionDialog.show();
+        updateTransactionDialogOptions();
+        createTransactionDialog.setOptionsLoading(true);
+        transactionsViewModel.loadTransactionFormOptions();
+    }
+
+    private boolean isSeriesTransaction(TransactionListItemDto item) {
+        return item.isInstallmentTransaction() || item.isFixedExpenseTransaction()
+                || item.installmentGroupId != null || item.fixedExpenseGroupId != null;
     }
 
     private TransactionWriteDto toWriteDto(TransactionListItemDto item) {

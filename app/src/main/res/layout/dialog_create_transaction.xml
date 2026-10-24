@@ -28,12 +28,22 @@
                 android:orientation="vertical">
 
                 <TextView
+                    android:id="@+id/formTitleTextView"
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
                     android:text="Novo lançamento"
                     android:textColor="?attr/colorOnSurface"
                     android:textSize="20sp"
                     android:textStyle="bold" />
+
+                <TextView
+                    android:id="@+id/formSubtitleTextView"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:layout_marginTop="2dp"
+                    android:text="Registre uma despesa, receita ou transferência"
+                    android:textColor="?attr/colorOnSurfaceVariant"
+                    android:textSize="12sp" />
 
             </LinearLayout>
 
@@ -151,7 +161,7 @@
                     <com.google.android.material.textfield.TextInputEditText
                         android:id="@+id/descriptionEditText"
                         android:layout_width="match_parent"
-                        android:layout_height="38dp"
+                        android:layout_height="56dp"
                         android:inputType="textCapSentences"
                         android:singleLine="true"
                         android:textColor="?attr/colorOnSurface" />
@@ -239,38 +249,66 @@
                         android:layout_width="match_parent"
                         android:layout_height="wrap_content"
                         android:layout_marginTop="8dp"
-                        android:gravity="center_vertical"
+                        android:gravity="top"
                         android:orientation="horizontal"
                         android:visibility="gone">
 
-                        <Spinner
-                            android:id="@+id/installmentValueTypeSpinner"
-                            android:layout_width="0dp"
-                            android:layout_height="48dp"
-                            android:layout_gravity="center_vertical"
-                            android:layout_weight="1"
-                            android:background="@drawable/bg_period_selector"
-                            android:paddingHorizontal="16dp"
-                            android:visibility="gone" />
-
-                        <com.google.android.material.textfield.TextInputLayout
-                            android:id="@+id/installmentCountLayout"
-                            style="@style/ModernTextInput"
+                        <LinearLayout
                             android:layout_width="0dp"
                             android:layout_height="wrap_content"
-                            android:layout_marginStart="8dp"
+                            android:layout_marginEnd="6dp"
                             android:layout_weight="1"
-                            android:hint="Número de parcelas"
-                            android:visibility="gone">
+                            android:orientation="vertical">
+
+                            <TextView
+                                android:layout_width="match_parent"
+                                android:layout_height="wrap_content"
+                                android:layout_marginBottom="6dp"
+                                android:text="Tipo de valor"
+                                android:textColor="?attr/colorOnSurfaceVariant"
+                                android:textSize="11sp"
+                                android:textStyle="bold" />
+
+                            <Spinner
+                                android:id="@+id/installmentValueTypeSpinner"
+                                android:layout_width="match_parent"
+                                android:layout_height="53dp"
+                                android:background="@drawable/bg_spinner_selector"
+                                android:paddingStart="0dp"
+                                android:paddingEnd="44dp"
+                                android:visibility="gone" />
+                        </LinearLayout>
+
+                        <LinearLayout
+                            android:layout_width="0dp"
+                            android:layout_height="wrap_content"
+                            android:layout_marginStart="6dp"
+                            android:layout_weight="1"
+                            android:orientation="vertical">
+
+                            <TextView
+                                android:layout_width="match_parent"
+                                android:layout_height="wrap_content"
+                                android:layout_marginBottom="6dp"
+                                android:text="Número de parcelas"
+                                android:textColor="?attr/colorOnSurfaceVariant"
+                                android:textSize="11sp"
+                                android:textStyle="bold" />
 
                             <com.google.android.material.textfield.TextInputEditText
                                 android:id="@+id/installmentCountEditText"
                                 android:layout_width="match_parent"
-                                android:layout_height="wrap_content"
+                                android:layout_height="53dp"
+                                android:background="@drawable/bg_period_selector"
+                                android:gravity="center_vertical"
                                 android:inputType="number"
+                                android:paddingStart="16dp"
+                                android:paddingEnd="16dp"
                                 android:singleLine="true"
-                                android:textColor="?attr/colorOnSurface" />
-                        </com.google.android.material.textfield.TextInputLayout>
+                                android:textColor="?attr/colorOnSurface"
+                                android:textSize="14sp"
+                                android:visibility="gone" />
+                        </LinearLayout>
                     </LinearLayout>
                 </LinearLayout>
 
@@ -304,7 +342,7 @@
                             <com.google.android.material.textfield.TextInputEditText
                                 android:id="@+id/amountEditText"
                                 android:layout_width="match_parent"
-                                android:layout_height="48dp"
+                                android:layout_height="53dp"
                                 android:inputType="number"
                                 android:singleLine="true"
                                 android:textColor="?attr/colorOnSurface" />
@@ -328,18 +366,32 @@
                             android:textSize="11sp"
                             android:textStyle="bold" />
 
-                        <com.google.android.material.button.MaterialButton
-                            android:id="@+id/dateButton"
-                            style="@style/Widget.Material3.Button.OutlinedButton"
+                        <com.google.android.material.textfield.TextInputLayout
+                            android:id="@+id/dateLayout"
+                            style="@style/ModernTextInput"
                             android:layout_width="match_parent"
-                            android:layout_height="52dp"
-                            android:gravity="start|center_vertical"
-                            android:text="Data"
-                            android:textAllCaps="false"
-                            android:textColor="?attr/colorOnSurface"
-                            app:icon="@drawable/ic_month_calendar"
-                            app:iconGravity="textStart"
-                            app:iconTint="?attr/colorPrimary" />
+                            android:layout_height="wrap_content"
+                            app:startIconDrawable="@drawable/ic_month_calendar"
+                            app:startIconTint="?attr/colorPrimary">
+
+                            <com.google.android.material.textfield.TextInputEditText
+                                android:id="@+id/dateEditText"
+                                android:layout_width="match_parent"
+                                android:layout_height="53dp"
+                                android:clickable="true"
+                                android:contentDescription="Data do lançamento"
+                                android:cursorVisible="false"
+                                android:ellipsize="end"
+                                android:focusable="false"
+                                android:importantForAutofill="no"
+                                android:inputType="none"
+                                android:longClickable="false"
+                                android:maxLines="1"
+                                android:singleLine="true"
+                                android:text="Data"
+                                android:textColor="?attr/colorOnSurface"
+                                android:textSize="14sp" />
+                        </com.google.android.material.textfield.TextInputLayout>
                     </LinearLayout>
                 </LinearLayout>
 
@@ -363,24 +415,27 @@
                         android:id="@+id/paymentMethodSpinner"
                         android:layout_width="match_parent"
                         android:layout_height="48dp"
-                        android:background="@drawable/bg_period_selector"
-                        android:paddingHorizontal="16dp" />
+                        android:background="@drawable/bg_spinner_selector"
+                        android:paddingStart="16dp"
+                        android:paddingEnd="44dp" />
 
                     <Spinner
                         android:id="@+id/accountSpinner"
                         android:layout_width="match_parent"
                         android:layout_height="48dp"
                         android:layout_marginTop="8dp"
-                        android:background="@drawable/bg_period_selector"
-                        android:paddingHorizontal="16dp" />
+                        android:background="@drawable/bg_spinner_selector"
+                        android:paddingStart="16dp"
+                        android:paddingEnd="44dp" />
 
                     <Spinner
                         android:id="@+id/cardSpinner"
                         android:layout_width="match_parent"
                         android:layout_height="48dp"
                         android:layout_marginTop="8dp"
-                        android:background="@drawable/bg_period_selector"
-                        android:paddingHorizontal="16dp"
+                        android:background="@drawable/bg_spinner_selector"
+                        android:paddingStart="16dp"
+                        android:paddingEnd="44dp"
                         android:visibility="gone" />
                 </LinearLayout>
 
@@ -405,8 +460,9 @@
                         android:id="@+id/fromAccountSpinner"
                         android:layout_width="match_parent"
                         android:layout_height="48dp"
-                        android:background="@drawable/bg_period_selector"
-                        android:paddingHorizontal="16dp" />
+                        android:background="@drawable/bg_spinner_selector"
+                        android:paddingStart="16dp"
+                        android:paddingEnd="44dp" />
 
                     <TextView
                         android:layout_width="match_parent"
@@ -422,8 +478,9 @@
                         android:id="@+id/toAccountSpinner"
                         android:layout_width="match_parent"
                         android:layout_height="48dp"
-                        android:background="@drawable/bg_period_selector"
-                        android:paddingHorizontal="16dp" />
+                        android:background="@drawable/bg_spinner_selector"
+                        android:paddingStart="16dp"
+                        android:paddingEnd="44dp" />
                 </LinearLayout>
 
                 <LinearLayout
@@ -446,8 +503,9 @@
                         android:id="@+id/categorySpinner"
                         android:layout_width="match_parent"
                         android:layout_height="48dp"
-                        android:background="@drawable/bg_period_selector"
-                        android:paddingHorizontal="16dp" />
+                        android:background="@drawable/bg_spinner_selector"
+                        android:paddingStart="16dp"
+                        android:paddingEnd="44dp" />
                 </LinearLayout>
 
                 <LinearLayout
@@ -468,9 +526,10 @@
                             android:layout_width="match_parent"
                             android:layout_height="wrap_content"
                             android:gravity="top|start"
-                            android:inputType="textCapSentences|textMultiLine"
+                            android:inputType="textCapSentences|textMultiLine|textAutoCorrect"
                             android:maxLength="500"
                             android:minHeight="96dp"
+                            android:textLocale="pt-BR"
                             android:textColor="?attr/colorOnSurface" />
                     </com.google.android.material.textfield.TextInputLayout>
                 </LinearLayout>

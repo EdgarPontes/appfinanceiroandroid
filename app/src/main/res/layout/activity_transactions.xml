@@ -4,7 +4,7 @@
     xmlns:tools="http://schemas.android.com/tools"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
-    android:background="@android:color/white"
+    android:background="?android:attr/colorBackground"
     tools:context=".ui.transactions.TransactionsActivity">
 
     <!-- AppBarLayout com Toolbar -->
@@ -17,9 +17,9 @@
             android:id="@+id/toolbar"
             android:layout_width="match_parent"
             android:layout_height="?attr/actionBarSize"
-            android:background="@color/glass_white_translucent"
+            android:background="?attr/colorSurface"
             app:title="Transações"
-            app:titleTextColor="@android:color/black">
+            app:titleTextColor="?attr/colorOnSurface">
 
             <!-- Botão de voltar -->
             <com.google.android.material.button.MaterialButton
@@ -35,7 +35,7 @@
                 android:insetBottom="0dp"
                 android:padding="8dp"
                 app:icon="@android:drawable/ic_menu_revert"
-                app:iconTint="@color/primary_purple"
+                app:iconTint="?attr/colorPrimary"
                 app:iconSize="24dp" />
 
             <!-- Botão de sincronizar -->
@@ -52,7 +52,7 @@
                 android:insetBottom="0dp"
                 android:padding="8dp"
                 app:icon="@android:drawable/ic_popup_sync"
-                app:iconTint="@color/primary_purple"
+                app:iconTint="?attr/colorPrimary"
                 app:iconSize="24dp" />
 
         </androidx.appcompat.widget.Toolbar>
@@ -93,7 +93,7 @@
                         android:background="?attr/selectableItemBackgroundBorderless"
                         android:contentDescription="Mês anterior"
                         android:src="@drawable/ic_month_previous"
-                        app:tint="@color/primary_purple" />
+                        app:tint="?attr/colorPrimary" />
                     <com.google.android.material.button.MaterialButton
                         android:id="@+id/periodMonthButton"
                         android:layout_width="0dp"
@@ -101,12 +101,12 @@
                         android:layout_weight="1"
                         android:maxLines="1"
                         android:text="Out/2026"
-                        android:textColor="@android:color/black"
+                        android:textColor="?attr/colorOnSurface"
                         android:textSize="12sp"
                         app:icon="@drawable/ic_month_calendar"
                         app:iconGravity="textStart"
                         app:iconSize="18dp"
-                        app:iconTint="@color/primary_purple" />
+                        app:iconTint="?attr/colorPrimary" />
                     <ImageButton
                         android:id="@+id/nextMonthButton"
                         android:layout_width="36dp"
@@ -114,7 +114,7 @@
                         android:background="?attr/selectableItemBackgroundBorderless"
                         android:contentDescription="Próximo mês"
                         android:src="@drawable/ic_month_next"
-                        app:tint="@color/primary_purple" />
+                        app:tint="?attr/colorPrimary" />
                     <com.google.android.material.button.MaterialButton
                         android:id="@+id/accountsFilterButton"
                         android:layout_width="0dp"
@@ -141,13 +141,13 @@
                     app:icon="@drawable/ic_transaction_filter"
                     app:iconGravity="textStart"
                     app:iconSize="18dp"
-                    app:iconTint="@color/primary_purple" />
+                    app:iconTint="?attr/colorPrimary" />
 
                 <androidx.cardview.widget.CardView
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
                     android:layout_marginBottom="10dp"
-                    app:cardBackgroundColor="@color/glass_white_translucent"
+                    app:cardBackgroundColor="?attr/colorSurface"
                     app:cardCornerRadius="14dp"
                     app:cardElevation="2dp">
                     <LinearLayout
@@ -169,7 +169,7 @@
                                 android:layout_width="wrap_content"
                                 android:layout_height="wrap_content"
                                 android:text="Saldo até o fim do período"
-                                android:textColor="@android:color/darker_gray"
+                                android:textColor="?attr/colorOnSurfaceVariant"
                                 android:textSize="11sp" />
                             <TextView
                                 android:id="@+id/selectedBalanceTextView"
@@ -177,7 +177,7 @@
                                 android:layout_height="wrap_content"
                                 android:layout_marginTop="3dp"
                                 android:text="R$ 0,00"
-                                android:textColor="@color/primary_purple"
+                                android:textColor="?attr/colorPrimary"
                                 android:textSize="16sp"
                                 android:textStyle="bold" />
                         </LinearLayout>
@@ -185,7 +185,7 @@
                             android:layout_width="1dp"
                             android:layout_height="match_parent"
                             android:layout_marginHorizontal="10dp"
-                            android:background="#22000000" />
+                            android:background="@color/outline" />
                         <LinearLayout
                             android:layout_width="0dp"
                             android:layout_height="wrap_content"
@@ -195,7 +195,7 @@
                                 android:layout_width="wrap_content"
                                 android:layout_height="wrap_content"
                                 android:text="Resultado do período"
-                                android:textColor="@android:color/darker_gray"
+                                android:textColor="?attr/colorOnSurfaceVariant"
                                 android:textSize="11sp" />
                             <TextView
                                 android:id="@+id/periodResultTextView"
@@ -213,7 +213,7 @@
                             android:layout_height="wrap_content"
                             android:layout_gravity="center_vertical"
                             android:text="0 itens"
-                            android:textColor="@android:color/darker_gray"
+                            android:textColor="?attr/colorOnSurfaceVariant"
                             android:textSize="11sp" />
                     </LinearLayout>
                 </androidx.cardview.widget.CardView>
@@ -229,7 +229,7 @@
                         android:layout_height="wrap_content"
                         android:layout_weight="1"
                         android:text="Descrição"
-                        android:textColor="@android:color/darker_gray"
+                        android:textColor="?attr/colorOnSurfaceVariant"
                         android:textSize="11sp"
                         android:textStyle="bold" />
                     <TextView
@@ -237,7 +237,7 @@
                         android:layout_height="wrap_content"
                         android:gravity="end"
                         android:text="Valor"
-                        android:textColor="@android:color/darker_gray"
+                        android:textColor="?attr/colorOnSurfaceVariant"
                         android:textSize="11sp"
                         android:textStyle="bold" />
                     <TextView
@@ -245,7 +245,7 @@
                         android:layout_height="wrap_content"
                         android:gravity="end"
                         android:text="Saldo"
-                        android:textColor="@android:color/darker_gray"
+                        android:textColor="?attr/colorOnSurfaceVariant"
                         android:textSize="11sp"
                         android:textStyle="bold" />
                     <View
@@ -269,7 +269,7 @@
                     android:layout_height="wrap_content"
                     android:text="Nenhuma transação encontrada"
                     android:textSize="16sp"
-                    android:textColor="@android:color/darker_gray"
+                    android:textColor="?attr/colorOnSurfaceVariant"
                     android:textAlignment="center"
                     android:padding="32dp"
                     android:visibility="gone" />
@@ -296,8 +296,8 @@
         android:layout_marginEnd="16dp"
         android:layout_marginBottom="88dp"
         app:srcCompat="@android:drawable/ic_input_add"
-        app:tint="@color/glass_white"
-        app:backgroundTint="@color/primary_purple" />
+        app:tint="?attr/colorOnPrimary"
+        app:backgroundTint="?attr/colorPrimary" />
 
     <!-- Loading View -->
     <include

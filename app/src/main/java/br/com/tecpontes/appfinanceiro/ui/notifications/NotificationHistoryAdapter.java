@@ -110,7 +110,7 @@ public class NotificationHistoryAdapter
             boolean unread = !log.isRead();
             unreadDot.setVisibility(unread ? View.VISIBLE : View.GONE);
             title.setTextColor(ContextCompat.getColor(itemView.getContext(),
-                    unread ? android.R.color.black : android.R.color.darker_gray));
+                    unread ? R.color.on_surface : R.color.on_surface_variant));
 
             applyTypeStyle(log);
             applyPriorityStyle(log);
@@ -136,10 +136,10 @@ public class NotificationHistoryAdapter
                 color = R.color.money_negative;
             } else if (type.contains(MessageConfigDto.TYPE_FINANCIAL_DUE_DATE)) {
                 iconResource = R.drawable.ic_clock;
-                color = R.color.primary_purple;
+                color = R.color.brand_primary;
             } else {
                 iconResource = R.drawable.ic_notifications_bell;
-                color = R.color.primary_purple;
+                color = R.color.brand_primary;
             }
 
             icon.setImageResource(iconResource);
@@ -148,7 +148,7 @@ public class NotificationHistoryAdapter
         }
 
         private void applyPriorityStyle(@NonNull MessageLogDto log) {
-            int strokeColor = 0x1A000000;
+            int strokeColor = ContextCompat.getColor(itemView.getContext(), R.color.outline);
             int strokeWidth = 1;
             if ("critical".equalsIgnoreCase(log.priority)) {
                 strokeColor = ContextCompat.getColor(itemView.getContext(), R.color.money_negative);
@@ -156,7 +156,7 @@ public class NotificationHistoryAdapter
             } else if ("high".equalsIgnoreCase(log.priority)) {
                 strokeColor = ContextCompat.getColor(itemView.getContext(), R.color.money_negative);
             } else if ("medium".equalsIgnoreCase(log.priority)) {
-                strokeColor = ContextCompat.getColor(itemView.getContext(), R.color.primary_purple);
+                strokeColor = ContextCompat.getColor(itemView.getContext(), R.color.brand_primary);
             }
             card.setStrokeColor(strokeColor);
             card.setStrokeWidth(dp(strokeWidth));

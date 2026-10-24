@@ -227,7 +227,7 @@ public class CategoryDialog extends Dialog {
     }
 
     private void refreshSwatches() {
-        int selectedStroke = ContextCompat.getColor(getContext(), R.color.primary_purple);
+        int selectedStroke = ContextCompat.getColor(getContext(), R.color.brand_primary);
         for (View swatch : swatches) {
             String color = (String) swatch.getTag();
             boolean selected = color != null && color.equalsIgnoreCase(selectedColor);
@@ -235,7 +235,8 @@ public class CategoryDialog extends Dialog {
             GradientDrawable background = new GradientDrawable();
             background.setShape(GradientDrawable.OVAL);
             background.setColor(parseColor(color));
-            background.setStroke(dp(selected ? 3 : 1), selected ? selectedStroke : 0x22000000);
+            background.setStroke(dp(selected ? 3 : 1),
+                    selected ? selectedStroke : ContextCompat.getColor(getContext(), R.color.outline));
             swatch.setBackground(background);
         }
     }
@@ -389,10 +390,12 @@ public class CategoryDialog extends Dialog {
     }
 
     private int parseColor(@Nullable String color) {
+        int fallback = ContextCompat.getColor(getContext(), R.color.money_neutral);
+        if (color == null) return fallback;
         try {
-            return Color.parseColor(color == null ? "#6B7280" : color);
+            return Color.parseColor(color);
         } catch (IllegalArgumentException ignored) {
-            return Color.parseColor("#6B7280");
+            return fallback;
         }
     }
 

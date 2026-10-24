@@ -3,19 +3,19 @@
     xmlns:app="http://schemas.android.com/apk/res-auto"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
-    android:background="@android:color/white"
+    android:background="?android:attr/colorBackground"
     android:orientation="vertical">
 
     <com.google.android.material.appbar.MaterialToolbar
         android:id="@+id/toolbar"
         android:layout_width="match_parent"
         android:layout_height="?attr/actionBarSize"
-        android:background="@color/glass_white_translucent"
+        android:background="?attr/colorSurface"
         app:navigationContentDescription="@string/action_back"
         app:navigationIcon="@drawable/ic_arrow_back"
-        app:navigationIconTint="@android:color/black"
+        app:navigationIconTint="?attr/colorOnSurface"
         app:title="@string/notifications_title"
-        app:titleTextColor="@android:color/black" />
+        app:titleTextColor="?attr/colorOnSurface" />
 
     <ProgressBar
         android:id="@+id/notificationsProgressBar"
@@ -44,7 +44,7 @@
                 android:layout_height="wrap_content"
                 android:layout_marginBottom="14dp"
                 android:text="@string/notifications_subtitle"
-                android:textColor="@android:color/darker_gray"
+                android:textColor="?attr/colorOnSurfaceVariant"
                 android:textSize="14sp" />
 
             <TextView
@@ -110,7 +110,7 @@
                         android:layout_marginTop="12dp"
                         android:gravity="center"
                         android:text="Nenhuma notificação financeira configurada."
-                        android:textColor="@android:color/darker_gray"
+                        android:textColor="?attr/colorOnSurfaceVariant"
                         android:textSize="12sp"
                         android:visibility="gone" />
                 </LinearLayout>
@@ -171,7 +171,7 @@
                         android:gravity="center"
                         android:paddingVertical="12dp"
                         android:text="@string/notifications_empty"
-                        android:textColor="@android:color/darker_gray"
+                        android:textColor="?attr/colorOnSurfaceVariant"
                         android:textSize="13sp" />
                 </LinearLayout>
             </com.google.android.material.card.MaterialCardView>
@@ -213,7 +213,7 @@
                         android:layout_height="wrap_content"
                         android:layout_marginTop="8dp"
                         android:text="@string/notifications_device_disabled"
-                        android:textColor="@color/primary_purple"
+                        android:textColor="?attr/colorPrimary"
                         android:textSize="14sp"
                         android:textStyle="bold" />
 
@@ -238,10 +238,10 @@
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
                 android:text="@string/notifications_history"
-                android:textColor="@color/primary_purple"
+                android:textColor="?attr/colorPrimary"
                 app:icon="@drawable/ic_history"
-                app:iconTint="@color/primary_purple"
-                app:strokeColor="@color/primary_purple" />
+                app:iconTint="?attr/colorPrimary"
+                app:strokeColor="?attr/colorPrimary" />
         </LinearLayout>
     </ScrollView>
 

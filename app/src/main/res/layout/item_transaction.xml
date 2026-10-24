@@ -8,7 +8,7 @@
     android:clickable="true"
     android:focusable="true"
     android:foreground="?attr/selectableItemBackground"
-    app:cardBackgroundColor="@color/glass_white_translucent"
+    app:cardBackgroundColor="?attr/colorSurface"
     app:cardCornerRadius="14dp"
     app:cardElevation="2dp">
 
@@ -31,7 +31,7 @@
                 android:layout_weight="1"
                 android:ellipsize="end"
                 android:maxLines="1"
-                android:textColor="@android:color/black"
+                android:textColor="?attr/colorOnSurface"
                 android:textSize="15sp"
                 android:textStyle="bold"
                 tools:text="Compras no supermercado" />
@@ -52,7 +52,7 @@
                 android:layout_height="wrap_content"
                 android:gravity="end"
                 android:paddingStart="3dp"
-                android:textColor="@android:color/darker_gray"
+                android:textColor="?attr/colorOnSurfaceVariant"
                 android:textSize="12sp"
                 tools:text="R$ 1.450,00" />
             <ImageButton
@@ -63,7 +63,7 @@
                 android:contentDescription="Opções do lançamento"
                 android:padding="6dp"
                 android:src="@drawable/ic_transaction_more"
-                app:tint="@android:color/darker_gray" />
+                app:tint="?attr/colorOnSurfaceVariant" />
         </LinearLayout>
 
         <LinearLayout
@@ -79,7 +79,7 @@
                 android:layout_weight="1"
                 android:ellipsize="end"
                 android:maxLines="1"
-                android:textColor="@android:color/darker_gray"
+                android:textColor="?attr/colorOnSurfaceVariant"
                 android:textSize="11sp"
                 tools:text="Loterias · Caixa Econômica Federal" />
             <TextView
@@ -90,7 +90,7 @@
                 android:ellipsize="end"
                 android:maxWidth="80dp"
                 android:maxLines="1"
-                android:textColor="@color/primary_blue"
+                android:textColor="?attr/colorSecondary"
                 android:textSize="10sp"
                 android:visibility="gone"
                 tools:text="Parcela 2/6" />
@@ -110,7 +110,7 @@
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
                 android:layout_marginStart="6dp"
-                android:textColor="@android:color/darker_gray"
+                android:textColor="?attr/colorOnSurfaceVariant"
                 android:textSize="10sp"
                 tools:text="21/10/2026" />
         </LinearLayout>

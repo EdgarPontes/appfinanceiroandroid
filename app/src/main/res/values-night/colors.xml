@@ -1,0 +1,51 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <!-- Tokens de marca -->
+    <color name="brand_primary">#FF818CF8</color>
+    <color name="brand_primary_dark">#FF6366F1</color>
+    <color name="brand_secondary">#FF38BDF8</color>
+    <color name="on_brand">#FFFFFFFF</color>
+
+    <!-- Tokens de CTA -->
+    <color name="cta_primary">#FF34D399</color>
+    <color name="on_cta">#FF052E1B</color>
+
+    <!-- Fundo e superfícies -->
+    <color name="background">#FF0B1020</color>
+    <color name="surface">#FF172033</color>
+    <color name="surface_variant">#FF1F2A3D</color>
+    <color name="surface_elevated">#FF1A2438</color>
+
+    <!-- Texto -->
+    <color name="on_background">#FFF1F5F9</color>
+    <color name="on_surface">#FFF1F5F9</color>
+    <color name="on_surface_variant">#FF94A3B8</color>
+
+    <!-- Bordas -->
+    <color name="outline">#FF2D3A52</color>
+    <color name="outline_strong">#FF3E4E6B</color>
+
+    <!-- Erro -->
+    <color name="error">#FFF87171</color>
+    <color name="on_error">#FF2A0B0B</color>
+
+    <!-- Finanças -->
+    <color name="money_positive">#FF34D399</color>
+    <color name="money_negative">#FFF87171</color>
+    <color name="money_neutral">#FF94A3B8</color>
+
+    <!-- Estados -->
+    <color name="surface_brand">#FF241F45</color>
+    <color name="success_container">#FF0F3D2E</color>
+    <color name="on_success_container">#FF6EE7B7</color>
+    <color name="neutral_container">#FF1E293B</color>
+    <color name="on_neutral_container">#FFCBD5E1</color>
+    <color name="error_container">#FF3F1D1D</color>
+    <color name="on_error_container">#FFFCA5A5</color>
+
+    <!-- Overlay -->
+    <color name="scrim">#66000000</color>
+
+    <!-- Base legada / Compose -->
+    <color name="password_strength_medium">#FFFBBF24</color>
+</resources>

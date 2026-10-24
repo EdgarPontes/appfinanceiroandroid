@@ -2,12 +2,13 @@ package br.com.tecpontes.appfinanceiro.ui.dashboard;
 
 import android.content.Context;
 import android.graphics.Canvas;
-import android.graphics.Color;
 import android.graphics.Paint;
 import android.graphics.RectF;
 import android.util.AttributeSet;
 import android.view.View;
 import androidx.annotation.Nullable;
+import androidx.core.content.ContextCompat;
+import br.com.tecpontes.appfinanceiro.R;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -62,7 +63,7 @@ public class CategoryPieChartView extends View {
         for (Entry entry : entries) total += Math.max(0, entry.value);
 
         if (total <= 0 || entries.isEmpty()) {
-            paint.setColor(Color.LTGRAY);
+            paint.setColor(ContextCompat.getColor(getContext(), R.color.outline));
             paint.setStyle(Paint.Style.STROKE);
             paint.setStrokeWidth(dp(18));
             float radius = Math.min(getWidth(), getHeight()) * 0.34f;

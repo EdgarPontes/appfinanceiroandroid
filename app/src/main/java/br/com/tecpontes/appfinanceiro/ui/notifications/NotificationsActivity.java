@@ -303,7 +303,7 @@ public class NotificationsActivity extends AppCompatActivity {
         } else {
             binding.deviceStatusTextView.setText(R.string.notifications_device_disabled);
             binding.deviceStatusTextView.setTextColor(
-                    ContextCompat.getColor(this, R.color.primary_purple));
+                    ContextCompat.getColor(this, R.color.brand_primary));
             binding.deviceToggleButton.setText(R.string.notifications_device_enable);
         }
     }

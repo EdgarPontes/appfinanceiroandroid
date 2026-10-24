@@ -3,15 +3,15 @@
     xmlns:app="http://schemas.android.com/apk/res-auto"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
-    android:background="@android:color/white"
+    android:background="?android:attr/colorBackground"
     android:orientation="vertical">
 
     <com.google.android.material.appbar.MaterialToolbar
         android:layout_width="match_parent"
         android:layout_height="?attr/actionBarSize"
-        android:background="@color/glass_white_translucent"
+        android:background="?attr/colorSurface"
         app:title="Cartões"
-        app:titleTextColor="@android:color/black" />
+        app:titleTextColor="?attr/colorOnSurface" />
 
     <androidx.swiperefreshlayout.widget.SwipeRefreshLayout
         android:id="@+id/swipeRefreshLayout"
@@ -56,7 +56,7 @@
                     android:gravity="center"
                     android:padding="24dp"
                     android:text="Nenhum cartão de crédito cadastrado."
-                    android:textColor="@android:color/darker_gray"
+                    android:textColor="?attr/colorOnSurfaceVariant"
                     android:visibility="gone" />
 
                 <com.google.android.material.card.MaterialCardView
@@ -66,7 +66,7 @@
                     android:layout_marginBottom="10dp"
                     app:cardCornerRadius="16dp"
                     app:cardElevation="2dp"
-                    app:strokeColor="#14000000"
+                    app:strokeColor="?attr/colorOutline"
                     app:strokeWidth="1dp">
 
                     <LinearLayout
@@ -79,7 +79,7 @@
                             android:id="@+id/cardNameTextView"
                             android:layout_width="match_parent"
                             android:layout_height="wrap_content"
-                            android:textColor="@android:color/black"
+                            android:textColor="?attr/colorOnSurface"
                             android:textSize="20sp"
                             android:textStyle="bold" />
 
@@ -88,7 +88,7 @@
                             android:layout_width="match_parent"
                             android:layout_height="wrap_content"
                             android:layout_marginTop="4dp"
-                            android:textColor="@android:color/darker_gray"
+                            android:textColor="?attr/colorOnSurfaceVariant"
                             android:textSize="13sp" />
 
                         <ProgressBar
@@ -98,7 +98,7 @@
                             android:layout_height="8dp"
                             android:layout_marginTop="16dp"
                             android:max="100"
-                            android:progressTint="@color/primary_purple" />
+                            android:progressTint="?attr/colorPrimary" />
 
                         <LinearLayout
                             android:layout_width="match_parent"
@@ -111,7 +111,7 @@
                                 android:layout_width="0dp"
                                 android:layout_height="wrap_content"
                                 android:layout_weight="1"
-                                android:textColor="@android:color/black"
+                                android:textColor="?attr/colorOnSurface"
                                 android:textSize="13sp" />
 
                             <TextView
@@ -132,7 +132,7 @@
                     android:layout_marginBottom="10dp"
                     app:cardCornerRadius="16dp"
                     app:cardElevation="2dp"
-                    app:strokeColor="#14000000"
+                    app:strokeColor="?attr/colorOutline"
                     app:strokeWidth="1dp">
 
                     <LinearLayout
@@ -163,7 +163,7 @@
                                 android:layout_height="wrap_content"
                                 android:layout_weight="1"
                                 android:gravity="center"
-                                android:textColor="@android:color/black"
+                                android:textColor="?attr/colorOnSurface"
                                 android:textSize="18sp"
                                 android:textStyle="bold" />
 
@@ -185,7 +185,7 @@
                             android:gravity="center"
                             android:padding="12dp"
                             android:text="Nenhuma fatura encontrada para o período selecionado."
-                            android:textColor="@android:color/darker_gray"
+                            android:textColor="?attr/colorOnSurfaceVariant"
                             android:visibility="gone" />
 
                         <LinearLayout
@@ -234,7 +234,7 @@
                     android:layout_marginBottom="10dp"
                     app:cardCornerRadius="16dp"
                     app:cardElevation="2dp"
-                    app:strokeColor="#14000000"
+                    app:strokeColor="?attr/colorOutline"
                     app:strokeWidth="1dp">
 
                     <LinearLayout
@@ -248,7 +248,7 @@
                             android:layout_height="wrap_content"
                             android:padding="4dp"
                             android:text="Lançamentos da fatura"
-                            android:textColor="@android:color/black"
+                            android:textColor="?attr/colorOnSurface"
                             android:textSize="18sp"
                             android:textStyle="bold" />
 
@@ -259,7 +259,7 @@
                             android:gravity="center"
                             android:padding="20dp"
                             android:text="Nenhum lançamento nesta fatura."
-                            android:textColor="@android:color/darker_gray"
+                            android:textColor="?attr/colorOnSurfaceVariant"
                             android:visibility="gone" />
 
                         <com.google.android.material.button.MaterialButton
@@ -300,7 +300,7 @@
                             android:layout_height="wrap_content"
                             android:padding="4dp"
                             android:text="Despesas da fatura"
-                            android:textColor="@android:color/black"
+                            android:textColor="?attr/colorOnSurface"
                             android:textStyle="bold"
                             android:visibility="gone" />
 
@@ -319,7 +319,7 @@
                     android:layout_height="wrap_content"
                     app:cardCornerRadius="16dp"
                     app:cardElevation="2dp"
-                    app:strokeColor="#14000000"
+                    app:strokeColor="?attr/colorOutline"
                     app:strokeWidth="1dp">
 
                     <LinearLayout
@@ -332,7 +332,7 @@
                             android:layout_width="match_parent"
                             android:layout_height="wrap_content"
                             android:text="Despesas por categoria"
-                            android:textColor="@android:color/black"
+                            android:textColor="?attr/colorOnSurface"
                             android:textSize="18sp"
                             android:textStyle="bold" />
 

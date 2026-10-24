@@ -27,7 +27,7 @@
         android:layout_weight="1"
         android:ellipsize="end"
         android:maxLines="2"
-        android:textColor="@android:color/black"
+        android:textColor="?attr/colorOnSurface"
         android:textSize="14sp" />
 
     <ImageButton
@@ -38,7 +38,7 @@
         android:contentDescription="@string/categories_edit_desc"
         android:padding="8dp"
         android:src="@drawable/ic_edit"
-        app:tint="@color/primary_purple" />
+        app:tint="?attr/colorPrimary" />
 
     <ImageButton
         android:id="@+id/deleteCategoryButton"

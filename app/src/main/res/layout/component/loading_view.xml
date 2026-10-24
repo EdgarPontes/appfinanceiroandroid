@@ -3,7 +3,7 @@
     xmlns:app="http://schemas.android.com/apk/res-auto"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
-    android:background="@color/glass_white_translucent"
+    android:background="?attr/colorSurface"
     android:clickable="true"
     android:focusable="true">
 
@@ -14,7 +14,7 @@
         android:layout_gravity="center"
         app:cardCornerRadius="16dp"
         app:cardElevation="8dp"
-        app:cardBackgroundColor="@color/glass_white_translucent">
+        app:cardBackgroundColor="?attr/colorSurface">
 
         <LinearLayout
             android:layout_width="match_parent"
@@ -28,7 +28,7 @@
                 android:layout_width="48dp"
                 android:layout_height="48dp"
                 android:indeterminate="true"
-                android:indeterminateTint="@color/primary_purple"
+                android:indeterminateTint="?attr/colorPrimary"
                 android:layout_marginBottom="8dp" />
 
             <!-- Texto de carregamento -->
@@ -36,7 +36,7 @@
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
                 android:text="Carregando..."
-                android:textColor="@android:color/black"
+                android:textColor="?attr/colorOnSurface"
                 android:textSize="14sp"
                 android:textStyle="bold" />
 

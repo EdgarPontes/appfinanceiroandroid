@@ -285,7 +285,7 @@ public class LoginActivity extends AppCompatActivity {
             }
         }
 
-        int emptyColor = Color.parseColor("#E0E0E0");
+        int emptyColor = getColor(R.color.outline);
         int filledColor;
         String label;
         if (level == 3) {
@@ -310,7 +310,7 @@ public class LoginActivity extends AppCompatActivity {
                 ColorStateList.valueOf(level >= 3 ? filledColor : emptyColor));
         binding.passwordStrengthTextView.setText(label);
         binding.passwordStrengthTextView.setTextColor(level == 0
-                ? Color.GRAY : filledColor);
+                ? getColor(R.color.on_surface_variant) : filledColor);
     }
 
     private void openForgotPasswordDialog() {
@@ -363,7 +363,7 @@ public class LoginActivity extends AppCompatActivity {
             int end = termsStart + "Termos".length();
             spannable.setSpan(new UnderlineSpan(), termsStart, end,
                     Spannable.SPAN_EXCLUSIVE_EXCLUSIVE);
-            spannable.setSpan(new ForegroundColorSpan(getColor(R.color.primary_purple)),
+            spannable.setSpan(new ForegroundColorSpan(getColor(R.color.brand_primary)),
                     termsStart, end, Spannable.SPAN_EXCLUSIVE_EXCLUSIVE);
         }
         int privacyStart = text.indexOf("Privacidade");
@@ -371,7 +371,7 @@ public class LoginActivity extends AppCompatActivity {
             int end = privacyStart + "Privacidade".length();
             spannable.setSpan(new UnderlineSpan(), privacyStart, end,
                     Spannable.SPAN_EXCLUSIVE_EXCLUSIVE);
-            spannable.setSpan(new ForegroundColorSpan(getColor(R.color.primary_purple)),
+            spannable.setSpan(new ForegroundColorSpan(getColor(R.color.brand_primary)),
                     privacyStart, end, Spannable.SPAN_EXCLUSIVE_EXCLUSIVE);
         }
         binding.termsTextView.setText(spannable);

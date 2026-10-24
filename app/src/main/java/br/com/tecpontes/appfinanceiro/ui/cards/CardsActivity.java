@@ -130,7 +130,7 @@ public class CardsActivity extends AppCompatActivity {
 
     private void setupListeners() {
         binding.swipeRefreshLayout.setColorSchemeResources(
-                R.color.primary_purple, R.color.money_positive, R.color.money_negative);
+                R.color.brand_primary, R.color.money_positive, R.color.money_negative);
         binding.swipeRefreshLayout.setOnRefreshListener(this::reloadCurrent);
         binding.cardSpinner.setOnItemSelectedListener(new android.widget.AdapterView.OnItemSelectedListener() {
             @Override public void onItemSelected(android.widget.AdapterView<?> parent, View view, int position, long id) {
@@ -358,12 +358,12 @@ public class CardsActivity extends AppCompatActivity {
         binding.payInvoiceButton.setVisibility(View.VISIBLE);
         binding.addTransactionButton.setEnabled(!"CLOSED".equalsIgnoreCase(invoice.status));
         binding.exportInvoiceButton.setEnabled(!invoice.getTransactions().isEmpty());
-        addInfoRow(summary, "Fechamento", formatDate(invoice.closingDate), Color.DKGRAY, false);
-        addInfoRow(summary, "Vencimento", formatDate(invoice.dueDate), Color.DKGRAY, false);
+        addInfoRow(summary, "Fechamento", formatDate(invoice.closingDate), getColor(R.color.on_surface_variant), false);
+        addInfoRow(summary, "Vencimento", formatDate(invoice.dueDate), getColor(R.color.on_surface_variant), false);
         CreditCardDto selectedCard = findSelectedCard();
         String debitAccountName = selectedCard == null || selectedCard.getDebitAccount() == null
                 ? "Não definida" : safe(selectedCard.getDebitAccount().getName());
-        addInfoRow(summary, "Conta de débito", debitAccountName, Color.DKGRAY, false);
+        addInfoRow(summary, "Conta de débito", debitAccountName, getColor(R.color.on_surface_variant), false);
         addInfoRow(summary, "Saldo anterior", formatSummaryCurrency(invoice.amount(invoice.previousBalance)),
                 getColor(R.color.money_negative), false);
         addInfoRow(summary, "Total pago", formatSummaryCurrency(invoice.amount(invoice.totalPaid)),
@@ -373,9 +373,9 @@ public class CardsActivity extends AppCompatActivity {
         addInfoRow(summary, "Valor a pagar", formatSummaryCurrency(invoice.amount(invoice.remainingBalance)),
                 getColor(R.color.money_negative), true);
         if (Boolean.TRUE.equals(invoice.hasPartialPayment)) {
-            addInfoRow(summary, "Pagamento", "Parcial", getColor(R.color.primary_purple), false);
+            addInfoRow(summary, "Pagamento", "Parcial", getColor(R.color.brand_primary), false);
         }
-        addInfoRow(summary, "Detalhamento da fatura", "", Color.DKGRAY, true);
+        addInfoRow(summary, "Detalhamento da fatura", "", getColor(R.color.on_surface_variant), true);
         addInfoRow(summary, "Despesas conciliadas", formatSummaryCurrency(invoice.amount(invoice.totalConciliado)),
                 getColor(R.color.money_positive), false);
         addInfoRow(summary, "Despesas não conciliadas", formatSummaryCurrency(invoice.amount(invoice.totalNaoConciliado)),
@@ -421,7 +421,7 @@ public class CardsActivity extends AppCompatActivity {
         row.setPadding(0, dp(emphasized ? 10 : 7), 0, dp(emphasized ? 10 : 7));
         TextView labelView = new TextView(this);
         labelView.setText(label);
-        labelView.setTextColor(getColor(android.R.color.darker_gray));
+        labelView.setTextColor(getColor(R.color.on_surface_variant));
         labelView.setTextSize(emphasized ? 14 : 13);
         if (emphasized) labelView.setTypeface(null, android.graphics.Typeface.BOLD);
         row.addView(labelView, new LinearLayout.LayoutParams(0, LinearLayout.LayoutParams.WRAP_CONTENT, 1));
@@ -462,7 +462,7 @@ public class CardsActivity extends AppCompatActivity {
             heading.setOrientation(LinearLayout.HORIZONTAL);
             TextView categoryName = new TextView(this);
             categoryName.setText(total.name);
-            categoryName.setTextColor(getColor(android.R.color.black));
+            categoryName.setTextColor(getColor(R.color.on_surface));
             heading.addView(categoryName, new LinearLayout.LayoutParams(0,
                     LinearLayout.LayoutParams.WRAP_CONTENT, 1));
             TextView amount = new TextView(this);
@@ -492,7 +492,7 @@ public class CardsActivity extends AppCompatActivity {
 
     private int parseColor(@Nullable String color) {
         try { return Color.parseColor(color); }
-        catch (RuntimeException ignored) { return getColor(R.color.primary_purple); }
+        catch (RuntimeException ignored) { return getColor(R.color.brand_primary); }
     }
 
     private void changeInvoiceStatus() {
@@ -898,7 +898,7 @@ public class CardsActivity extends AppCompatActivity {
     private TextView fieldLabel(String text) {
         TextView label = new TextView(this);
         label.setText(text);
-        label.setTextColor(getColor(android.R.color.darker_gray));
+        label.setTextColor(getColor(R.color.on_surface_variant));
         label.setPadding(0, dp(10), 0, dp(4));
         return label;
     }
@@ -914,7 +914,7 @@ public class CardsActivity extends AppCompatActivity {
 
     private void updateDateButton(TextView button, Calendar date) {
         button.setText(new SimpleDateFormat("dd/MM/yyyy", new Locale("pt", "BR")).format(date.getTime()));
-        button.setTextColor(getColor(android.R.color.black));
+        button.setTextColor(getColor(R.color.on_surface));
     }
 
     private double parseLocalizedAmount(String raw) {

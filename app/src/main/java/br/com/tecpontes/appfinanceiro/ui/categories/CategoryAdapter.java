@@ -116,10 +116,11 @@ public class CategoryAdapter extends RecyclerView.Adapter<CategoryAdapter.Catego
         }
 
         private int parseColor(@Nullable String color) {
+            int fallback = itemView.getContext().getColor(R.color.money_neutral);
             try {
-                return color == null ? Color.parseColor("#6B7280") : Color.parseColor(color);
+                return color == null ? fallback : Color.parseColor(color);
             } catch (IllegalArgumentException ignored) {
-                return Color.parseColor("#6B7280");
+                return fallback;
             }
         }
 

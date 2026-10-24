@@ -3,15 +3,15 @@
     xmlns:app="http://schemas.android.com/apk/res-auto"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
-    android:background="@android:color/white"
+    android:background="?android:attr/colorBackground"
     android:orientation="vertical">
 
     <com.google.android.material.appbar.MaterialToolbar
         android:layout_width="match_parent"
         android:layout_height="?attr/actionBarSize"
-        android:background="@color/glass_white_translucent"
+        android:background="?attr/colorSurface"
         app:title="AppFinanceiro"
-        app:titleTextColor="@android:color/black" />
+        app:titleTextColor="?attr/colorOnSurface" />
 
     <LinearLayout
         android:layout_width="match_parent"
@@ -25,14 +25,14 @@
             android:layout_height="56dp"
             android:layout_marginBottom="16dp"
             android:src="@drawable/ic_nav_menu"
-            app:tint="@color/primary_purple" />
+            app:tint="?attr/colorPrimary" />
         <TextView
             android:id="@+id/featureTitle"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:gravity="center"
             android:text="Seção"
-            android:textColor="@android:color/black"
+            android:textColor="?attr/colorOnSurface"
             android:textSize="22sp"
             android:textStyle="bold" />
         <TextView
@@ -41,7 +41,7 @@
             android:layout_marginTop="8dp"
             android:gravity="center"
             android:text="Esta área está sendo preparada e será conectada aos seus dados financeiros."
-            android:textColor="@android:color/darker_gray"
+            android:textColor="?attr/colorOnSurfaceVariant"
             android:textSize="14sp" />
     </LinearLayout>
 

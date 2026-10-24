@@ -2,9 +2,9 @@
 
 Documento vivo para acompanhar a modernização visual do app, com etapas, critérios de aceite e conclusões.
 
-- **Status geral:** Planejamento concluído; implementação não iniciada.
+- **Status geral:** Fase 2 implementada; falta validação visual em dispositivo.
 - **Última atualização:** 2026-10-24.
-- **Próximo passo:** `F1-01` — criar os tokens de cor do tema claro.
+- **Próximo passo:** `F2-08` — validar dark mode global no app instalado.
 - **Responsável:** equipe de desenvolvimento Android.
 
 ## Como atualizar este documento
@@ -31,8 +31,8 @@ Documento vivo para acompanhar a modernização visual do app, com etapas, crit�
 | Fase | Objetivo | Status | Progresso |
 | :--- | :--- | :--- | :--- |
 | Fase 0 | Diagnóstico técnico e definição do plano | Concluído | 100% |
-| Fase 1 | Fundação visual: tokens, temas, estilos e drawables | Pendente | 0% |
-| Fase 2 | Migração global de cores fixas e preparação do dark mode | Pendente | 0% |
+| Fase 1 | Fundação visual: tokens, temas, estilos e drawables | Concluído | 100% |
+| Fase 2 | Migração global de cores fixas e preparação do dark mode | Em andamento | 88% |
 | Fase 3 | Redesenho estrutural das telas | Pendente | 0% |
 | Fase 4 | Validação final, dark mode e QA | Pendente | 0% |
 
@@ -69,18 +69,18 @@ Objetivo: criar a base de design system sem redesenhar a estrutura das telas.
 
 | ID | Passo | Arquivos principais | Critério de aceite | Status | Conclusão |
 | :--- | :--- | :--- | :--- | :--- | :--- |
-| F1-01 | Criar tokens de cor do tema claro | `res/values/colors.xml` | Tokens de marca, CTA, fundo, superfície, texto, borda e finanças definidos. | Pendente | Aguardando execução. |
-| F1-02 | Criar variantes noturnas dos tokens | `res/values-night/colors.xml` | Todos os tokens usados no tema claro possuem equivalente noturno. | Pendente | Aguardando execução. |
-| F1-03 | Atualizar tema claro para Material 3 DayNight | `res/values/themes.xml` | `Theme.Appfinanceiro` usa `Theme.Material3.DayNight.NoActionBar` e tokens semânticos. | Pendente | Aguardando execução. |
-| F1-04 | Criar tema noturno | `res/values-night/themes.xml` | Barras, ícones e superfícies corretos no modo escuro. | Pendente | Aguardando execução. |
-| F1-05 | Criar estilos base modernos | `res/values/styles.xml` | `ModernCard`, `PrimaryCTAButton`, `BrandButton` e `ModernTextInput` definidos. | Pendente | Aguardando execução. |
-| F1-06 | Rebasear estilos legados | `res/values/styles.xml` | `GlassCard`, `GlassButton`, `GlassTextInput` e `SettingsCard` usam tokens do tema. | Pendente | Aguardando execução. |
-| F1-07 | Atualizar drawables compartilhados | `res/drawable/glass_*.xml`, `bg_outlined_rounded.xml`, `bg_dialog.xml` | Formas usam `?attr/colorSurface` e `?attr/colorOutline`; sem branco fixo. | Pendente | Aguardando execução. |
-| F1-08 | Criar drawables modernos | `res/drawable/bg_modern_card.xml`, `res/drawable/bg_cta_button.xml` | Componentes podem usar superfície sólida e CTA esmeralda com ripple. | Pendente | Aguardando execução. |
-| F1-09 | Atualizar navegação inferior | `layout/bottom_navigation.xml`, `res/color/navigation_item_tint.xml` | Fundo e tint seguem o tema claro/escuro. | Pendente | Aguardando execução. |
-| F1-10 | Sincronizar tema Compose | `ui/theme/Color.kt`, `ui/theme/Theme.kt` | Tokens equivalentes, sem erro de import e sem dynamic color. | Pendente | Aguardando execução. |
-| F1-11 | Consolidar documentação de design system | `docs/design-system.md` | Tokens, estilos, regras de uso e migração documentados. | Pendente | Aguardando execução. |
-| F1-12 | Validar fundação | Build e revisão de recursos | `./gradlew testDebugUnitTest assembleDebug` e `git diff --check` sem erros. | Pendente | Aguardando execução. |
+| F1-01 | Criar tokens de cor do tema claro | `res/values/colors.xml` | Tokens de marca, CTA, fundo, superfície, texto, borda e finanças definidos. | Concluído | Tokens semânticos criados (`brand_*`, `cta_primary`, `background`, `surface*`, `on_*`, `outline*`, `money_*`, `error`) com aliases legados. Cores de marca movidas de `themes.xml`. |
+| F1-02 | Criar variantes noturnas dos tokens | `res/values-night/colors.xml` | Todos os tokens usados no tema claro possuem equivalente noturno. | Concluído | `values-night/colors.xml` criado com equivalentes de todos os tokens semânticos; aliases legados acompanham o tema automaticamente. |
+| F1-03 | Atualizar tema claro para Material 3 DayNight | `res/values/themes.xml` | `Theme.Appfinanceiro` usa `Theme.Material3.DayNight.NoActionBar` e tokens semânticos. | Concluído | `Theme.Appfinanceiro.Base` herda `Theme.Material3.DayNight.NoActionBar`; `Theme.Appfinanceiro` usa tokens semânticos e variante clara dos ícones das barras. `Theme.Appfinanceiro.Dark` removido (DayNight substitui). |
+| F1-04 | Criar tema noturno | `res/values-night/themes.xml` | Barras, ícones e superfícies corretos no modo escuro. | Concluído | `values-night/themes.xml` sobrescreve `Theme.Appfinanceiro` com `windowLightStatusBar=false` e `windowLightNavigationBar=false`; cores e superfícies resolvidas pelos tokens noturnos. |
+| F1-05 | Criar estilos base modernos | `res/values/styles.xml` | `ModernCard`, `PrimaryCTAButton`, `BrandButton` e `ModernTextInput` definidos. | Concluído | Estilos criados com atributos do tema: card de superfície sólida, CTA esmeralda (`colorTertiary`), botão de marca e text input arredondado. |
+| F1-06 | Rebasear estilos legados | `res/values/styles.xml` | `GlassCard`, `GlassButton`, `GlassTextInput` e `SettingsCard` usam tokens do tema. | Concluído | Estilos legados migrados para `?attr/colorSurface`, `?attr/colorPrimary`, `?attr/colorOutline` e `?attr/colorOnSurface*`; `Settings*` sem preto/cinza fixo. |
+| F1-07 | Atualizar drawables compartilhados | `res/drawable/glass_*.xml`, `bg_outlined_rounded.xml`, `bg_dialog.xml` | Formas usam `?attr/colorSurface` e `?attr/colorOutline`; sem branco fixo. | Concluído | Drawables rebaseados em `?attr/colorSurface`, `?attr/colorOutline` e `?attr/colorPrimary`; verificado que não restou branco/preto fixo. |
+| F1-08 | Criar drawables modernos | `res/drawable/bg_modern_card.xml`, `res/drawable/bg_cta_button.xml` | Componentes podem usar superfície sólida e CTA esmeralda com ripple. | Concluído | `bg_modern_card.xml` (superfície + contorno) e `bg_cta_button.xml` (ripple com `?attr/colorTertiary`) criados. |
+| F1-09 | Atualizar navegação inferior | `layout/bottom_navigation.xml`, `res/color/navigation_item_tint.xml` | Fundo e tint seguem o tema claro/escuro. | Concluído | Fundo migrado para `?attr/colorSurface`; tint usa `?attr/colorPrimary` (selecionado) e `?attr/colorOnSurfaceVariant`. |
+| F1-10 | Sincronizar tema Compose | `ui/theme/Color.kt`, `ui/theme/Theme.kt` | Tokens equivalentes, sem erro de import e sem dynamic color. | Concluído | Tokens claro/escuro espelhados em `Color.kt`; `Theme.kt` usa esquemas estáticos e `dynamicColor` removido. |
+| F1-11 | Consolidar documentação de design system | `docs/design-system.md` | Tokens, estilos, regras de uso e migração documentados. | Concluído | `docs/design-system.md` criado com tabelas de tokens, tema, estilos, drawables, regras e migração. |
+| F1-12 | Validar fundação | Build e revisão de recursos | `./gradlew testDebugUnitTest assembleDebug` e `git diff --check` sem erros. | Concluído | Build `BUILD SUCCESSFUL`; `git diff --check` sem erros; drawables compartilhados sem branco/preto fixo. |
 
 **Critérios de saída da Fase 1**
 
@@ -96,14 +96,14 @@ Objetivo: remover cores fixas dos layouts para que o dark mode funcione em todas
 
 | ID | Passo | Arquivos principais | Critério de aceite | Status | Conclusão |
 | :--- | :--- | :--- | :--- | :--- | :--- |
-| F2-01 | Migrar fundos raiz das telas | `res/layout/activity_*.xml` | `@android:color/white` substituído por `?attr/colorBackground`. | Pendente | Aguardando execução. |
-| F2-02 | Migrar textos e ícones fixos | Layouts e `res/color/` | `@android:color/black` substituído por `?attr/colorOnSurface` ou `?attr/colorOnSurfaceVariant`. | Pendente | Aguardando execução. |
-| F2-03 | Migrar superfícies, cards e toolbars | Layouts e estilos | Cards/toolbars usam `?attr/colorSurface` e `?attr/colorOutline`. | Pendente | Aguardando execução. |
-| F2-04 | Migrar diálogos | `res/layout/dialog_*.xml` | Diálogos claros/escuros com superfície, texto e borda corretos. | Pendente | Aguardando execução. |
-| F2-05 | Migrar itens de listas e adapters | `res/layout/item_*.xml` e adapters | Itens usam cores do tema; sem branco/preto fixo. | Pendente | Aguardando execução. |
-| F2-06 | Migrar gráficos | `MonthlyEvolutionChartView`, `CategoryPieChartView` | Grade, rótulos e fundos legíveis em claro/escuro. | Pendente | Aguardando execução. |
-| F2-07 | Revisar estados de carregamento/vazio/erro | Layouts e componentes | Estados usam superfícies e textos do tema. | Pendente | Aguardando execução. |
-| F2-08 | Validar dark mode global | App em claro/escuro | Nenhuma tela com fundo claro e texto claro ou superfícies inconsistentes. | Pendente | Aguardando execução. |
+| F2-01 | Migrar fundos raiz das telas | `res/layout/activity_*.xml` | `@android:color/white` substituído por `?attr/colorBackground`. | Concluído | 14 raízes migradas para `?android:attr/colorBackground`; sem branco fixo nos layouts. |
+| F2-02 | Migrar textos e ícones fixos | Layouts e `res/color/` | `@android:color/black` substituído por `?attr/colorOnSurface` ou `?attr/colorOnSurfaceVariant`. | Concluído | `@android:color/black`, `darker_gray`, `primary_purple` e `primary_blue` substituídos por atributos do tema nos layouts e color state lists. |
+| F2-03 | Migrar superfícies, cards e toolbars | Layouts e estilos | Cards/toolbars usam `?attr/colorSurface` e `?attr/colorOutline`. | Concluído | Toolbars, cards e itens migrados para `?attr/colorSurface`; bordas/divisores para `?attr/colorOutline` ou `@color/outline`. |
+| F2-04 | Migrar diálogos | `res/layout/dialog_*.xml` | Diálogos claros/escuros com superfície, texto e borda corretos. | Concluído | Diálogos usam `bg_dialog`, `?attr/colorSurface`, textos e divisores do tema. |
+| F2-05 | Migrar itens de listas e adapters | `res/layout/item_*.xml` e adapters | Itens usam cores do tema; sem branco/preto fixo. | Concluído | Itens e adapters migrados; badges usam `success_container`/`neutral_container`; textos dinâmicos usam tokens. |
+| F2-06 | Migrar gráficos | `MonthlyEvolutionChartView`, `CategoryPieChartView` | Grade, rótulos e fundos legíveis em claro/escuro. | Concluído | Gráficos resolvem receitas, despesas, grade, rótulos e estado vazio via tokens do tema. |
+| F2-07 | Revisar estados de carregamento/vazio/erro | Layouts e componentes | Estados usam superfícies e textos do tema. | Concluído | `loading_view`, vazios, erros e badges migrados; aliases legados removidos de `colors.xml`. |
+| F2-08 | Validar dark mode global | App em claro/escuro | Nenhuma tela com fundo claro e texto claro ou superfícies inconsistentes. | Em andamento | Build e auditoria estática OK. Falta instalar o APK e validar visualmente as telas nos dois temas. |
 
 **Critérios de saída da Fase 2**
 
@@ -154,6 +154,16 @@ Objetivo: aplicar a identidade Modern Tech & Sofisticado em cada tela, mantendo 
 | Data | ID | Ação realizada | Conclusão / Evidência |
 | :--- | :--- | :--- | :--- |
 | 2026-10-24 | F0 | Diagnóstico do projeto e elaboração do plano | Estrutura atual mapeada; fases e critérios definidos. Nenhuma alteração de código realizada. |
+| 2026-10-24 | F1-01/F1-02 | Tokens de cor claro/escuro e aliases legados criados | `values/colors.xml` e `values-night/colors.xml`; build `./gradlew testDebugUnitTest assembleDebug` OK e `git diff --check` sem erros. |
+| 2026-10-24 | F1-03/F1-04 | Tema migrado para Material 3 DayNight e tema noturno criado | `Theme.Appfinanceiro.Base` + variantes claro/escuro; `values-night/themes.xml`; build `./gradlew testDebugUnitTest assembleDebug` OK. |
+| 2026-10-24 | F1-05/F1-06 | Estilos modernos criados e legados rebaseados | `ModernCard`, `PrimaryCTAButton`, `BrandButton`, `ModernTextInput` em `styles.xml`; estilos Glass/Settings usando atributos do tema; build OK. |
+| 2026-10-24 | F1-07/F1-08 | Drawables compartilhados rebaseados e drawables modernos criados | `glass_*`, `bg_outlined_rounded`, `bg_dialog` sem cor fixa; `bg_modern_card` e `bg_cta_button` criados; build OK. |
+| 2026-10-24 | F1-09/F1-10 | Navegação inferior e tema Compose sincronizados | `bottom_navigation` e `navigation_item_tint` com atributos do tema; tokens Compose espelhados e dynamic color removido; build OK. |
+| 2026-10-24 | F1-11/F1-12 | Design system documentado e fundação validada | `docs/design-system.md` criado; `./gradlew testDebugUnitTest assembleDebug` OK; `git diff --check` sem erros. Fase 1 concluída. |
+| 2026-10-24 | F2-01/F2-02/F2-03 | Fundos, textos, superfícies e toolbars migrados | 14 raízes, 33 layouts e color state lists usando atributos/tokens do tema; aliases legados removidos; build OK. |
+| 2026-10-24 | F2-04/F2-05/F2-07 | Diálogos, itens, adapters e estados migrados | Textos dinâmicos, badges, divisores e strokes via tokens; `loading_view` e estados de vazio/erro revisados; build OK. |
+| 2026-10-24 | F2-06 | Gráficos tema-aware | `MonthlyEvolutionChartView` e `CategoryPieChartView` resolvem cores do tema; build OK. |
+| 2026-10-24 | F2-08 | Validação estática concluída; falta validação visual | Ajuste de contraste dos tokens (`money_*`, CTA, superfícies) e auditoria sem cores fixas críticas; pendente instalar APK e conferir claro/escuro. |
 
 ## Comandos de validação
 

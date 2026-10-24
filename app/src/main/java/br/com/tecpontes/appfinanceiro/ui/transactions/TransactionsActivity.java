@@ -122,10 +122,10 @@ public class TransactionsActivity extends AppCompatActivity {
 
     private void setupSwipeRefresh() {
         binding.swipeRefreshLayout.setColorSchemeResources(
-                android.R.color.holo_blue_bright,
-                android.R.color.holo_green_light,
-                android.R.color.holo_orange_light,
-                android.R.color.holo_red_light);
+                R.color.brand_primary,
+                R.color.brand_secondary,
+                R.color.password_strength_medium,
+                R.color.money_negative);
         binding.swipeRefreshLayout.setOnRefreshListener(this::reloadData);
     }
 
@@ -438,7 +438,7 @@ public class TransactionsActivity extends AppCompatActivity {
         Calendar balanceDate = periodEnd != null ? periodEnd : Calendar.getInstance();
         dateLabel.setText("Saldo até " + new SimpleDateFormat("dd/MM/yyyy", new Locale("pt", "BR"))
                 .format(balanceDate.getTime()));
-        dateLabel.setTextColor(getColor(android.R.color.darker_gray));
+        dateLabel.setTextColor(getColor(R.color.on_surface_variant));
         dateLabel.setTextSize(13);
         dateLabel.setPadding(0, 0, 0, dp(8));
         rows.addView(dateLabel);
@@ -455,7 +455,7 @@ public class TransactionsActivity extends AppCompatActivity {
 
             TextView name = new TextView(this);
             name.setText(accountName);
-            name.setTextColor(getColor(android.R.color.black));
+            name.setTextColor(getColor(R.color.on_surface));
             name.setTextSize(14);
             LinearLayout.LayoutParams nameParams = new LinearLayout.LayoutParams(
                     0, LinearLayout.LayoutParams.WRAP_CONTENT, 1f);
@@ -470,7 +470,7 @@ public class TransactionsActivity extends AppCompatActivity {
             rows.addView(row);
 
             View divider = new View(this);
-            divider.setBackgroundColor(0x22000000);
+            divider.setBackgroundColor(getColor(R.color.outline));
             rows.addView(divider, new LinearLayout.LayoutParams(
                     LinearLayout.LayoutParams.MATCH_PARENT, dp(1)));
         }
@@ -482,7 +482,7 @@ public class TransactionsActivity extends AppCompatActivity {
 
         TextView totalLabel = new TextView(this);
         totalLabel.setText("Total");
-        totalLabel.setTextColor(getColor(android.R.color.black));
+        totalLabel.setTextColor(getColor(R.color.on_surface));
         totalLabel.setTextSize(14);
         totalLabel.setTypeface(null, android.graphics.Typeface.BOLD);
         totalRow.addView(totalLabel, new LinearLayout.LayoutParams(

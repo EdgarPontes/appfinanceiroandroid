@@ -449,7 +449,7 @@ public class ReportsActivity extends AppCompatActivity {
                         Color.parseColor(aggregate.color)));
             } catch (IllegalArgumentException ignored) {
                 colorView.setBackgroundTintList(ColorStateList.valueOf(
-                        Color.parseColor("#6B7280")));
+                        ContextCompat.getColor(this, R.color.money_neutral)));
             }
 
             container.addView(row);
@@ -565,7 +565,7 @@ public class ReportsActivity extends AppCompatActivity {
         if (transaction.category != null && transaction.category.color != null) {
             return transaction.category.color;
         }
-        return "#6B7280";
+        return "#94A3B8";
     }
 
     @Override

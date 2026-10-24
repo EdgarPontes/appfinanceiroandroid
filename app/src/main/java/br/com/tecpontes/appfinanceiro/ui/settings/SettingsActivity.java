@@ -185,10 +185,13 @@ public class SettingsActivity extends AppCompatActivity {
             }
 
             try {
-                itemBinding.goalColorView.setBackgroundTintList(ColorStateList.valueOf(
-                        Color.parseColor(category.getColor() == null ? "#6B7280" : category.getColor())));
+                String categoryColor = category.getColor();
+                int tint = categoryColor == null
+                        ? getColor(R.color.money_neutral) : Color.parseColor(categoryColor);
+                itemBinding.goalColorView.setBackgroundTintList(ColorStateList.valueOf(tint));
             } catch (Exception ignored) {
-                itemBinding.goalColorView.setBackgroundTintList(ColorStateList.valueOf(Color.parseColor("#6B7280")));
+                itemBinding.goalColorView.setBackgroundTintList(
+                        ColorStateList.valueOf(getColor(R.color.money_neutral)));
             }
 
             String value = goalByCategory.get(category.getId());

@@ -318,7 +318,7 @@ public class StatementImportActivity extends AppCompatActivity {
     private TextView sectionTitle(String text) {
         TextView title = new TextView(this);
         title.setText(text);
-        title.setTextColor(getColor(android.R.color.black));
+        title.setTextColor(getColor(R.color.on_surface));
         title.setTextSize(17);
         title.setTypeface(null, android.graphics.Typeface.BOLD);
         title.setPadding(0, dp(16), 0, dp(6));

@@ -114,7 +114,7 @@ public class AccountsActivity extends AppCompatActivity {
 
     private void setupListeners() {
         binding.swipeRefreshLayout.setColorSchemeResources(
-                R.color.primary_purple, R.color.money_positive, R.color.money_negative);
+                R.color.brand_primary, R.color.money_positive, R.color.money_negative);
         binding.swipeRefreshLayout.setOnRefreshListener(() -> viewModel.load(includeInactive));
         binding.showInactiveCheckBox.setOnCheckedChangeListener((button, checked) -> {
             includeInactive = checked;
@@ -160,7 +160,7 @@ public class AccountsActivity extends AppCompatActivity {
         LinearLayout titleRow = horizontalLayout();
         ImageView icon = new ImageView(this);
         icon.setImageResource(R.drawable.ic_nav_accounts);
-        icon.setColorFilter(getColor(R.color.primary_purple));
+        icon.setColorFilter(getColor(R.color.brand_primary));
         titleRow.addView(icon, new LinearLayout.LayoutParams(dp(34), dp(34)));
         LinearLayout titleColumn = verticalLayout();
         titleColumn.setPadding(dp(10), 0, 0, 0);
@@ -240,7 +240,7 @@ public class AccountsActivity extends AppCompatActivity {
         LinearLayout titleRow = horizontalLayout();
         ImageView icon = new ImageView(this);
         icon.setImageResource(R.drawable.ic_nav_cards);
-        icon.setColorFilter(getColor(R.color.primary_purple));
+        icon.setColorFilter(getColor(R.color.brand_primary));
         titleRow.addView(icon, new LinearLayout.LayoutParams(dp(34), dp(34)));
         LinearLayout titleColumn = verticalLayout();
         titleColumn.setPadding(dp(10), 0, 0, 0);
@@ -539,7 +539,7 @@ public class AccountsActivity extends AppCompatActivity {
             row.setPadding(0, dp(10), 0, dp(10));
             historyRows.addView(row);
             View divider = new View(this);
-            divider.setBackgroundColor(0x22000000);
+            divider.setBackgroundColor(getColor(R.color.outline));
             historyRows.addView(divider, new LinearLayout.LayoutParams(-1, dp(1)));
         }
     }
@@ -568,10 +568,11 @@ public class AccountsActivity extends AppCompatActivity {
         LinearLayout.LayoutParams params = new LinearLayout.LayoutParams(-1, -2);
         params.topMargin = dp(10);
         card.setLayoutParams(params);
+        card.setCardBackgroundColor(getColor(R.color.surface));
         card.setRadius(dp(14));
         card.setCardElevation(dp(2));
         card.setStrokeWidth(dp(1));
-        card.setStrokeColor(0x1A000000);
+        card.setStrokeColor(getColor(R.color.outline));
         return card;
     }
 
@@ -591,7 +592,7 @@ public class AccountsActivity extends AppCompatActivity {
     private TextView titleText(String value, int size) {
         TextView text = new TextView(this);
         text.setText(value);
-        text.setTextColor(getColor(android.R.color.black));
+        text.setTextColor(getColor(R.color.on_surface));
         text.setTextSize(size);
         text.setTypeface(null, Typeface.BOLD);
         return text;
@@ -600,20 +601,20 @@ public class AccountsActivity extends AppCompatActivity {
     private TextView bodyText(String value) {
         TextView text = new TextView(this);
         text.setText(value);
-        text.setTextColor(getColor(android.R.color.black));
+        text.setTextColor(getColor(R.color.on_surface));
         text.setTextSize(13);
         return text;
     }
 
     private TextView secondaryText(String value) {
         TextView text = bodyText(value);
-        text.setTextColor(getColor(android.R.color.darker_gray));
+        text.setTextColor(getColor(R.color.on_surface_variant));
         return text;
     }
 
     private TextView actionText(String value) {
         TextView text = bodyText(value);
-        text.setTextColor(getColor(R.color.primary_purple));
+        text.setTextColor(getColor(R.color.brand_primary));
         text.setGravity(android.view.Gravity.CENTER);
         text.setBackgroundResource(android.R.drawable.list_selector_background);
         text.setClickable(true);
@@ -626,7 +627,7 @@ public class AccountsActivity extends AppCompatActivity {
         text.setTextColor(getColor(colorResource));
         text.setTypeface(null, Typeface.BOLD);
         text.setPadding(dp(8), dp(4), dp(8), dp(4));
-        text.setBackgroundColor(0x12D5485E);
+        text.setBackgroundColor(getColor(R.color.error_container));
         return text;
     }
 

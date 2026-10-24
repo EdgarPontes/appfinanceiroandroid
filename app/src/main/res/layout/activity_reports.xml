@@ -3,19 +3,19 @@
     xmlns:app="http://schemas.android.com/apk/res-auto"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
-    android:background="@android:color/white"
+    android:background="?android:attr/colorBackground"
     android:orientation="vertical">
 
     <com.google.android.material.appbar.MaterialToolbar
         android:id="@+id/toolbar"
         android:layout_width="match_parent"
         android:layout_height="?attr/actionBarSize"
-        android:background="@color/glass_white_translucent"
+        android:background="?attr/colorSurface"
         app:navigationContentDescription="@string/action_back"
         app:navigationIcon="@drawable/ic_arrow_back"
-        app:navigationIconTint="@android:color/black"
+        app:navigationIconTint="?attr/colorOnSurface"
         app:title="@string/reports_title"
-        app:titleTextColor="@android:color/black" />
+        app:titleTextColor="?attr/colorOnSurface" />
 
     <ProgressBar
         android:id="@+id/reportsProgressBar"
@@ -43,7 +43,7 @@
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
                 android:text="@string/reports_subtitle"
-                android:textColor="@android:color/darker_gray"
+                android:textColor="?attr/colorOnSurfaceVariant"
                 android:textSize="14sp" />
 
             <TextView
@@ -101,7 +101,7 @@
                         android:text="@string/reports_period_hint"
                         android:textSize="12sp"
                         app:icon="@drawable/ic_month_calendar"
-                        app:iconTint="@color/primary_purple" />
+                        app:iconTint="?attr/colorPrimary" />
 
                     <TextView
                         style="@style/SettingsLabel"
@@ -132,7 +132,7 @@
                         android:text="@string/reports_categories_all"
                         android:textSize="12sp"
                         app:icon="@drawable/ic_filter"
-                        app:iconTint="@color/primary_purple" />
+                        app:iconTint="?attr/colorPrimary" />
                 </LinearLayout>
             </com.google.android.material.card.MaterialCardView>
 
@@ -184,7 +184,7 @@
                                 android:layout_width="match_parent"
                                 android:layout_height="wrap_content"
                                 android:text="@string/reports_total_income"
-                                android:textColor="@android:color/darker_gray"
+                                android:textColor="?attr/colorOnSurfaceVariant"
                                 android:textSize="11sp" />
 
                             <TextView
@@ -210,7 +210,7 @@
                                 android:layout_width="match_parent"
                                 android:layout_height="wrap_content"
                                 android:text="@string/reports_total_expenses"
-                                android:textColor="@android:color/darker_gray"
+                                android:textColor="?attr/colorOnSurfaceVariant"
                                 android:textSize="11sp" />
 
                             <TextView
@@ -243,7 +243,7 @@
                                 android:layout_width="match_parent"
                                 android:layout_height="wrap_content"
                                 android:text="@string/reports_balance"
-                                android:textColor="@android:color/darker_gray"
+                                android:textColor="?attr/colorOnSurfaceVariant"
                                 android:textSize="11sp" />
 
                             <TextView
@@ -253,7 +253,7 @@
                                 android:layout_marginTop="2dp"
                                 android:ellipsize="end"
                                 android:maxLines="1"
-                                android:textColor="@android:color/black"
+                                android:textColor="?attr/colorOnSurface"
                                 android:textSize="17sp"
                                 android:textStyle="bold" />
                         </LinearLayout>
@@ -269,7 +269,7 @@
                                 android:layout_width="match_parent"
                                 android:layout_height="wrap_content"
                                 android:text="@string/reports_transaction_count"
-                                android:textColor="@android:color/darker_gray"
+                                android:textColor="?attr/colorOnSurfaceVariant"
                                 android:textSize="11sp" />
 
                             <TextView
@@ -277,7 +277,7 @@
                                 android:layout_width="match_parent"
                                 android:layout_height="wrap_content"
                                 android:layout_marginTop="2dp"
-                                android:textColor="@android:color/black"
+                                android:textColor="?attr/colorOnSurface"
                                 android:textSize="17sp"
                                 android:textStyle="bold" />
                         </LinearLayout>
@@ -332,7 +332,7 @@
                         android:layout_marginTop="8dp"
                         android:gravity="center"
                         android:text="@string/reports_no_expenses"
-                        android:textColor="@android:color/darker_gray"
+                        android:textColor="?attr/colorOnSurfaceVariant"
                         android:textSize="13sp"
                         android:visibility="gone" />
                 </LinearLayout>
@@ -385,7 +385,7 @@
                         android:layout_marginTop="8dp"
                         android:gravity="center"
                         android:text="@string/reports_no_income"
-                        android:textColor="@android:color/darker_gray"
+                        android:textColor="?attr/colorOnSurfaceVariant"
                         android:textSize="13sp"
                         android:visibility="gone" />
                 </LinearLayout>
@@ -429,7 +429,7 @@
                         android:layout_marginTop="12dp"
                         android:text="@string/reports_detail_expenses"
                         app:icon="@drawable/ic_menu_reports"
-                        app:iconTint="@color/primary_purple" />
+                        app:iconTint="?attr/colorPrimary" />
 
                     <com.google.android.material.button.MaterialButton
                         android:id="@+id/exportCsvButton"
@@ -438,7 +438,7 @@
                         android:layout_marginTop="8dp"
                         android:text="@string/reports_export_csv"
                         app:icon="@drawable/ic_file_download"
-                        app:iconTint="@android:color/white" />
+                        app:iconTint="?attr/colorOnPrimary" />
 
                     <com.google.android.material.button.MaterialButton
                         android:id="@+id/exportPdfButton"
@@ -447,7 +447,7 @@
                         android:layout_marginTop="8dp"
                         android:text="@string/reports_export_pdf"
                         app:icon="@drawable/ic_description"
-                        app:iconTint="@android:color/white" />
+                        app:iconTint="?attr/colorOnPrimary" />
 
                     <TextView
                         android:layout_width="match_parent"
@@ -455,7 +455,7 @@
                         android:layout_marginTop="10dp"
                         android:gravity="center"
                         android:text="@string/reports_export_hint"
-                        android:textColor="@android:color/darker_gray"
+                        android:textColor="?attr/colorOnSurfaceVariant"
                         android:textSize="11sp" />
                 </LinearLayout>
             </com.google.android.material.card.MaterialCardView>

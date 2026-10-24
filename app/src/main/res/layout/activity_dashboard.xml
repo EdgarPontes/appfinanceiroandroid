@@ -4,7 +4,7 @@
     xmlns:tools="http://schemas.android.com/tools"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
-    android:background="@android:color/white"
+    android:background="?android:attr/colorBackground"
     tools:context=".ui.dashboard.DashboardActivity">
 
     <com.google.android.material.appbar.AppBarLayout
@@ -15,9 +15,9 @@
         <androidx.appcompat.widget.Toolbar
             android:layout_width="match_parent"
             android:layout_height="?attr/actionBarSize"
-            android:background="@color/glass_white_translucent"
+            android:background="?attr/colorSurface"
             app:title="Dashboard"
-            app:titleTextColor="@android:color/black">
+            app:titleTextColor="?attr/colorOnSurface">
 
             <LinearLayout
                 android:layout_width="wrap_content"
@@ -35,7 +35,7 @@
                     android:contentDescription="Ocultar valores"
                     android:padding="12dp"
                     android:src="@drawable/ic_visibility"
-                    app:tint="@color/primary_purple" />
+                    app:tint="?attr/colorPrimary" />
 
                 <FrameLayout
                     android:layout_width="48dp"
@@ -49,7 +49,7 @@
                         android:contentDescription="@string/dashboard_open_notifications"
                         android:padding="12dp"
                         android:src="@drawable/ic_notifications_bell"
-                        app:tint="@color/primary_purple" />
+                        app:tint="?attr/colorPrimary" />
 
                     <TextView
                         android:id="@+id/notificationsBadgeTextView"
@@ -60,7 +60,7 @@
                         android:layout_marginEnd="4dp"
                         android:background="@drawable/bg_badge"
                         android:gravity="center"
-                        android:textColor="@android:color/white"
+                        android:textColor="?attr/colorOnError"
                         android:textSize="10sp"
                         android:textStyle="bold"
                         android:visibility="gone"
@@ -80,7 +80,7 @@
                     android:padding="8dp"
                     app:icon="@android:drawable/ic_popup_sync"
                     app:iconSize="24dp"
-                    app:iconTint="@color/primary_purple" />
+                    app:iconTint="?attr/colorPrimary" />
             </LinearLayout>
         </androidx.appcompat.widget.Toolbar>
     </com.google.android.material.appbar.AppBarLayout>
@@ -119,7 +119,7 @@
                     android:layout_height="wrap_content"
                     android:layout_marginBottom="12dp"
                     style="@style/GlassCard"
-                    app:cardBackgroundColor="@color/glass_white_translucent"
+                    app:cardBackgroundColor="?attr/colorSurface"
                     app:cardCornerRadius="16dp"
                     app:cardElevation="6dp">
 
@@ -133,7 +133,7 @@
                             android:layout_width="wrap_content"
                             android:layout_height="wrap_content"
                             android:text="Saldo hoje"
-                            android:textColor="@android:color/darker_gray"
+                            android:textColor="?attr/colorOnSurfaceVariant"
                             android:textSize="14sp" />
 
                         <TextView
@@ -142,7 +142,7 @@
                             android:layout_height="wrap_content"
                             android:layout_marginTop="4dp"
                             android:text="R$ 0,00"
-                            android:textColor="@color/primary_purple"
+                            android:textColor="?attr/colorPrimary"
                             android:textSize="30sp"
                             android:textStyle="bold" />
 
@@ -152,7 +152,7 @@
                             android:layout_height="wrap_content"
                             android:layout_marginTop="4dp"
                             android:text="Contas de caixa"
-                            android:textColor="@android:color/darker_gray"
+                            android:textColor="?attr/colorOnSurfaceVariant"
                             android:textSize="12sp" />
                     </LinearLayout>
                 </androidx.cardview.widget.CardView>
@@ -162,7 +162,7 @@
                     android:layout_height="wrap_content"
                     android:layout_marginBottom="12dp"
                     style="@style/GlassCard"
-                    app:cardBackgroundColor="@color/glass_white_translucent"
+                    app:cardBackgroundColor="?attr/colorSurface"
                     app:cardCornerRadius="16dp"
                     app:cardElevation="4dp">
 
@@ -177,7 +177,7 @@
                             android:layout_height="wrap_content"
                             android:layout_marginBottom="12dp"
                             android:text="Patrimônio e compromissos"
-                            android:textColor="@android:color/black"
+                            android:textColor="?attr/colorOnSurface"
                             android:textSize="16sp"
                             android:textStyle="bold" />
 
@@ -192,7 +192,7 @@
                                 android:layout_height="wrap_content"
                                 android:layout_weight="1"
                                 android:text="Patrimônio líquido"
-                                android:textColor="@android:color/darker_gray" />
+                                android:textColor="?attr/colorOnSurfaceVariant" />
                             <TextView
                                 android:id="@+id/netBalanceTextView"
                                 android:layout_width="wrap_content"
@@ -212,7 +212,7 @@
                                 android:layout_height="wrap_content"
                                 android:layout_weight="1"
                                 android:text="Investimentos"
-                                android:textColor="@android:color/darker_gray" />
+                                android:textColor="?attr/colorOnSurfaceVariant" />
                             <TextView
                                 android:id="@+id/investmentsBalanceTextView"
                                 android:layout_width="wrap_content"
@@ -233,7 +233,7 @@
                                 android:layout_height="wrap_content"
                                 android:layout_weight="1"
                                 android:text="Após faturas pendentes"
-                                android:textColor="@android:color/darker_gray" />
+                                android:textColor="?attr/colorOnSurfaceVariant" />
                             <TextView
                                 android:id="@+id/effectiveBalanceTextView"
                                 android:layout_width="wrap_content"
@@ -246,7 +246,7 @@
                             android:layout_width="match_parent"
                             android:layout_height="1dp"
                             android:layout_marginVertical="4dp"
-                            android:background="#22000000" />
+                            android:background="@color/outline" />
 
                         <LinearLayout
                             android:layout_width="match_parent"
@@ -259,7 +259,7 @@
                                 android:layout_height="wrap_content"
                                 android:layout_weight="1"
                                 android:text="Despesas futuras (débito)"
-                                android:textColor="@android:color/darker_gray" />
+                                android:textColor="?attr/colorOnSurfaceVariant" />
                             <TextView
                                 android:id="@+id/futureExpensesTextView"
                                 android:layout_width="wrap_content"
@@ -280,7 +280,7 @@
                                 android:layout_height="wrap_content"
                                 android:layout_weight="1"
                                 android:text="Dívida em cartões"
-                                android:textColor="@android:color/darker_gray" />
+                                android:textColor="?attr/colorOnSurfaceVariant" />
                             <TextView
                                 android:id="@+id/creditCardDebtTextView"
                                 android:layout_width="wrap_content"
@@ -297,7 +297,7 @@
                     android:layout_height="wrap_content"
                     android:layout_marginBottom="12dp"
                     style="@style/GlassCard"
-                    app:cardBackgroundColor="@color/glass_white_translucent"
+                    app:cardBackgroundColor="?attr/colorSurface"
                     app:cardCornerRadius="16dp"
                     app:cardElevation="4dp">
 
@@ -311,7 +311,7 @@
                             android:layout_height="wrap_content"
                             android:layout_marginBottom="10dp"
                             android:text="Resumo do período"
-                            android:textColor="@android:color/black"
+                            android:textColor="?attr/colorOnSurface"
                             android:textSize="16sp"
                             android:textStyle="bold" />
 
@@ -328,7 +328,7 @@
                                     android:layout_width="wrap_content"
                                     android:layout_height="wrap_content"
                                     android:text="Receitas"
-                                    android:textColor="@android:color/darker_gray"
+                                    android:textColor="?attr/colorOnSurfaceVariant"
                                     android:textSize="12sp" />
                                 <TextView
                                     android:id="@+id/incomeTextView"
@@ -347,7 +347,7 @@
                                     android:layout_width="wrap_content"
                                     android:layout_height="wrap_content"
                                     android:text="Despesas"
-                                    android:textColor="@android:color/darker_gray"
+                                    android:textColor="?attr/colorOnSurfaceVariant"
                                     android:textSize="12sp" />
                                 <TextView
                                     android:id="@+id/expensesTextView"
@@ -373,7 +373,7 @@
                                     android:layout_width="wrap_content"
                                     android:layout_height="wrap_content"
                                     android:text="Resultado do período"
-                                    android:textColor="@android:color/darker_gray"
+                                    android:textColor="?attr/colorOnSurfaceVariant"
                                     android:textSize="12sp" />
                                 <TextView
                                     android:id="@+id/periodResultTextView"
@@ -391,7 +391,7 @@
                                     android:layout_width="wrap_content"
                                     android:layout_height="wrap_content"
                                     android:text="Crédito disponível"
-                                    android:textColor="@android:color/darker_gray"
+                                    android:textColor="?attr/colorOnSurfaceVariant"
                                     android:textSize="12sp" />
                                 <TextView
                                     android:id="@+id/availableCreditTextView"
@@ -410,7 +410,7 @@
                     android:layout_height="wrap_content"
                     android:layout_marginBottom="12dp"
                     style="@style/GlassCard"
-                    app:cardBackgroundColor="@color/glass_white_translucent"
+                    app:cardBackgroundColor="?attr/colorSurface"
                     app:cardCornerRadius="16dp"
                     app:cardElevation="4dp">
                     <LinearLayout
@@ -422,7 +422,7 @@
                             android:layout_width="wrap_content"
                             android:layout_height="wrap_content"
                             android:text="Evolução financeira"
-                            android:textColor="@android:color/black"
+                            android:textColor="?attr/colorOnSurface"
                             android:textSize="16sp"
                             android:textStyle="bold" />
                         <LinearLayout
@@ -461,7 +461,7 @@
                             android:gravity="center"
                             android:padding="20dp"
                             android:text="Sem dados de evolução para este período"
-                            android:textColor="@android:color/darker_gray"
+                            android:textColor="?attr/colorOnSurfaceVariant"
                             android:visibility="gone" />
                         <br.com.tecpontes.appfinanceiro.ui.dashboard.MonthlyEvolutionChartView
                             android:id="@+id/monthlyEvolutionChartView"
@@ -476,7 +476,7 @@
                     android:layout_height="wrap_content"
                     android:layout_marginBottom="12dp"
                     style="@style/GlassCard"
-                    app:cardBackgroundColor="@color/glass_white_translucent"
+                    app:cardBackgroundColor="?attr/colorSurface"
                     app:cardCornerRadius="16dp"
                     app:cardElevation="4dp">
                     <LinearLayout
@@ -488,7 +488,7 @@
                             android:layout_width="wrap_content"
                             android:layout_height="wrap_content"
                             android:text="Despesas por categoria"
-                            android:textColor="@android:color/black"
+                            android:textColor="?attr/colorOnSurface"
                             android:textSize="16sp"
                             android:textStyle="bold" />
                         <TextView
@@ -498,7 +498,7 @@
                             android:gravity="center"
                             android:padding="20dp"
                             android:text="Sem despesas por categoria neste período"
-                            android:textColor="@android:color/darker_gray"
+                            android:textColor="?attr/colorOnSurfaceVariant"
                             android:visibility="gone" />
                         <br.com.tecpontes.appfinanceiro.ui.dashboard.CategoryPieChartView
                             android:id="@+id/expensesChartView"
@@ -518,7 +518,7 @@
                     android:layout_height="wrap_content"
                     android:layout_marginBottom="12dp"
                     style="@style/GlassCard"
-                    app:cardBackgroundColor="@color/glass_white_translucent"
+                    app:cardBackgroundColor="?attr/colorSurface"
                     app:cardCornerRadius="16dp"
                     app:cardElevation="4dp">
                     <LinearLayout
@@ -530,7 +530,7 @@
                             android:layout_width="wrap_content"
                             android:layout_height="wrap_content"
                             android:text="Receitas por categoria"
-                            android:textColor="@android:color/black"
+                            android:textColor="?attr/colorOnSurface"
                             android:textSize="16sp"
                             android:textStyle="bold" />
                         <TextView
@@ -540,7 +540,7 @@
                             android:gravity="center"
                             android:padding="20dp"
                             android:text="Sem receitas por categoria neste período"
-                            android:textColor="@android:color/darker_gray"
+                            android:textColor="?attr/colorOnSurfaceVariant"
                             android:visibility="gone" />
                         <br.com.tecpontes.appfinanceiro.ui.dashboard.CategoryPieChartView
                             android:id="@+id/incomeChartView"
@@ -561,7 +561,7 @@
                     android:layout_height="wrap_content"
                     android:layout_marginBottom="16dp"
                     style="@style/GlassCard"
-                    app:cardBackgroundColor="@color/glass_white_translucent"
+                    app:cardBackgroundColor="?attr/colorSurface"
                     app:cardCornerRadius="16dp"
                     app:cardElevation="6dp">
                     <LinearLayout
@@ -575,12 +575,12 @@
                             android:layout_height="24dp"
                             android:layout_marginEnd="12dp"
                             android:src="@android:drawable/ic_input_add"
-                            app:tint="@color/primary_purple" />
+                            app:tint="?attr/colorPrimary" />
                         <TextView
                             android:layout_width="wrap_content"
                             android:layout_height="wrap_content"
                             android:text="Adicionar Transação"
-                            android:textColor="@android:color/black"
+                            android:textColor="?attr/colorOnSurface"
                             android:textSize="16sp"
                             android:textStyle="bold" />
                     </LinearLayout>
@@ -597,7 +597,7 @@
                         android:layout_height="wrap_content"
                         android:layout_marginBottom="12dp"
                         android:text="Transações recentes"
-                        android:textColor="@android:color/black"
+                        android:textColor="?attr/colorOnSurface"
                         android:textSize="18sp"
                         android:textStyle="bold" />
                     <androidx.recyclerview.widget.RecyclerView
@@ -616,7 +616,7 @@
                     android:padding="32dp"
                     android:text="Nenhuma transação recente"
                     android:textAlignment="center"
-                    android:textColor="@android:color/darker_gray"
+                    android:textColor="?attr/colorOnSurfaceVariant"
                     android:textSize="16sp"
                     android:visibility="gone" />
 
@@ -627,7 +627,7 @@
                     android:layout_marginBottom="16dp"
                     android:background="@drawable/glass_button_background"
                     android:text="Ver todas as transações"
-                    android:textColor="@color/primary_blue"
+                    android:textColor="?attr/colorSecondary"
                     android:textSize="16sp"
                     android:textStyle="bold"
                     app:cornerRadius="12dp"

@@ -1,6 +1,5 @@
 package br.com.tecpontes.appfinanceiro.ui.transactions;
 
-import android.graphics.Color;
 import android.graphics.drawable.GradientDrawable;
 import android.view.LayoutInflater;
 import android.view.View;
@@ -106,10 +105,12 @@ public class TransactionsAdapter extends RecyclerView.Adapter<TransactionsAdapte
 
             status.setText(transaction.isReconciled() ? "Conciliado" : "Pendente");
             status.setTextColor(itemView.getContext().getColor(
-                    transaction.isReconciled() ? R.color.money_positive : android.R.color.darker_gray));
+                    transaction.isReconciled() ? R.color.on_success_container
+                            : R.color.on_neutral_container));
             GradientDrawable statusBackground = new GradientDrawable();
-            statusBackground.setColor(transaction.isReconciled()
-                    ? Color.rgb(225, 246, 237) : Color.rgb(240, 242, 245));
+            statusBackground.setColor(itemView.getContext().getColor(
+                    transaction.isReconciled() ? R.color.success_container
+                            : R.color.neutral_container));
             statusBackground.setCornerRadius(itemView.getResources().getDisplayMetrics().density * 12);
             status.setBackground(statusBackground);
 

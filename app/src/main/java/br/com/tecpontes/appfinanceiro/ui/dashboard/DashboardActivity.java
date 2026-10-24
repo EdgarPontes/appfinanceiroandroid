@@ -57,8 +57,8 @@ public class DashboardActivity extends AppCompatActivity {
     @Nullable private DashboardDto lastDashboardData;
     private int selectedPeriodPosition = 0;
     private static final int[] FALLBACK_CHART_COLORS = {
-            Color.rgb(20, 160, 135), Color.rgb(58, 141, 255), Color.rgb(245, 166, 35),
-            Color.rgb(221, 91, 120), Color.rgb(142, 93, 214), Color.rgb(120, 130, 145)
+            R.color.brand_primary, R.color.brand_secondary, R.color.password_strength_medium,
+            R.color.money_negative, R.color.brand_primary_dark, R.color.money_neutral
     };
 
     @Override
@@ -128,10 +128,10 @@ public class DashboardActivity extends AppCompatActivity {
      */
     private void setupSwipeRefresh() {
         binding.swipeRefreshLayout.setColorSchemeResources(
-            android.R.color.holo_blue_bright,
-            android.R.color.holo_green_light,
-            android.R.color.holo_orange_light,
-            android.R.color.holo_red_light
+            R.color.brand_primary,
+            R.color.brand_secondary,
+            R.color.password_strength_medium,
+            R.color.money_negative
         );
 
         binding.swipeRefreshLayout.setOnRefreshListener(() -> {
@@ -376,7 +376,8 @@ public class DashboardActivity extends AppCompatActivity {
             String name = item.category == null || item.category.trim().isEmpty()
                     ? "Sem categoria" : item.category;
             parsed.add(new CategoryPieChartView.Entry(
-                    name, amount, parseColor(item.color, FALLBACK_CHART_COLORS[parsed.size() % 5])));
+                    name, amount, parseColor(item.color,
+                    getColor(FALLBACK_CHART_COLORS[parsed.size() % FALLBACK_CHART_COLORS.length]))));
         }
         Collections.sort(parsed, Comparator.comparingDouble(
                 (CategoryPieChartView.Entry entry) -> entry.value).reversed());
@@ -386,7 +387,7 @@ public class DashboardActivity extends AppCompatActivity {
         double others = 0;
         for (int i = 5; i < parsed.size(); i++) others += parsed.get(i).value;
         if (others > 0) {
-            top.add(new CategoryPieChartView.Entry("Outros (demais)", others, Color.LTGRAY));
+            top.add(new CategoryPieChartView.Entry("Outros (demais)", others, getColor(R.color.outline)));
         }
         return top;
     }
@@ -425,7 +426,7 @@ public class DashboardActivity extends AppCompatActivity {
             int percent = (int) Math.round(entry.value / total * 100);
             amount.setText(percent + "% · " + formatCurrency(entry.value));
             amount.setTextSize(12);
-            amount.setTextColor(Color.DKGRAY);
+            amount.setTextColor(getColor(R.color.on_surface_variant));
             row.addView(amount, new LinearLayout.LayoutParams(
                     LinearLayout.LayoutParams.WRAP_CONTENT, LinearLayout.LayoutParams.WRAP_CONTENT));
             container.addView(row);

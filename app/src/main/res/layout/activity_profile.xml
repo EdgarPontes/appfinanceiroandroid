@@ -3,19 +3,19 @@
     xmlns:app="http://schemas.android.com/apk/res-auto"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
-    android:background="@android:color/white"
+    android:background="?android:attr/colorBackground"
     android:orientation="vertical">
 
     <com.google.android.material.appbar.MaterialToolbar
         android:id="@+id/toolbar"
         android:layout_width="match_parent"
         android:layout_height="?attr/actionBarSize"
-        android:background="@color/glass_white_translucent"
+        android:background="?attr/colorSurface"
         app:navigationContentDescription="@string/action_back"
         app:navigationIcon="@drawable/ic_arrow_back"
-        app:navigationIconTint="@android:color/black"
+        app:navigationIconTint="?attr/colorOnSurface"
         app:title="Perfil"
-        app:titleTextColor="@android:color/black" />
+        app:titleTextColor="?attr/colorOnSurface" />
 
     <ScrollView
         android:layout_width="match_parent"
@@ -53,7 +53,7 @@
                 android:layout_marginBottom="14dp"
                 app:cardCornerRadius="16dp"
                 app:cardElevation="2dp"
-                app:strokeColor="#14000000"
+                app:strokeColor="?attr/colorOutline"
                 app:strokeWidth="1dp">
 
                 <LinearLayout
@@ -66,7 +66,7 @@
                         android:layout_width="match_parent"
                         android:layout_height="wrap_content"
                         android:text="Meu Perfil"
-                        android:textColor="@android:color/black"
+                        android:textColor="?attr/colorOnSurface"
                         android:textSize="20sp"
                         android:textStyle="bold" />
 
@@ -95,7 +95,7 @@
                                 android:layout_width="match_parent"
                                 android:layout_height="match_parent"
                                 android:gravity="center"
-                                android:textColor="@color/primary_purple"
+                                android:textColor="?attr/colorPrimary"
                                 android:textSize="24sp"
                                 android:textStyle="bold" />
                         </FrameLayout>
@@ -113,7 +113,7 @@
                                 android:layout_height="wrap_content"
                                 android:ellipsize="end"
                                 android:maxLines="1"
-                                android:textColor="@android:color/black"
+                                android:textColor="?attr/colorOnSurface"
                                 android:textStyle="bold" />
 
                             <com.google.android.material.button.MaterialButton
@@ -140,7 +140,7 @@
                         android:layout_height="wrap_content"
                         android:layout_marginTop="18dp"
                         android:text="Nome *"
-                        android:textColor="@android:color/darker_gray" />
+                        android:textColor="?attr/colorOnSurfaceVariant" />
 
                     <EditText
                         android:id="@+id/firstNameEditText"
@@ -156,7 +156,7 @@
                         android:layout_height="wrap_content"
                         android:layout_marginTop="8dp"
                         android:text="Sobrenome"
-                        android:textColor="@android:color/darker_gray" />
+                        android:textColor="?attr/colorOnSurfaceVariant" />
 
                     <EditText
                         android:id="@+id/lastNameEditText"
@@ -172,7 +172,7 @@
                         android:layout_height="wrap_content"
                         android:layout_marginTop="8dp"
                         android:text="Celular"
-                        android:textColor="@android:color/darker_gray" />
+                        android:textColor="?attr/colorOnSurfaceVariant" />
 
                     <EditText
                         android:id="@+id/cellphoneEditText"
@@ -188,7 +188,7 @@
                         android:layout_height="wrap_content"
                         android:layout_marginTop="8dp"
                         android:text="ID do Telegram"
-                        android:textColor="@android:color/darker_gray" />
+                        android:textColor="?attr/colorOnSurfaceVariant" />
 
                     <EditText
                         android:id="@+id/telegramIdEditText"
@@ -214,7 +214,7 @@
                 android:layout_marginBottom="14dp"
                 app:cardCornerRadius="16dp"
                 app:cardElevation="2dp"
-                app:strokeColor="#14000000"
+                app:strokeColor="?attr/colorOutline"
                 app:strokeWidth="1dp">
 
                 <LinearLayout
@@ -227,7 +227,7 @@
                         android:layout_width="match_parent"
                         android:layout_height="wrap_content"
                         android:text="Alterar senha"
-                        android:textColor="@android:color/black"
+                        android:textColor="?attr/colorOnSurface"
                         android:textSize="20sp"
                         android:textStyle="bold" />
 
@@ -267,8 +267,8 @@
                 android:layout_height="wrap_content"
                 android:layout_marginBottom="14dp"
                 android:text="Sair da conta"
-                android:textColor="@color/primary_purple"
-                app:strokeColor="@color/primary_purple" />
+                android:textColor="?attr/colorPrimary"
+                app:strokeColor="?attr/colorPrimary" />
 
             <com.google.android.material.card.MaterialCardView
                 android:id="@+id/dangerCard"
@@ -298,7 +298,7 @@
                         android:layout_height="wrap_content"
                         android:layout_marginTop="8dp"
                         android:text="Desativar a conta remove permanentemente seu perfil e todos os dados financeiros associados. Esta ação não pode ser desfeita."
-                        android:textColor="@android:color/darker_gray"
+                        android:textColor="?attr/colorOnSurfaceVariant"
                         android:textSize="13sp" />
 
                     <com.google.android.material.button.MaterialButton

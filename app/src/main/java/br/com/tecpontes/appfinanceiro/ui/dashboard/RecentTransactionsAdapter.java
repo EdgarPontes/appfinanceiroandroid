@@ -79,10 +79,10 @@ public class RecentTransactionsAdapter extends RecyclerView.Adapter<RecentTransa
 
             // Cor baseada no tipo (verde para receita, vermelho para despesa)
             if ("income".equals(transaction.getType())) {
-                amountTextView.setTextColor(itemView.getContext().getColor(android.R.color.holo_green_dark));
+                amountTextView.setTextColor(itemView.getContext().getColor(R.color.money_positive));
                 amountTextView.setText("+" + formattedAmount);
             } else {
-                amountTextView.setTextColor(itemView.getContext().getColor(android.R.color.holo_red_dark));
+                amountTextView.setTextColor(itemView.getContext().getColor(R.color.money_negative));
                 amountTextView.setText("-" + formattedAmount);
             }
 

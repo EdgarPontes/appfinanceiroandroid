@@ -3,19 +3,19 @@
     xmlns:app="http://schemas.android.com/apk/res-auto"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
-    android:background="@android:color/white"
+    android:background="?android:attr/colorBackground"
     android:orientation="vertical">
 
     <com.google.android.material.appbar.MaterialToolbar
         android:id="@+id/toolbar"
         android:layout_width="match_parent"
         android:layout_height="?attr/actionBarSize"
-        android:background="@color/glass_white_translucent"
+        android:background="?attr/colorSurface"
         app:navigationContentDescription="@string/action_back"
         app:navigationIcon="@drawable/ic_arrow_back"
-        app:navigationIconTint="@android:color/black"
+        app:navigationIconTint="?attr/colorOnSurface"
         app:title="@string/categories_title"
-        app:titleTextColor="@android:color/black" />
+        app:titleTextColor="?attr/colorOnSurface" />
 
     <ProgressBar
         android:id="@+id/categoriesProgressBar"
@@ -38,7 +38,7 @@
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:text="@string/categories_subtitle"
-            android:textColor="@android:color/darker_gray"
+            android:textColor="?attr/colorOnSurfaceVariant"
             android:textSize="14sp" />
 
         <TextView
@@ -55,10 +55,10 @@
             android:layout_height="wrap_content"
             android:layout_marginTop="8dp"
             app:tabGravity="fill"
-            app:tabIndicatorColor="@color/primary_purple"
+            app:tabIndicatorColor="?attr/colorPrimary"
             app:tabMode="fixed"
-            app:tabSelectedTextColor="@color/primary_purple"
-            app:tabTextColor="@android:color/darker_gray" />
+            app:tabSelectedTextColor="?attr/colorPrimary"
+            app:tabTextColor="?attr/colorOnSurfaceVariant" />
 
         <FrameLayout
             android:layout_width="match_parent"
@@ -88,7 +88,7 @@
                     android:alpha="0.35"
                     android:contentDescription="@null"
                     android:src="@drawable/ic_menu_categories"
-                    app:tint="@color/primary_purple" />
+                    app:tint="?attr/colorPrimary" />
 
                 <TextView
                     android:layout_width="match_parent"
@@ -96,7 +96,7 @@
                     android:layout_marginTop="12dp"
                     android:gravity="center"
                     android:text="@string/categories_empty_title"
-                    android:textColor="@android:color/black"
+                    android:textColor="?attr/colorOnSurface"
                     android:textSize="18sp"
                     android:textStyle="bold" />
 
@@ -107,7 +107,7 @@
                     android:layout_marginTop="6dp"
                     android:gravity="center"
                     android:text="@string/categories_empty_expense"
-                    android:textColor="@android:color/darker_gray"
+                    android:textColor="?attr/colorOnSurfaceVariant"
                     android:textSize="14sp" />
 
                 <com.google.android.material.button.MaterialButton
@@ -117,7 +117,7 @@
                     android:layout_marginTop="16dp"
                     android:text="@string/categories_new"
                     app:icon="@drawable/ic_add"
-                    app:iconTint="@android:color/white" />
+                    app:iconTint="?attr/colorOnPrimary" />
 
                 <com.google.android.material.button.MaterialButton
                     android:id="@+id/createDefaultsButton"
@@ -126,10 +126,10 @@
                     android:layout_height="wrap_content"
                     android:layout_marginTop="8dp"
                     android:text="@string/categories_create_defaults"
-                    android:textColor="@color/primary_purple"
+                    android:textColor="?attr/colorPrimary"
                     app:icon="@drawable/ic_menu_categories"
-                    app:iconTint="@color/primary_purple"
-                    app:strokeColor="@color/primary_purple" />
+                    app:iconTint="?attr/colorPrimary"
+                    app:strokeColor="?attr/colorPrimary" />
             </LinearLayout>
 
             <com.google.android.material.floatingactionbutton.FloatingActionButton
@@ -139,9 +139,9 @@
                 android:layout_gravity="bottom|end"
                 android:layout_margin="16dp"
                 android:contentDescription="@string/categories_new_content_desc"
-                app:backgroundTint="@color/primary_purple"
+                app:backgroundTint="?attr/colorPrimary"
                 app:srcCompat="@drawable/ic_add"
-                app:tint="@android:color/white" />
+                app:tint="?attr/colorOnPrimary" />
         </FrameLayout>
     </LinearLayout>
 

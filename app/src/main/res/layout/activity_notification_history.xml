@@ -3,19 +3,19 @@
     xmlns:app="http://schemas.android.com/apk/res-auto"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
-    android:background="@android:color/white"
+    android:background="?android:attr/colorBackground"
     android:orientation="vertical">
 
     <com.google.android.material.appbar.MaterialToolbar
         android:id="@+id/toolbar"
         android:layout_width="match_parent"
         android:layout_height="?attr/actionBarSize"
-        android:background="@color/glass_white_translucent"
+        android:background="?attr/colorSurface"
         app:navigationContentDescription="@string/action_back"
         app:navigationIcon="@drawable/ic_arrow_back"
-        app:navigationIconTint="@android:color/black"
+        app:navigationIconTint="?attr/colorOnSurface"
         app:title="@string/history_title"
-        app:titleTextColor="@android:color/black" />
+        app:titleTextColor="?attr/colorOnSurface" />
 
     <ProgressBar
         android:id="@+id/historyProgressBar"
@@ -38,7 +38,7 @@
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:text="@string/history_subtitle"
-            android:textColor="@android:color/darker_gray"
+            android:textColor="?attr/colorOnSurfaceVariant"
             android:textSize="13sp" />
 
         <LinearLayout
@@ -59,7 +59,7 @@
                 android:textSize="11sp"
                 app:icon="@drawable/ic_history"
                 app:iconSize="16dp"
-                app:iconTint="@color/primary_purple" />
+                app:iconTint="?attr/colorPrimary" />
 
             <com.google.android.material.button.MaterialButton
                 android:id="@+id/markAllReadButton"
@@ -99,7 +99,7 @@
                 android:contentDescription="@string/history_filters"
                 android:padding="10dp"
                 android:src="@drawable/ic_filter"
-                app:tint="@color/primary_purple" />
+                app:tint="?attr/colorPrimary" />
         </LinearLayout>
 
         <TextView
@@ -107,7 +107,7 @@
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:layout_marginTop="4dp"
-            android:textColor="@color/primary_purple"
+            android:textColor="?attr/colorPrimary"
             android:textSize="12sp"
             android:visibility="gone" />
 
@@ -147,7 +147,7 @@
                     android:alpha="0.25"
                     android:contentDescription="@null"
                     android:src="@drawable/ic_notifications_bell"
-                    app:tint="@android:color/darker_gray" />
+                    app:tint="?attr/colorOnSurfaceVariant" />
 
                 <TextView
                     android:layout_width="match_parent"
@@ -155,7 +155,7 @@
                     android:layout_marginTop="12dp"
                     android:gravity="center"
                     android:text="@string/history_empty_title"
-                    android:textColor="@android:color/black"
+                    android:textColor="?attr/colorOnSurface"
                     android:textSize="17sp"
                     android:textStyle="bold" />
 
@@ -165,7 +165,7 @@
                     android:layout_marginTop="6dp"
                     android:gravity="center"
                     android:text="@string/history_empty_desc"
-                    android:textColor="@android:color/darker_gray"
+                    android:textColor="?attr/colorOnSurfaceVariant"
                     android:textSize="13sp" />
 
                 <com.google.android.material.button.MaterialButton

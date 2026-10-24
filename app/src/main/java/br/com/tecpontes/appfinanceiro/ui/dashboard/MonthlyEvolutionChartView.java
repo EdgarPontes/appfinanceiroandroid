@@ -2,12 +2,13 @@ package br.com.tecpontes.appfinanceiro.ui.dashboard;
 
 import android.content.Context;
 import android.graphics.Canvas;
-import android.graphics.Color;
 import android.graphics.Paint;
 import android.graphics.Typeface;
 import android.util.AttributeSet;
 import android.view.View;
 import androidx.annotation.Nullable;
+import androidx.core.content.ContextCompat;
+import br.com.tecpontes.appfinanceiro.R;
 import java.text.DateFormatSymbols;
 import java.util.ArrayList;
 import java.util.List;
@@ -30,10 +31,6 @@ public class MonthlyEvolutionChartView extends View {
 
     private final Paint paint = new Paint(Paint.ANTI_ALIAS_FLAG);
     private final List<Entry> entries = new ArrayList<>();
-    private final int incomeColor = Color.rgb(28, 153, 111);
-    private final int expenseColor = Color.rgb(213, 72, 94);
-    private final int gridColor = Color.rgb(225, 229, 235);
-    private final int labelColor = Color.rgb(100, 110, 125);
 
     public MonthlyEvolutionChartView(Context context) {
         super(context);
@@ -56,6 +53,10 @@ public class MonthlyEvolutionChartView extends View {
     @Override
     protected void onDraw(Canvas canvas) {
         super.onDraw(canvas);
+        int incomeColor = ContextCompat.getColor(getContext(), R.color.money_positive);
+        int expenseColor = ContextCompat.getColor(getContext(), R.color.money_negative);
+        int gridColor = ContextCompat.getColor(getContext(), R.color.outline);
+        int labelColor = ContextCompat.getColor(getContext(), R.color.on_surface_variant);
         float density = getResources().getDisplayMetrics().density;
         float left = dp(8, density);
         float right = getWidth() - dp(8, density);

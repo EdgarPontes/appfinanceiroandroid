@@ -7,7 +7,7 @@
     style="@style/GlassCard"
     app:cardCornerRadius="16dp"
     app:cardElevation="8dp"
-    app:cardBackgroundColor="@color/glass_white_translucent">
+    app:cardBackgroundColor="?attr/colorSurface">
 
     <!-- Conteúdo do card será inserido aqui -->
     <LinearLayout
@@ -21,7 +21,7 @@
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:text="Glass Card Content"
-            android:textColor="@android:color/black"
+            android:textColor="?attr/colorOnSurface"
             android:textSize="16sp"
             tools:ignore="HardcodedText" />
 

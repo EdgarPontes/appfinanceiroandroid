@@ -226,11 +226,11 @@ public class CreateTransactionDialog extends Dialog {
     private void updateDateLabel() {
         if (binding == null) return;
         if (isTransfer()) {
-            binding.dateLabelTextView.setText("DATA");
+            binding.dateLabelTextView.setText("Data");
         } else if ("INCOME".equals(getTransactionType())) {
-            binding.dateLabelTextView.setText("RECEBIMENTO");
+            binding.dateLabelTextView.setText("Recebimento");
         } else {
-            binding.dateLabelTextView.setText("VENCIMENTO");
+            binding.dateLabelTextView.setText("Vencimento");
         }
     }
 
@@ -242,6 +242,7 @@ public class CreateTransactionDialog extends Dialog {
 
     private void updateRepetitionVisibility() {
         boolean installment = isInstallment();
+        binding.installmentRow.setVisibility(installment ? View.VISIBLE : View.GONE);
         binding.installmentCountLayout.setVisibility(installment ? View.VISIBLE : View.GONE);
         binding.installmentValueTypeSpinner.setVisibility(installment ? View.VISIBLE : View.GONE);
     }
@@ -257,8 +258,8 @@ public class CreateTransactionDialog extends Dialog {
             }
         }
         ArrayAdapter<CategoryOption> adapter = new ArrayAdapter<>(getContext(),
-                android.R.layout.simple_spinner_item, visibleCategories);
-        adapter.setDropDownViewResource(android.R.layout.simple_spinner_dropdown_item);
+                R.layout.item_spinner_form, visibleCategories);
+        adapter.setDropDownViewResource(R.layout.item_spinner_form_dropdown);
         binding.categorySpinner.setAdapter(adapter);
     }
 
@@ -408,8 +409,8 @@ public class CreateTransactionDialog extends Dialog {
             for (String value : values) if (value != null) entries.add(value);
         }
         ArrayAdapter<String> adapter = new ArrayAdapter<>(getContext(),
-                android.R.layout.simple_spinner_item, entries);
-        adapter.setDropDownViewResource(android.R.layout.simple_spinner_dropdown_item);
+                R.layout.item_spinner_form, entries);
+        adapter.setDropDownViewResource(R.layout.item_spinner_form_dropdown);
         spinner.setAdapter(adapter);
     }
 

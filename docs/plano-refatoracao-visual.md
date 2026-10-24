@@ -2,9 +2,9 @@
 
 Documento vivo para acompanhar a modernização visual do app, com etapas, critérios de aceite e conclusões.
 
-- **Status geral:** Fase 3 em andamento; Login e Dashboard concluídos; Transações redesenhadas aguardando validação visual.
+- **Status geral:** Fase 3 em andamento; Login, Dashboard e Transações concluídos; diálogo de lançamento redesenhado aguardando validação visual.
 - **Última atualização:** 2026-10-24.
-- **Próximo passo:** validar `F3-03` (Transações) e seguir para `F3-04` (Criar/editar lançamento).
+- **Próximo passo:** validar `F3-04` (Criar/editar lançamento) e seguir para `F3-05` (Contas).
 - **Responsável:** equipe de desenvolvimento Android.
 
 ## Como atualizar este documento
@@ -33,7 +33,7 @@ Documento vivo para acompanhar a modernização visual do app, com etapas, crit�
 | Fase 0 | Diagnóstico técnico e definição do plano | Concluído | 100% |
 | Fase 1 | Fundação visual: tokens, temas, estilos e drawables | Concluído | 100% |
 | Fase 2 | Migração global de cores fixas e preparação do dark mode | Concluído | 100% |
-| Fase 3 | Redesenho estrutural das telas | Em andamento | 27% |
+| Fase 3 | Redesenho estrutural das telas | Em andamento | 36% |
 | Fase 4 | Validação final, dark mode e QA | Pendente | 0% |
 
 ## Decisões consolidadas
@@ -120,8 +120,8 @@ Objetivo: aplicar a identidade Modern Tech & Sofisticado em cada tela, mantendo 
 | :--- | :--- | :--- | :--- | :--- | :--- |
 | F3-01 | Login | `activity_login.xml`, `LoginActivity.java` | Estrutura moderna, CTA esmeralda, dark mode e estados de erro preservados. | Concluído | Branding em gradiente, `ModernCard`, `ModernTextInput`, CTA esmeralda e dark mode; IDs e estados de erro preservados; build OK. |
 | F3-02 | Dashboard | `activity_dashboard.xml`, `DashboardActivity.java` | Cards de saldo/patrimônio/resumo modernos e legíveis nos dois temas. | Concluído | Cards migrados para `ModernCard`, seletor de período estilizado, CTA esmeralda de adicionar transação, botão secundário outlined e itens recentes com `ModernListCard`; build OK. |
-| F3-03 | Transações | `activity_transactions.xml`, `TransactionsActivity.java` | Filtros, resumo, lista e FAB alinhados ao novo design. | Em andamento | Toolbar e seletores modernizados, resumo em `ModernCard`, filtros tonal, FAB esmeralda e itens com `ModernListCard`; build OK. Falta validação visual. |
-| F3-04 | Criar/editar lançamento | `dialog_create_transaction.xml`, `CreateTransactionDialog.java` | Formulário moderno, teclado, máscara de valor e privacidade preservados. | Pendente | Aguardando execução. |
+| F3-03 | Transações | `activity_transactions.xml`, `TransactionsActivity.java` | Filtros, resumo, lista e FAB alinhados ao novo design. | Concluído | Toolbar e seletores modernizados, resumo em `ModernCard`, filtros tonal, FAB esmeralda e itens com `ModernListCard`; build OK. |
+| F3-04 | Criar/editar lançamento | `dialog_create_transaction.xml`, `CreateTransactionDialog.java` | Formulário moderno, teclado, máscara de valor e privacidade preservados. | Em andamento | Diálogo com `ModernCard`, campos `ModernTextInput`, spinners com `bg_period_selector` e itens temáticos, labels em sentence case e CTA esmeralda; no parcelamento, seletor de valor à esquerda e nº de parcelas à direita. Máscara/regras/IDs preservados; build OK. Falta validação visual. |
 | F3-05 | Contas | `activity_accounts.xml`, `AccountsActivity.java` | Cards de conta e cartão modernizados sem perder ações. | Pendente | Aguardando execução. |
 | F3-06 | Importação de extrato | `activity_statement_import.xml`, `StatementImportActivity.java` | Linhas, seleção e resumo legíveis em ambos os temas. | Pendente | Aguardando execução. |
 | F3-07 | Cartões | `activity_cards.xml`, `CardsActivity.java` | Visão do cartão, fatura e resumo modernizados. | Pendente | Aguardando execução. |
@@ -166,7 +166,8 @@ Objetivo: aplicar a identidade Modern Tech & Sofisticado em cada tela, mantendo 
 | 2026-10-24 | F2-08 | Validação visual do dark mode concluída | Prints de Dashboard, Transações, Cartões, Contas e Menu em claro/escuro confirmaram legibilidade e consistência; Fase 2 concluída. |
 | 2026-10-24 | F3-01 | Login redesenhado e logo atualizado | `activity_login.xml` atualizado com novo vetor de logo `ic_app_logo.xml` (símbolos de cédula, carteira, moedas, gráfico e seta), `ModernCard`, `ModernTextInput`, CTA esmeralda e suporte a dark mode; build OK. |
 | 2026-10-24 | F3-02 | Dashboard redesenhado | Cards `ModernCard`, seletor de período com `bg_period_selector` e itens customizados, CTA esmeralda e botão outlined; `ModernListCard` nos itens recentes; build OK. |
-| 2026-10-24 | F3-03 | Transações redesenhadas | Toolbar sem `Dark.ActionBar`, seletor de mês em card `surfaceVariant`, contas com botão outlined, filtros tonal, resumo `ModernCard`, FAB e itens em esmeralda/`ModernListCard`; build OK. Pendente validação visual. |
+| 2026-10-24 | F3-03 | Transações redesenhadas | Toolbar sem `Dark.ActionBar`, seletor de mês em card `surfaceVariant`, contas com botão outlined, filtros tonal, resumo `ModernCard`, FAB e itens em esmeralda/`ModernListCard`; build OK. |
+| 2026-10-24 | F3-04 | Diálogo de lançamento redesenhado | Cabeçalho com subtítulo, `ModernCard`, `ModernTextInput`, spinners `bg_period_selector` com `item_spinner_form`, labels em sentence case, erro em `@color/error` e CTA esmeralda; parcelamento com valor à esquerda e nº de parcelas à direita; máscara de valor e IDs preservados; build OK. Pendente validação visual. |
 
 ## Comandos de validação
 

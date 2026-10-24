@@ -135,6 +135,10 @@ O aplicativo utiliza design glassmorphism com:
 - **Sombras suaves**: Efeito de profundidade
 - **Temas adaptativos**: Claro/escuro automático
 
+### Plano de refatoração visual
+
+A modernização para o estilo **Modern Tech & Sofisticado** está planejada em fases, com status, critérios de aceite e registro de execução. Consulte [docs/plano-refatoracao-visual.md](docs/plano-refatoracao-visual.md) para acompanhar o andamento.
+
 ## 💾 Persistência Local
 
 ### Room Database

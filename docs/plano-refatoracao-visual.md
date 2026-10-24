@@ -2,9 +2,9 @@
 
 Documento vivo para acompanhar a modernização visual do app, com etapas, critérios de aceite e conclusões.
 
-- **Status geral:** Fase 2 implementada; falta validação visual em dispositivo.
+- **Status geral:** Fase 3 em andamento; Login redesenhado aguardando validação visual.
 - **Última atualização:** 2026-10-24.
-- **Próximo passo:** `F2-08` — validar dark mode global no app instalado.
+- **Próximo passo:** validar `F3-01` (Login) no app instalado.
 - **Responsável:** equipe de desenvolvimento Android.
 
 ## Como atualizar este documento
@@ -32,8 +32,8 @@ Documento vivo para acompanhar a modernização visual do app, com etapas, crit�
 | :--- | :--- | :--- | :--- |
 | Fase 0 | Diagnóstico técnico e definição do plano | Concluído | 100% |
 | Fase 1 | Fundação visual: tokens, temas, estilos e drawables | Concluído | 100% |
-| Fase 2 | Migração global de cores fixas e preparação do dark mode | Em andamento | 88% |
-| Fase 3 | Redesenho estrutural das telas | Pendente | 0% |
+| Fase 2 | Migração global de cores fixas e preparação do dark mode | Concluído | 100% |
+| Fase 3 | Redesenho estrutural das telas | Em andamento | 9% |
 | Fase 4 | Validação final, dark mode e QA | Pendente | 0% |
 
 ## Decisões consolidadas
@@ -103,7 +103,7 @@ Objetivo: remover cores fixas dos layouts para que o dark mode funcione em todas
 | F2-05 | Migrar itens de listas e adapters | `res/layout/item_*.xml` e adapters | Itens usam cores do tema; sem branco/preto fixo. | Concluído | Itens e adapters migrados; badges usam `success_container`/`neutral_container`; textos dinâmicos usam tokens. |
 | F2-06 | Migrar gráficos | `MonthlyEvolutionChartView`, `CategoryPieChartView` | Grade, rótulos e fundos legíveis em claro/escuro. | Concluído | Gráficos resolvem receitas, despesas, grade, rótulos e estado vazio via tokens do tema. |
 | F2-07 | Revisar estados de carregamento/vazio/erro | Layouts e componentes | Estados usam superfícies e textos do tema. | Concluído | `loading_view`, vazios, erros e badges migrados; aliases legados removidos de `colors.xml`. |
-| F2-08 | Validar dark mode global | App em claro/escuro | Nenhuma tela com fundo claro e texto claro ou superfícies inconsistentes. | Em andamento | Build e auditoria estática OK. Falta instalar o APK e validar visualmente as telas nos dois temas. |
+| F2-08 | Validar dark mode global | App em claro/escuro | Nenhuma tela com fundo claro e texto claro ou superfícies inconsistentes. | Concluído | Validado visualmente com prints de Dashboard, Transações, Cartões, Contas e Menu em claro e escuro; sem faixas brancas ou textos ilegíveis. |
 
 **Critérios de saída da Fase 2**
 
@@ -118,7 +118,7 @@ Objetivo: aplicar a identidade Modern Tech & Sofisticado em cada tela, mantendo 
 
 | ID | Tela | Arquivos principais | Critério de aceite | Status | Conclusão |
 | :--- | :--- | :--- | :--- | :--- | :--- |
-| F3-01 | Login | `activity_login.xml`, `LoginActivity.java` | Estrutura moderna, CTA esmeralda, dark mode e estados de erro preservados. | Pendente | Aguardando execução. |
+| F3-01 | Login | `activity_login.xml`, `LoginActivity.java` | Estrutura moderna, CTA esmeralda, dark mode e estados de erro preservados. | Em andamento | Login redesenhado: branding com logo em gradiente, card `ModernCard`, campos `ModernTextInput`, CTA esmeralda (`PrimaryCTAButton`), tabs e estados de erro preservados. Falta validação visual no dispositivo. |
 | F3-02 | Dashboard | `activity_dashboard.xml`, `DashboardActivity.java` | Cards de saldo/patrimônio/resumo modernos e legíveis nos dois temas. | Pendente | Aguardando execução. |
 | F3-03 | Transações | `activity_transactions.xml`, `TransactionsActivity.java` | Filtros, resumo, lista e FAB alinhados ao novo design. | Pendente | Aguardando execução. |
 | F3-04 | Criar/editar lançamento | `dialog_create_transaction.xml`, `CreateTransactionDialog.java` | Formulário moderno, teclado, máscara de valor e privacidade preservados. | Pendente | Aguardando execução. |
@@ -163,7 +163,8 @@ Objetivo: aplicar a identidade Modern Tech & Sofisticado em cada tela, mantendo 
 | 2026-10-24 | F2-01/F2-02/F2-03 | Fundos, textos, superfícies e toolbars migrados | 14 raízes, 33 layouts e color state lists usando atributos/tokens do tema; aliases legados removidos; build OK. |
 | 2026-10-24 | F2-04/F2-05/F2-07 | Diálogos, itens, adapters e estados migrados | Textos dinâmicos, badges, divisores e strokes via tokens; `loading_view` e estados de vazio/erro revisados; build OK. |
 | 2026-10-24 | F2-06 | Gráficos tema-aware | `MonthlyEvolutionChartView` e `CategoryPieChartView` resolvem cores do tema; build OK. |
-| 2026-10-24 | F2-08 | Validação estática concluída; falta validação visual | Ajuste de contraste dos tokens (`money_*`, CTA, superfícies) e auditoria sem cores fixas críticas; pendente instalar APK e conferir claro/escuro. |
+| 2026-10-24 | F2-08 | Validação visual do dark mode concluída | Prints de Dashboard, Transações, Cartões, Contas e Menu em claro/escuro confirmaram legibilidade e consistência; Fase 2 concluída. |
+| 2026-10-24 | F3-01 | Login redesenhado e logo atualizado | `activity_login.xml` atualizado com novo vetor de logo `ic_app_logo.xml` (símbolos de cédula, carteira, moedas, gráfico e seta), `ModernCard`, `ModernTextInput`, CTA esmeralda e suporte a dark mode; build OK. |
 
 ## Comandos de validação
 

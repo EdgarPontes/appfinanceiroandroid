@@ -80,7 +80,7 @@ Documentação da fundação visual "Modern Tech & Sofisticado". Serve como refe
 | `ModernCard` | `Widget.Material3.CardView.Filled` | Card moderno: superfície sólida, raio 20dp, borda e elevação 2dp. |
 | `PrimaryCTAButton` | `Widget.Material3.Button` | Ação principal; fundo `colorTertiary`, altura mínima 52dp, raio 14dp. |
 | `BrandButton` | `Widget.Material3.Button` | Ação de marca; fundo `colorPrimary`, altura mínima 52dp. |
-| `ModernTextInput` | `Widget.Material3.TextInputLayout.OutlinedBox` | Campo arredondado (12dp) com superfície e contorno do tema. |
+| `ModernTextInput` | `Widget.Material3.TextInputLayout.OutlinedBox` | Campo arredondado (14dp) com fundo `surfaceVariant`, contorno do tema e hint em `colorOnSurfaceVariant`. |
 | `SettingsCard` | — | Card de configurações: superfície, borda e raio 16dp. |
 | `GlassCard` / `GlassButton` / `GlassTextInput` | legado | Rebaseados nos tokens; mantidos durante a transição. |
 | `SettingsSectionTitle` / `SettingsLabel` / `SettingsHelper` / `SettingsIcon` | — | Textos e ícones usando `?attr/colorOnSurface*` e `?attr/colorPrimary`. |

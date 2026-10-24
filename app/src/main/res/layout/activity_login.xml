@@ -11,54 +11,61 @@
         android:id="@+id/loginScrollView"
         android:layout_width="match_parent"
         android:layout_height="match_parent"
+        android:clipToPadding="false"
         android:fillViewport="true">
 
         <LinearLayout
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:gravity="center"
+            android:gravity="center_horizontal"
             android:orientation="vertical"
-            android:paddingStart="16dp"
-            android:paddingTop="20dp"
-            android:paddingEnd="16dp"
-            android:paddingBottom="20dp">
+            android:paddingStart="20dp"
+            android:paddingTop="32dp"
+            android:paddingEnd="20dp"
+            android:paddingBottom="24dp">
+
+            <ImageView
+                android:id="@+id/loginLogoImageView"
+                android:layout_width="88dp"
+                android:layout_height="88dp"
+                android:contentDescription="@string/app_name"
+                android:src="@drawable/ic_app_logo" />
+
+            <TextView
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="16dp"
+                android:gravity="center"
+                android:text="App Financeiro"
+                android:textColor="?attr/colorOnSurface"
+                android:textSize="28sp"
+                android:textStyle="bold" />
+
+            <TextView
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="6dp"
+                android:gravity="center"
+                android:text="Seu parceiro nas finanças!"
+                android:textColor="?attr/colorOnSurfaceVariant"
+                android:textSize="14sp" />
 
             <com.google.android.material.card.MaterialCardView
-                style="@style/SettingsCard"
+                style="@style/ModernCard"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
-                app:cardBackgroundColor="?attr/colorSurface">
+                android:layout_marginTop="24dp">
 
                 <LinearLayout
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
                     android:orientation="vertical"
-                    android:padding="22dp">
-
-                    <TextView
-                        android:layout_width="match_parent"
-                        android:layout_height="wrap_content"
-                        android:gravity="center"
-                        android:text="App Financeiro"
-                        android:textColor="?attr/colorPrimary"
-                        android:textSize="30sp"
-                        android:textStyle="bold" />
-
-                    <TextView
-                        android:layout_width="match_parent"
-                        android:layout_height="wrap_content"
-                        android:layout_marginTop="4dp"
-                        android:gravity="center"
-                        android:text="Seu parceito financeiro."
-                        android:textColor="?attr/colorOnSurfaceVariant"
-                        android:textSize="13sp" />
+                    android:padding="20dp">
 
                     <com.google.android.material.button.MaterialButtonToggleGroup
                         android:id="@+id/authTabGroup"
                         android:layout_width="match_parent"
                         android:layout_height="wrap_content"
-                        android:layout_marginTop="22dp"
-                        android:orientation="horizontal"
                         app:selectionRequired="true"
                         app:singleSelection="true">
 
@@ -66,7 +73,7 @@
                             android:id="@+id/loginTabButton"
                             style="@style/Widget.Material3.Button.OutlinedButton"
                             android:layout_width="0dp"
-                            android:layout_height="48dp"
+                            android:layout_height="50dp"
                             android:layout_weight="1"
                             android:checkable="true"
                             android:checked="true"
@@ -79,6 +86,7 @@
                             android:textColor="@color/auth_tab_text"
                             android:textSize="14sp"
                             app:backgroundTint="@color/auth_tab_background"
+                            app:cornerRadius="12dp"
                             app:strokeColor="?attr/colorPrimary"
                             app:strokeWidth="1dp" />
 
@@ -86,7 +94,7 @@
                             android:id="@+id/registerTabButton"
                             style="@style/Widget.Material3.Button.OutlinedButton"
                             android:layout_width="0dp"
-                            android:layout_height="48dp"
+                            android:layout_height="50dp"
                             android:layout_weight="1"
                             android:checkable="true"
                             android:insetLeft="0dp"
@@ -98,6 +106,7 @@
                             android:textColor="@color/auth_tab_text"
                             android:textSize="14sp"
                             app:backgroundTint="@color/auth_tab_background"
+                            app:cornerRadius="12dp"
                             app:strokeColor="?attr/colorPrimary"
                             app:strokeWidth="1dp" />
                     </com.google.android.material.button.MaterialButtonToggleGroup>
@@ -105,14 +114,14 @@
                     <com.google.android.material.button.MaterialButton
                         android:id="@+id/googleAuthButton"
                         android:layout_width="match_parent"
-                        android:layout_height="50dp"
-                        android:layout_marginTop="16dp"
+                        android:layout_height="52dp"
+                        android:layout_marginTop="14dp"
                         android:text="Continuar com o Google"
                         android:textAllCaps="false"
                         android:textColor="?attr/colorOnSurface"
                         android:textSize="14sp"
-                        app:backgroundTint="?attr/colorSurface"
-                        app:cornerRadius="25dp"
+                        app:backgroundTint="?attr/colorSurfaceVariant"
+                        app:cornerRadius="14dp"
                         app:icon="@drawable/ic_google"
                         app:iconGravity="textStart"
                         app:iconPadding="10dp"
@@ -124,7 +133,7 @@
                     <LinearLayout
                         android:layout_width="match_parent"
                         android:layout_height="wrap_content"
-                        android:layout_marginTop="16dp"
+                        android:layout_marginTop="18dp"
                         android:gravity="center_vertical"
                         android:orientation="horizontal">
 
@@ -138,7 +147,7 @@
                             android:layout_width="wrap_content"
                             android:layout_height="wrap_content"
                             android:layout_marginHorizontal="12dp"
-                            android:text="ou com e-mail"
+                            android:text="ou continue com e-mail"
                             android:textColor="?attr/colorOnSurfaceVariant"
                             android:textSize="12sp" />
 
@@ -153,24 +162,15 @@
                         android:id="@+id/loginFormContainer"
                         android:layout_width="match_parent"
                         android:layout_height="wrap_content"
-                        android:layout_marginTop="14dp"
+                        android:layout_marginTop="16dp"
                         android:orientation="vertical">
-
-                        <TextView
-                            android:layout_width="match_parent"
-                            android:layout_height="wrap_content"
-                            android:layout_marginBottom="6dp"
-                            android:text="E-MAIL"
-                            android:textColor="?attr/colorOnSurfaceVariant"
-                            android:textSize="11sp"
-                            android:textStyle="bold" />
 
                         <com.google.android.material.textfield.TextInputLayout
                             android:id="@+id/loginEmailInputLayout"
+                            style="@style/ModernTextInput"
                             android:layout_width="match_parent"
                             android:layout_height="wrap_content"
-                            app:boxBackgroundMode="outline"
-                            app:boxStrokeColor="?attr/colorPrimary"
+                            android:hint="E-mail"
                             app:errorEnabled="true">
 
                             <com.google.android.material.textfield.TextInputEditText
@@ -183,22 +183,13 @@
                                 android:textSize="15sp" />
                         </com.google.android.material.textfield.TextInputLayout>
 
-                        <TextView
+                        <com.google.android.material.textfield.TextInputLayout
+                            android:id="@+id/loginPasswordInputLayout"
+                            style="@style/ModernTextInput"
                             android:layout_width="match_parent"
                             android:layout_height="wrap_content"
                             android:layout_marginTop="12dp"
-                            android:layout_marginBottom="6dp"
-                            android:text="SENHA"
-                            android:textColor="?attr/colorOnSurfaceVariant"
-                            android:textSize="11sp"
-                            android:textStyle="bold" />
-
-                        <com.google.android.material.textfield.TextInputLayout
-                            android:id="@+id/loginPasswordInputLayout"
-                            android:layout_width="match_parent"
-                            android:layout_height="wrap_content"
-                            app:boxBackgroundMode="outline"
-                            app:boxStrokeColor="?attr/colorPrimary"
+                            android:hint="Senha"
                             app:endIconMode="password_toggle"
                             app:endIconTint="?attr/colorOnSurfaceVariant"
                             app:errorEnabled="true">
@@ -215,55 +206,42 @@
 
                         <com.google.android.material.button.MaterialButton
                             android:id="@+id/loginButton"
+                            style="@style/PrimaryCTAButton"
                             android:layout_width="match_parent"
                             android:layout_height="52dp"
-                            android:layout_marginTop="18dp"
-                            android:text="Entrar"
-                            android:textAllCaps="false"
-                            android:textColor="?attr/colorOnPrimary"
-                            android:textSize="16sp"
-                            android:textStyle="bold"
-                            app:backgroundTint="?attr/colorPrimary"
-                            app:cornerRadius="14dp" />
+                            android:layout_marginTop="20dp"
+                            android:text="Entrar" />
 
                         <TextView
                             android:id="@+id/forgotPasswordTextView"
                             android:layout_width="match_parent"
                             android:layout_height="wrap_content"
-                            android:layout_marginTop="16dp"
+                            android:layout_marginTop="8dp"
                             android:background="?attr/selectableItemBackground"
                             android:clickable="true"
                             android:focusable="true"
-                            android:gravity="center"
+                            android:gravity="end"
                             android:padding="8dp"
                             android:text="Esqueci minha senha"
                             android:textColor="?attr/colorPrimary"
-                            android:textSize="13sp" />
+                            android:textSize="13sp"
+                            android:textStyle="bold" />
                     </LinearLayout>
 
                     <LinearLayout
                         android:id="@+id/registerFormContainer"
                         android:layout_width="match_parent"
                         android:layout_height="wrap_content"
-                        android:layout_marginTop="14dp"
+                        android:layout_marginTop="16dp"
                         android:orientation="vertical"
                         android:visibility="gone">
 
-                        <TextView
-                            android:layout_width="match_parent"
-                            android:layout_height="wrap_content"
-                            android:layout_marginBottom="6dp"
-                            android:text="SEU NOME"
-                            android:textColor="?attr/colorOnSurfaceVariant"
-                            android:textSize="11sp"
-                            android:textStyle="bold" />
-
                         <com.google.android.material.textfield.TextInputLayout
                             android:id="@+id/registerNameInputLayout"
+                            style="@style/ModernTextInput"
                             android:layout_width="match_parent"
                             android:layout_height="wrap_content"
-                            app:boxBackgroundMode="outline"
-                            app:boxStrokeColor="?attr/colorPrimary"
+                            android:hint="Seu nome"
                             app:errorEnabled="true">
 
                             <com.google.android.material.textfield.TextInputEditText
@@ -276,22 +254,13 @@
                                 android:textSize="15sp" />
                         </com.google.android.material.textfield.TextInputLayout>
 
-                        <TextView
+                        <com.google.android.material.textfield.TextInputLayout
+                            android:id="@+id/registerEmailInputLayout"
+                            style="@style/ModernTextInput"
                             android:layout_width="match_parent"
                             android:layout_height="wrap_content"
                             android:layout_marginTop="12dp"
-                            android:layout_marginBottom="6dp"
-                            android:text="E-MAIL"
-                            android:textColor="?attr/colorOnSurfaceVariant"
-                            android:textSize="11sp"
-                            android:textStyle="bold" />
-
-                        <com.google.android.material.textfield.TextInputLayout
-                            android:id="@+id/registerEmailInputLayout"
-                            android:layout_width="match_parent"
-                            android:layout_height="wrap_content"
-                            app:boxBackgroundMode="outline"
-                            app:boxStrokeColor="?attr/colorPrimary"
+                            android:hint="E-mail"
                             app:errorEnabled="true">
 
                             <com.google.android.material.textfield.TextInputEditText
@@ -304,22 +273,13 @@
                                 android:textSize="15sp" />
                         </com.google.android.material.textfield.TextInputLayout>
 
-                        <TextView
+                        <com.google.android.material.textfield.TextInputLayout
+                            android:id="@+id/registerCellphoneInputLayout"
+                            style="@style/ModernTextInput"
                             android:layout_width="match_parent"
                             android:layout_height="wrap_content"
                             android:layout_marginTop="12dp"
-                            android:layout_marginBottom="6dp"
-                            android:text="CELULAR"
-                            android:textColor="?attr/colorOnSurfaceVariant"
-                            android:textSize="11sp"
-                            android:textStyle="bold" />
-
-                        <com.google.android.material.textfield.TextInputLayout
-                            android:id="@+id/registerCellphoneInputLayout"
-                            android:layout_width="match_parent"
-                            android:layout_height="wrap_content"
-                            app:boxBackgroundMode="outline"
-                            app:boxStrokeColor="?attr/colorPrimary"
+                            android:hint="Celular"
                             app:errorEnabled="true">
 
                             <com.google.android.material.textfield.TextInputEditText
@@ -333,22 +293,13 @@
                                 android:textSize="15sp" />
                         </com.google.android.material.textfield.TextInputLayout>
 
-                        <TextView
+                        <com.google.android.material.textfield.TextInputLayout
+                            android:id="@+id/registerPasswordInputLayout"
+                            style="@style/ModernTextInput"
                             android:layout_width="match_parent"
                             android:layout_height="wrap_content"
                             android:layout_marginTop="12dp"
-                            android:layout_marginBottom="6dp"
-                            android:text="CRIE UMA SENHA"
-                            android:textColor="?attr/colorOnSurfaceVariant"
-                            android:textSize="11sp"
-                            android:textStyle="bold" />
-
-                        <com.google.android.material.textfield.TextInputLayout
-                            android:id="@+id/registerPasswordInputLayout"
-                            android:layout_width="match_parent"
-                            android:layout_height="wrap_content"
-                            app:boxBackgroundMode="outline"
-                            app:boxStrokeColor="?attr/colorPrimary"
+                            android:hint="Crie uma senha"
                             app:endIconMode="password_toggle"
                             app:endIconTint="?attr/colorOnSurfaceVariant"
                             app:errorEnabled="true">
@@ -401,28 +352,19 @@
                                 android:layout_width="wrap_content"
                                 android:layout_height="wrap_content"
                                 android:layout_marginStart="8dp"
-                                android:minWidth="42dp"
                                 android:gravity="end"
+                                android:minWidth="42dp"
                                 android:textColor="?attr/colorOnSurfaceVariant"
                                 android:textSize="11sp" />
                         </LinearLayout>
 
-                        <TextView
+                        <com.google.android.material.textfield.TextInputLayout
+                            android:id="@+id/registerConfirmPasswordInputLayout"
+                            style="@style/ModernTextInput"
                             android:layout_width="match_parent"
                             android:layout_height="wrap_content"
                             android:layout_marginTop="12dp"
-                            android:layout_marginBottom="6dp"
-                            android:text="CONFIRMAR SENHA"
-                            android:textColor="?attr/colorOnSurfaceVariant"
-                            android:textSize="11sp"
-                            android:textStyle="bold" />
-
-                        <com.google.android.material.textfield.TextInputLayout
-                            android:id="@+id/registerConfirmPasswordInputLayout"
-                            android:layout_width="match_parent"
-                            android:layout_height="wrap_content"
-                            app:boxBackgroundMode="outline"
-                            app:boxStrokeColor="?attr/colorPrimary"
+                            android:hint="Confirmar senha"
                             app:endIconMode="password_toggle"
                             app:endIconTint="?attr/colorOnSurfaceVariant"
                             app:errorEnabled="true">
@@ -439,16 +381,11 @@
 
                         <com.google.android.material.button.MaterialButton
                             android:id="@+id/registerButton"
+                            style="@style/PrimaryCTAButton"
                             android:layout_width="match_parent"
                             android:layout_height="52dp"
-                            android:layout_marginTop="18dp"
-                            android:text="Criar conta"
-                            android:textAllCaps="false"
-                            android:textColor="?attr/colorOnPrimary"
-                            android:textSize="16sp"
-                            android:textStyle="bold"
-                            app:backgroundTint="?attr/colorPrimary"
-                            app:cornerRadius="14dp" />
+                            android:layout_marginTop="20dp"
+                            android:text="Criar conta" />
 
                         <TextView
                             android:id="@+id/termsTextView"
@@ -466,9 +403,12 @@
                         android:id="@+id/aboutAppTextView"
                         android:layout_width="match_parent"
                         android:layout_height="wrap_content"
-                        android:layout_marginTop="20dp"
-                        android:drawableStart="@drawable/ic_arrow_back"
+                        android:layout_marginTop="16dp"
+                        android:background="?attr/selectableItemBackground"
+                        android:clickable="true"
+                        android:drawableEnd="@drawable/ic_month_next"
                         android:drawablePadding="6dp"
+                        android:focusable="true"
                         android:gravity="center"
                         android:padding="8dp"
                         android:text="Conhecer o app"

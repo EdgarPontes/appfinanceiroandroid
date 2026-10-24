@@ -1,0 +1,129 @@
+<?xml version="1.0" encoding="utf-8"?>
+<vector xmlns:android="http://schemas.android.com/apk/res/android"
+    android:width="128dp"
+    android:height="128dp"
+    android:viewportWidth="100"
+    android:viewportHeight="100">
+
+    <!-- Background Squircle / Rounded Square -->
+    <path
+        android:fillColor="#7EE0CC"
+        android:pathData="M 22,0 L 78,0 C 90,0 100,10 100,22 L 100,78 C 100,90 90,100 78,100 L 22,100 C 10,100 0,90 0,78 L 0,22 C 0,10 10,0 22,0 Z" />
+
+    <!-- Growth Line & Arrow Head -->
+    <path
+        android:pathData="M 17,41 C 30,41 45,28 58,27 C 61.5,27 61,33 64,33 C 67.5,33 71,24 75,19"
+        android:strokeColor="#0D3C4C"
+        android:strokeWidth="3.2"
+        android:strokeLineCap="round"
+        android:strokeLineJoin="round" />
+
+    <path
+        android:pathData="M 65,20 L 75,19 L 74,29"
+        android:strokeColor="#0D3C4C"
+        android:strokeWidth="3.2"
+        android:strokeLineCap="round"
+        android:strokeLineJoin="round" />
+
+    <!-- Bar Chart (Left Bar) -->
+    <path
+        android:fillColor="#38A1DD"
+        android:pathData="M 58,52 L 58,38 C 58,36.5 59.2,35.5 60.5,35.5 L 62.5,35.5 C 63.8,35.5 65,36.5 65,38 L 65,52 Z"
+        android:strokeColor="#0D3C4C"
+        android:strokeWidth="2.5"
+        android:strokeLineJoin="round" />
+
+    <!-- Bar Chart (Right Bar) -->
+    <path
+        android:fillColor="#38A1DD"
+        android:pathData="M 68,52 L 68,28 C 68,26.5 69.2,25.5 70.5,25.5 L 72.5,25.5 C 73.8,25.5 75,26.5 75,28 L 75,52 Z"
+        android:strokeColor="#0D3C4C"
+        android:strokeWidth="2.5"
+        android:strokeLineJoin="round" />
+
+    <!-- Banknote Outer Body -->
+    <path
+        android:fillColor="#63CB9E"
+        android:pathData="M 17,41 L 53,41 C 54.1,41 55,41.9 55,43 L 55,67 C 55,68.1 54.1,69 53,69 L 17,69 C 15.9,69 15,68.1 15,67 L 15,43 C 15,41.9 15.9,41 17,41 Z"
+        android:strokeColor="#0D3C4C"
+        android:strokeWidth="2.5"
+        android:strokeLineJoin="round" />
+
+    <!-- Banknote Corner Arcs -->
+    <path
+        android:pathData="M 15,48 C 19,48 22,45 22,41"
+        android:strokeColor="#0D3C4C"
+        android:strokeWidth="2.5" />
+    <path
+        android:pathData="M 15,62 C 19,62 22,65 22,69"
+        android:strokeColor="#0D3C4C"
+        android:strokeWidth="2.5" />
+    <path
+        android:pathData="M 48,41 C 48,45 51,48 55,48"
+        android:strokeColor="#0D3C4C"
+        android:strokeWidth="2.5" />
+    <path
+        android:pathData="M 48,69 C 48,65 51,62 55,62"
+        android:strokeColor="#0D3C4C"
+        android:strokeWidth="2.5" />
+
+    <!-- Banknote Center Circle -->
+    <path
+        android:fillColor="#63CB9E"
+        android:pathData="M 35,46 C 39.97,46 44,50.03 44,55 C 44,59.97 39.97,64 35,64 C 30.03,64 26,59.97 26,55 C 26,50.03 30.03,46 35,46 Z"
+        android:strokeColor="#0D3C4C"
+        android:strokeWidth="2.5" />
+
+    <!-- Dollar Sign ($) -->
+    <path
+        android:pathData="M 35,48.5 L 35,61.5 M 37.5,51 C 37.5,51 33.5,50 33.5,53 C 33.5,55.8 36.5,55.2 36.5,58 C 36.5,60.5 32.5,60 32.5,60"
+        android:strokeColor="#0D3C4C"
+        android:strokeWidth="2.2"
+        android:strokeLineCap="round" />
+
+    <!-- Wallet Body -->
+    <path
+        android:fillColor="#38A1DD"
+        android:pathData="M 52,49 L 81,49 C 83.2,49 85,50.8 85,53 L 85,75 C 85,77.2 83.2,79 81,79 L 52,79 C 49.8,79 48,77.2 48,75 L 48,53 C 48,50.8 49.8,49 52,49 Z"
+        android:strokeColor="#0D3C4C"
+        android:strokeWidth="2.5"
+        android:strokeLineJoin="round" />
+
+    <!-- Wallet Flap -->
+    <path
+        android:fillColor="#38A1DD"
+        android:pathData="M 69,57 L 79,57 C 82.3,57 85,59.7 85,63 C 85,66.3 82.3,69 79,69 L 69,69 Z"
+        android:strokeColor="#0D3C4C"
+        android:strokeWidth="2.5"
+        android:strokeLineJoin="round" />
+
+    <!-- Wallet Snap Button -->
+    <path
+        android:fillColor="#38A1DD"
+        android:pathData="M 74,60.8 C 75.2,60.8 76.2,61.8 76.2,63 C 76.2,64.2 75.2,65.2 74,65.2 C 72.8,65.2 71.8,64.2 71.8,63 C 71.8,61.8 72.8,60.8 74,60.8 Z"
+        android:strokeColor="#0D3C4C"
+        android:strokeWidth="2" />
+
+    <!-- Coin Stack (Lower Coin) -->
+    <path
+        android:fillColor="#63CB9E"
+        android:pathData="M 43,71 L 54,71 C 55.7,71 57,72.3 57,74 C 57,75.7 55.7,77 54,77 L 43,77 C 41.3,77 40,75.7 40,74 C 40,72.3 41.3,71 43,71 Z"
+        android:strokeColor="#0D3C4C"
+        android:strokeWidth="2.5"
+        android:strokeLineJoin="round" />
+
+    <!-- Coin Stack Side Lines -->
+    <path
+        android:pathData="M 40,66 L 40,74 M 57,66 L 57,74"
+        android:strokeColor="#0D3C4C"
+        android:strokeWidth="2.5" />
+
+    <!-- Coin Stack (Upper Coin) -->
+    <path
+        android:fillColor="#63CB9E"
+        android:pathData="M 43,63 L 54,63 C 55.7,63 57,64.3 57,66 C 57,67.7 55.7,69 54,69 L 43,69 C 41.3,69 40,67.7 40,66 C 40,64.3 41.3,63 43,63 Z"
+        android:strokeColor="#0D3C4C"
+        android:strokeWidth="2.5"
+        android:strokeLineJoin="round" />
+
+</vector>

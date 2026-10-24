@@ -59,8 +59,8 @@ public class EditMessageConfigDialog extends Dialog {
         ArrayAdapter<CharSequence> adapter = ArrayAdapter.createFromResource(
                 getContext(),
                 R.array.notification_priority_labels,
-                android.R.layout.simple_spinner_item);
-        adapter.setDropDownViewResource(android.R.layout.simple_spinner_dropdown_item);
+                R.layout.item_spinner_form);
+        adapter.setDropDownViewResource(R.layout.item_spinner_form_dropdown);
         binding.configPrioritySpinner.setAdapter(adapter);
 
         String[] values = getContext().getResources()
@@ -81,8 +81,8 @@ public class EditMessageConfigDialog extends Dialog {
         ArrayAdapter<CharSequence> adapter = ArrayAdapter.createFromResource(
                 getContext(),
                 R.array.notification_placeholders,
-                android.R.layout.simple_spinner_item);
-        adapter.setDropDownViewResource(android.R.layout.simple_spinner_dropdown_item);
+                R.layout.item_spinner_form);
+        adapter.setDropDownViewResource(R.layout.item_spinner_form_dropdown);
         binding.placeholderSpinner.setAdapter(adapter);
     }
 

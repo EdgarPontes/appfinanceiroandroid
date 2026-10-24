@@ -20,57 +20,67 @@
             android:layout_height="wrap_content"
             android:text="@string/categories_dialog_new_title"
             android:textColor="?attr/colorOnSurface"
-            android:textSize="18sp"
+            android:textSize="20sp"
             android:textStyle="bold" />
 
-        <TextView
-            style="@style/SettingsLabel"
+        <com.google.android.material.textfield.TextInputLayout
+            style="@style/ModernTextInput"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:text="@string/categories_name_label" />
+            android:layout_marginTop="16dp"
+            android:hint="@string/categories_name_label">
 
-        <EditText
-            android:id="@+id/categoryNameEditText"
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:hint="@string/categories_name_hint"
-            android:inputType="textCapSentences"
-            android:maxLength="255"
-            android:singleLine="true" />
+            <com.google.android.material.textfield.TextInputEditText
+                android:id="@+id/categoryNameEditText"
+                android:layout_width="match_parent"
+                android:layout_height="56dp"
+                android:inputType="textCapSentences"
+                android:maxLength="255"
+                android:singleLine="true"
+                android:textColor="?attr/colorOnSurface" />
+        </com.google.android.material.textfield.TextInputLayout>
 
         <TextView
-            style="@style/SettingsLabel"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:text="@string/categories_type_label" />
+            android:layout_marginTop="12dp"
+            android:text="@string/categories_type_label"
+            android:textColor="?attr/colorOnSurfaceVariant"
+            android:textSize="11sp" />
 
         <Spinner
             android:id="@+id/categoryTypeSpinner"
             android:layout_width="match_parent"
-            android:layout_height="48dp"
-            android:background="@drawable/glass_button_background"
-            android:paddingStart="12dp"
-            android:paddingEnd="12dp" />
+            android:layout_height="52dp"
+            android:layout_marginTop="4dp"
+            android:background="@drawable/bg_spinner_selector"
+            android:paddingStart="16dp"
+            android:paddingEnd="44dp" />
 
         <TextView
-            style="@style/SettingsLabel"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:text="@string/categories_parent_label" />
+            android:layout_marginTop="12dp"
+            android:text="@string/categories_parent_label"
+            android:textColor="?attr/colorOnSurfaceVariant"
+            android:textSize="11sp" />
 
         <Spinner
             android:id="@+id/categoryParentSpinner"
             android:layout_width="match_parent"
-            android:layout_height="48dp"
-            android:background="@drawable/glass_button_background"
-            android:paddingStart="12dp"
-            android:paddingEnd="12dp" />
+            android:layout_height="52dp"
+            android:layout_marginTop="4dp"
+            android:background="@drawable/bg_spinner_selector"
+            android:paddingStart="16dp"
+            android:paddingEnd="44dp" />
 
         <TextView
-            style="@style/SettingsLabel"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:text="@string/categories_color_label" />
+            android:layout_marginTop="12dp"
+            android:text="@string/categories_color_label"
+            android:textColor="?attr/colorOnSurfaceVariant"
+            android:textSize="11sp" />
 
         <HorizontalScrollView
             android:layout_width="match_parent"
@@ -92,20 +102,27 @@
             android:gravity="center_vertical"
             android:orientation="horizontal">
 
-            <EditText
-                android:id="@+id/categoryColorHexEditText"
+            <com.google.android.material.textfield.TextInputLayout
+                style="@style/ModernTextInput"
                 android:layout_width="0dp"
                 android:layout_height="wrap_content"
                 android:layout_weight="1"
-                android:hint="@string/categories_color_hex_hint"
-                android:inputType="textCapCharacters"
-                android:maxLength="7"
-                android:singleLine="true" />
+                android:hint="@string/categories_color_hex_hint">
+
+                <com.google.android.material.textfield.TextInputEditText
+                    android:id="@+id/categoryColorHexEditText"
+                    android:layout_width="match_parent"
+                    android:layout_height="52dp"
+                    android:inputType="textCapCharacters"
+                    android:maxLength="7"
+                    android:singleLine="true"
+                    android:textColor="?attr/colorOnSurface" />
+            </com.google.android.material.textfield.TextInputLayout>
 
             <View
                 android:id="@+id/categoryColorPreviewView"
-                android:layout_width="44dp"
-                android:layout_height="44dp"
+                android:layout_width="52dp"
+                android:layout_height="52dp"
                 android:layout_marginStart="8dp"
                 android:background="@drawable/bg_outlined_rounded" />
         </LinearLayout>
@@ -114,29 +131,34 @@
             android:id="@+id/categoryDialogErrorTextView"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:layout_marginTop="8dp"
-            android:textColor="@color/money_negative"
-            android:textSize="13sp"
+            android:layout_marginTop="10dp"
+            android:background="@drawable/bg_status_badge_error"
+            android:padding="10dp"
+            android:textColor="@color/on_error_container"
+            android:textSize="12sp"
             android:visibility="gone" />
 
         <LinearLayout
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:layout_marginTop="16dp"
+            android:layout_marginTop="18dp"
             android:gravity="end"
             android:orientation="horizontal">
 
             <com.google.android.material.button.MaterialButton
                 android:id="@+id/cancelCategoryButton"
-                style="@style/Widget.MaterialComponents.Button.TextButton"
+                style="@style/Widget.Material3.Button.TextButton"
                 android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:text="@string/categories_cancel" />
+                android:layout_height="48dp"
+                android:text="@string/categories_cancel"
+                android:textAllCaps="false"
+                android:textColor="?attr/colorOnSurfaceVariant" />
 
             <com.google.android.material.button.MaterialButton
                 android:id="@+id/saveCategoryButton"
+                style="@style/PrimaryCTAButton"
                 android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
+                android:layout_height="52dp"
                 android:layout_marginStart="8dp"
                 android:text="@string/categories_create" />
         </LinearLayout>

@@ -110,8 +110,8 @@ public class CategoryDialog extends Dialog {
         ArrayAdapter<CharSequence> adapter = ArrayAdapter.createFromResource(
                 getContext(),
                 R.array.category_type_labels,
-                android.R.layout.simple_spinner_item);
-        adapter.setDropDownViewResource(android.R.layout.simple_spinner_dropdown_item);
+                R.layout.item_spinner_form);
+        adapter.setDropDownViewResource(R.layout.item_spinner_form_dropdown);
         binding.categoryTypeSpinner.setAdapter(adapter);
 
         String type = editing != null && editing.getType() != null
@@ -152,8 +152,8 @@ public class CategoryDialog extends Dialog {
         }
 
         ArrayAdapter<CategoryDto> adapter = new ArrayAdapter<>(
-                getContext(), android.R.layout.simple_spinner_item, choices);
-        adapter.setDropDownViewResource(android.R.layout.simple_spinner_dropdown_item);
+                getContext(), R.layout.item_spinner_form, choices);
+        adapter.setDropDownViewResource(R.layout.item_spinner_form_dropdown);
         binding.categoryParentSpinner.setAdapter(adapter);
 
         int selection = 0;

@@ -54,8 +54,8 @@ public class CreateReminderDialog extends Dialog {
         ArrayAdapter<CharSequence> adapter = ArrayAdapter.createFromResource(
                 getContext(),
                 R.array.notification_recurrence_labels,
-                android.R.layout.simple_spinner_item);
-        adapter.setDropDownViewResource(android.R.layout.simple_spinner_dropdown_item);
+                R.layout.item_spinner_form);
+        adapter.setDropDownViewResource(R.layout.item_spinner_form_dropdown);
         binding.reminderRecurrenceSpinner.setAdapter(adapter);
         binding.reminderRecurrenceSpinner.setSelection(0);
     }

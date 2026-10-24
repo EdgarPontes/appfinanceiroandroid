@@ -3,6 +3,7 @@ package br.com.tecpontes.appfinanceiro.ui.menu;
 import android.content.Intent;
 import android.os.Bundle;
 import android.view.View;
+import androidx.activity.EdgeToEdge;
 import androidx.annotation.Nullable;
 import androidx.appcompat.app.AppCompatActivity;
 import br.com.tecpontes.appfinanceiro.R;
@@ -20,8 +21,10 @@ public class MenuActivity extends AppCompatActivity {
     @Override
     protected void onCreate(@Nullable Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
+        EdgeToEdge.enable(this);
         setContentView(R.layout.activity_menu);
         BottomNavigationHelper.setup(this, R.id.navigation_menu);
+        BottomNavigationHelper.applyEdgeToEdgeInsets(findViewById(android.R.id.content));
 
         configureRow(R.id.menuCategories, R.drawable.ic_menu_categories,
                 "Categorias", "Organize receitas e despesas", FeatureDestinationActivity.CATEGORIES);

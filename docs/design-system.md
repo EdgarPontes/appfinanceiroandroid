@@ -82,6 +82,7 @@ Documentação da fundação visual "Modern Tech & Sofisticado". Serve como refe
 | `PrimaryCTAButton` | `Widget.Material3.Button` | Ação principal; fundo `colorTertiary`, altura mínima 52dp, raio 14dp. |
 | `BrandButton` | `Widget.Material3.Button` | Ação de marca; fundo `colorPrimary`, altura mínima 52dp. |
 | `ModernTextInput` | `Widget.Material3.TextInputLayout.OutlinedBox` | Campo arredondado (14dp) com fundo `surfaceVariant`, contorno do tema e hint em `colorOnSurfaceVariant`. |
+| `ModernToolbar` | `Widget.Material3.Toolbar` | Cabeçalho padrão: superfície, título/subtítulo do tema, sem elevação e navegação em `colorPrimary`. Usar em `MaterialToolbar`. |
 | `SettingsCard` | — | Card de configurações: superfície, borda e raio 16dp. |
 | `GlassCard` / `GlassButton` / `GlassTextInput` | legado | Rebaseados nos tokens; mantidos durante a transição. |
 | `SettingsSectionTitle` / `SettingsLabel` / `SettingsHelper` / `SettingsIcon` | — | Textos e ícones usando `?attr/colorOnSurface*` e `?attr/colorPrimary`. |
@@ -97,7 +98,8 @@ Documentação da fundação visual "Modern Tech & Sofisticado". Serve como refe
 | `bg_period_selector.xml` | Seletor de período com `surfaceVariant` e contorno do tema. |
 | `bg_spinner_selector.xml` | Fundo de `Spinner` com `surfaceVariant`, contorno e chevron; usar `paddingEnd="44dp"`. |
 | `bg_text_action.xml` | Ripple para ações textuais compactas em cards. |
-| `bg_status_badge_error.xml` / `bg_status_badge_success.xml` | Pills de status com tokens de erro/sucesso. |
+| `bg_status_badge_error.xml` / `bg_status_badge_success.xml` / `bg_status_badge_neutral.xml` | Pills de status com tokens de erro/sucesso/neutro. |
+| `bg_bottom_navigation.xml` | Fundo da barra inferior com superfície e divisor superior (`colorOutline`). |
 | `ic_chevron_down.xml` | Indicador de dropdown usado por `bg_spinner_selector`. |
 | `bg_outlined_rounded.xml` | Contêiner arredondado com superfície e contorno do tema. |
 | `bg_dialog.xml` | Fundo de diálogo (raio 20dp) com superfície e contorno. |
@@ -123,6 +125,8 @@ Documentação da fundação visual "Modern Tech & Sofisticado". Serve como refe
 - Campos de texto livre não devem receber filtros de caracteres; o teclado do sistema é responsável pelo layout/acentuação.
 - Spinners usam `bg_spinner_selector` com `paddingEnd="44dp"` para reservar o espaço do chevron; `bg_period_selector` fica restrito a contêineres de período.
 - Diálogos de formulário usam `ModernCard` como shell, cabeçalho com título/subtítulo, corpo rolável e rodapé com `PrimaryCTAButton`.
+- Cabeçalhos usam `MaterialToolbar` com `ModernToolbar`; não misturar `androidx.appcompat.widget.Toolbar`.
+- A barra inferior usa `bg_bottom_navigation`, `labelVisibilityMode="unlabeled"`, ícones de 24dp e altura compacta de 56dp; os títulos do menu permanecem como descrição acessível.
 - Cards de conta/cartão podem usar `bg_icon_circle`, `bg_status_badge_*` e `bg_text_action` para manter o padrão visual.
 - Ícones interativos devem ter `contentDescription`.
 

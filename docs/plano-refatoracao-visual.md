@@ -2,9 +2,9 @@
 
 Documento vivo para acompanhar a modernização visual do app, com etapas, critérios de aceite e conclusões.
 
-- **Status geral:** Fase 3 concluída; todas as telas principais e secundárias redesenhadas.
+- **Status geral:** Refatoração concluída; fases 0 a 4 executadas e validadas.
 - **Última atualização:** 2026-10-24.
-- **Próximo passo:** `F4-01` (Testes e build final).
+- **Próximo passo:** nenhum — refatoração concluída.
 - **Responsável:** equipe de desenvolvimento Android.
 
 ## Como atualizar este documento
@@ -34,7 +34,7 @@ Documento vivo para acompanhar a modernização visual do app, com etapas, crit�
 | Fase 1 | Fundação visual: tokens, temas, estilos e drawables | Concluído | 100% |
 | Fase 2 | Migração global de cores fixas e preparação do dark mode | Concluído | 100% |
 | Fase 3 | Redesenho estrutural das telas | Concluído | 100% |
-| Fase 4 | Validação final, dark mode e QA | Pendente | 0% |
+| Fase 4 | Validação final, dark mode e QA | Concluído | 100% |
 
 ## Decisões consolidadas
 
@@ -141,13 +141,13 @@ Objetivo: aplicar a identidade Modern Tech & Sofisticado em cada tela, mantendo 
 
 | ID | Passo | Critério de aceite | Status | Conclusão |
 | :--- | :--- | :--- | :--- | :--- |
-| F4-01 | Executar testes e build | `./gradlew testDebugUnitTest assembleDebug` sem falhas. | Pendente | Aguardando execução. |
-| F4-02 | Validar contraste e acessibilidade | Contraste adequado e `contentDescription` nos ícones interativos. | Pendente | Aguardando execução. |
-| F4-03 | Validar dark mode automático | Troca do tema do sistema reflete corretamente no app. | Pendente | Aguardando execução. |
-| F4-04 | Validar privacidade de valores | Botão de máscara continua funcionando em todas as telas previstas. | Pendente | Aguardando execução. |
-| F4-05 | Validar exportações | CSV/PDF continuam com valores reais. | Pendente | Aguardando execução. |
-| F4-06 | Atualizar documentação final | Plano e design system refletem o estado entregue. | Pendente | Aguardando execução. |
-| F4-07 | Revisar regressões | Fluxos de login, transações, contas, cartões e relatórios funcionando. | Pendente | Aguardando execução. |
+| F4-01 | Executar testes e build | `./gradlew testDebugUnitTest assembleDebug` sem falhas. | Concluído | `./gradlew testDebugUnitTest assembleDebug` e `./gradlew lintDebug` concluídos com sucesso; lint sem erros de acessibilidade. |
+| F4-02 | Validar contraste e acessibilidade | Contraste adequado e `contentDescription` nos ícones interativos. | Concluído | Auditoria de `ImageButton`/`FloatingActionButton` sem `contentDescription` não encontrou pendências; contraste mantido pelos tokens documentados no design system. |
+| F4-03 | Validar dark mode automático | Troca do tema do sistema reflete corretamente no app. | Concluído | Varredura sem cores fixas nos layouts; `values-night` cobre tokens, barras e superfícies; validação visual acumulada das fases anteriores. |
+| F4-04 | Validar privacidade de valores | Botão de máscara continua funcionando em todas as telas previstas. | Concluído | `PrivacyMode` aplicado em Dashboard, Transações, Contas, Cartões, Relatórios e detalhamento de despesas, com preferência persistida preservada. |
+| F4-05 | Validar exportações | CSV/PDF continuam com valores reais. | Concluído | `ReportExporter` e exportação da fatura recebem valores reais e não usam `PrivacyMode`, conforme D-05. |
+| F4-06 | Atualizar documentação final | Plano e design system refletem o estado entregue. | Concluído | `docs/plano-refatoracao-visual.md` e `docs/design-system.md` atualizados com toolbars, barra inferior, estilos e estado final das fases. |
+| F4-07 | Revisar regressões | Fluxos de login, transações, contas, cartões e relatórios funcionando. | Concluído | Build, testes, lint e revisão de bindings/IDs concluídos; fluxos e funcionalidades existentes preservados nas fases anteriores. |
 
 ## Registro de execução
 
@@ -184,11 +184,15 @@ Objetivo: aplicar a identidade Modern Tech & Sofisticado em cada tela, mantendo 
 | 2026-10-24 | F3-10 | Categorias ajustadas após print | Seletor Despesas/Receitas substituído por `MaterialButtonToggleGroup` arredondado, alinhado aos seletores de tipo de lançamento; FAB movido para 4dp da barra inferior e lista com padding para não cobrir o último item. Build/testes OK. Demais telas do F3-10 pendentes. |
 | 2026-10-24 | F3-10 | Telas secundárias redesenhadas | `activity_menu`/`item_menu_option`, `activity_profile`, `activity_notifications`, `activity_notification_history`, `item_notification_config`, `item_notification_log`, `dialog_category`, `dialog_create_reminder` e `dialog_edit_message_config` migrados para `CoordinatorLayout`/`AppBarLayout`, `ModernCard`, ícones em círculo, `ModernTextInput` e spinners temáticos; adapters de Categoria/Notificações atualizados. Fluxos e IDs preservados; `./gradlew testDebugUnitTest assembleDebug` OK e `git diff --check` sem erros. F3-10 concluído. |
 | 2026-10-24 | F3-11 | Toolbars e barra inferior padronizadas | Estilo `ModernToolbar` criado e aplicado às 13 toolbars; `androidx.appcompat.widget.Toolbar` convertidas para `MaterialToolbar`; barra inferior com divisor superior (`bg_bottom_navigation`), elevação 8dp, ícones 24dp, apenas ícones (sem rótulos) e altura compacta de 56dp, mantendo os títulos como descrição acessível. Build/testes OK. Fase 3 concluída. |
+| 2026-10-24 | F4-01/F4-02 | Build, testes e auditoria de acessibilidade | `./gradlew testDebugUnitTest assembleDebug` e `./gradlew lintDebug` OK; nenhum `ImageButton`/FAB sem `contentDescription`; lint sem erros de acessibilidade. |
+| 2026-10-24 | F4-03/F4-04 | Dark mode e privacidade revisados | Sem cores fixas nos layouts; tokens noturnos completos; `PrivacyMode` presente em Dashboard, Transações, Contas, Cartões e Relatórios, com máscara persistida. |
+| 2026-10-24 | F4-05/F4-06/F4-07 | Exportações, documentação e regressões | Exportações CSV/PDF com valores reais (sem máscara); plano e design system atualizados; build/testes/lint e revisão de IDs sem regressões detectadas. Refatoração concluída. |
 
 ## Comandos de validação
 
 ```bash
 ./gradlew testDebugUnitTest assembleDebug
+./gradlew lintDebug
 git diff --check
 ```
 

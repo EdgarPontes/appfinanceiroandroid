@@ -7,13 +7,14 @@
     android:orientation="vertical">
 
     <com.google.android.material.appbar.MaterialToolbar
+        style="@style/ModernToolbar"
         android:id="@+id/toolbar"
         android:layout_width="match_parent"
         android:layout_height="?attr/actionBarSize"
         android:background="?attr/colorSurface"
         app:navigationContentDescription="@string/action_back"
         app:navigationIcon="@drawable/ic_arrow_back"
-        app:navigationIconTint="?attr/colorOnSurface"
+        app:navigationIconTint="?attr/colorPrimary"
         app:title="@string/categories_title"
         app:titleTextColor="?attr/colorOnSurface" />
 

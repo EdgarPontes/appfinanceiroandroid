@@ -13,7 +13,8 @@
         android:layout_height="wrap_content"
         android:background="?attr/colorSurface">
 
-        <androidx.appcompat.widget.Toolbar
+        <com.google.android.material.appbar.MaterialToolbar
+            style="@style/ModernToolbar"
             android:id="@+id/toolbar"
             android:layout_width="match_parent"
             android:layout_height="?attr/actionBarSize"
@@ -55,7 +56,7 @@
                 app:iconTint="?attr/colorPrimary"
                 app:iconSize="24dp" />
 
-        </androidx.appcompat.widget.Toolbar>
+        </com.google.android.material.appbar.MaterialToolbar>
 
     </com.google.android.material.appbar.AppBarLayout>
 

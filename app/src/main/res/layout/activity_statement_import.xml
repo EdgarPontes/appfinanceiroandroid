@@ -13,6 +13,7 @@
         android:background="?attr/colorSurface">
 
         <com.google.android.material.appbar.MaterialToolbar
+            style="@style/ModernToolbar"
             android:id="@+id/importToolbar"
             android:layout_width="match_parent"
             android:layout_height="?attr/actionBarSize"

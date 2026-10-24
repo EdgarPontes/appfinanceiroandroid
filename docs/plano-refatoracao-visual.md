@@ -2,9 +2,9 @@
 
 Documento vivo para acompanhar a modernização visual do app, com etapas, critérios de aceite e conclusões.
 
-- **Status geral:** Fase 3 em andamento; Login, Dashboard, Transações, Criar/editar lançamento, Contas, Importação de extrato, Cartões, Relatórios, Configurações e telas secundárias implementados.
+- **Status geral:** Fase 3 concluída; todas as telas principais e secundárias redesenhadas.
 - **Última atualização:** 2026-10-24.
-- **Próximo passo:** `F3-11` (Barra inferior e toolbars).
+- **Próximo passo:** `F4-01` (Testes e build final).
 - **Responsável:** equipe de desenvolvimento Android.
 
 ## Como atualizar este documento
@@ -33,7 +33,7 @@ Documento vivo para acompanhar a modernização visual do app, com etapas, crit�
 | Fase 0 | Diagnóstico técnico e definição do plano | Concluído | 100% |
 | Fase 1 | Fundação visual: tokens, temas, estilos e drawables | Concluído | 100% |
 | Fase 2 | Migração global de cores fixas e preparação do dark mode | Concluído | 100% |
-| Fase 3 | Redesenho estrutural das telas | Em andamento | 91% |
+| Fase 3 | Redesenho estrutural das telas | Concluído | 100% |
 | Fase 4 | Validação final, dark mode e QA | Pendente | 0% |
 
 ## Decisões consolidadas
@@ -128,7 +128,7 @@ Objetivo: aplicar a identidade Modern Tech & Sofisticado em cada tela, mantendo 
 | F3-08 | Relatórios | `activity_reports.xml`, `ReportsActivity.java` | Filtros, cards de resumo e categorias no novo padrão. | Concluído | Tela migrada para `CoordinatorLayout`/`AppBarLayout` com progresso tonal no cabeçalho. Filtros, resumo e ações em `ModernCard`; botões de período/categoria e exportação em estilos outlined/`PrimaryCTAButton`; spinner de tipo com `bg_spinner_selector`. Categorias com marcador de cor, percentual e barra de progresso; itens de despesa e diálogo de detalhamento modernizados. Exportações CSV/PDF e filtros preservados; build/testes e `git diff --check` OK. |
 | F3-09 | Configurações | `activity_settings.xml`, `SettingsActivity.java` | Seções, campos e metas alinhados ao design system. | Concluído | Tela migrada para `CoordinatorLayout`/`AppBarLayout` com progresso tonal no cabeçalho. Metas financeiras, DND, retenção e metas por categoria em `ModernCard`, com ícones em círculo e campos `ModernTextInput`; CTAs esmeralda/outlined. Lista de metas usa `bg_period_selector` e diálogo de importação adotou `ModernCard`, spinner temático e campos do design system. Máscaras, validações, DND, importação e salvamento preservados; build/testes e `git diff --check` OK. |
 | F3-10 | Menu, categorias, perfil e notificações | Layouts e Activities correspondentes | Telas secundárias consistentes com o restante do app. | Concluído | Menu migrado para `CoordinatorLayout`/`AppBarLayout` com cards `ModernCard` e itens com ícones em círculo; Categorias com seletor Despesas/Receitas em `MaterialButtonToggleGroup` arredondado, FAB reposicionado e diálogo de categoria com `ModernTextInput`/spinners temáticos; Perfil com cards, avatar, campos `ModernTextInput`, ações e zona de perigo; Notificações e Histórico com cards, estados vazios, busca `ModernTextInput` e diálogos de lembrete/configuração modernizados. Fluxos, validações e IDs preservados; build/testes e `git diff --check` OK. |
-| F3-11 | Barra inferior e toolbars | `bottom_navigation.xml`, layouts | Navegação e cabeçalhos consistentes em claro/escuro. | Pendente | Aguardando execução. |
+| F3-11 | Barra inferior e toolbars | `bottom_navigation.xml`, layouts | Navegação e cabeçalhos consistentes em claro/escuro. | Concluído | Criado `ModernToolbar` com superfície, título/subtítulo do tema e tint de navegação em `colorPrimary`; as 13 toolbars das telas passaram a usar o estilo e as `androidx.appcompat.widget.Toolbar` foram convertidas para `MaterialToolbar`. Barra inferior ganhou fundo com divisor superior via `bg_bottom_navigation`, elevação 8dp, ícones 24dp, modo `unlabeled` (apenas ícones, com os títulos mantidos como descrição acessível) e altura compacta de 56dp com padding vertical de 6dp. Build/testes e `git diff --check` OK. |
 
 **Critérios de saída da Fase 3**
 
@@ -183,6 +183,7 @@ Objetivo: aplicar a identidade Modern Tech & Sofisticado em cada tela, mantendo 
 | 2026-10-24 | F3-09 | Configurações redesenhadas | `activity_settings.xml` migrado para `CoordinatorLayout`/`AppBarLayout`; metas financeiras, DND, retenção e metas por categoria em `ModernCard`; campos `ModernTextInput`, ícones em círculo e CTAs esmeralda/outlined; `item_category_goal` e `dialog_import_goals` modernizados com spinner temático. Validações, DND, importação e salvamento preservados; `./gradlew testDebugUnitTest assembleDebug` OK e `git diff --check` sem erros. |
 | 2026-10-24 | F3-10 | Categorias ajustadas após print | Seletor Despesas/Receitas substituído por `MaterialButtonToggleGroup` arredondado, alinhado aos seletores de tipo de lançamento; FAB movido para 4dp da barra inferior e lista com padding para não cobrir o último item. Build/testes OK. Demais telas do F3-10 pendentes. |
 | 2026-10-24 | F3-10 | Telas secundárias redesenhadas | `activity_menu`/`item_menu_option`, `activity_profile`, `activity_notifications`, `activity_notification_history`, `item_notification_config`, `item_notification_log`, `dialog_category`, `dialog_create_reminder` e `dialog_edit_message_config` migrados para `CoordinatorLayout`/`AppBarLayout`, `ModernCard`, ícones em círculo, `ModernTextInput` e spinners temáticos; adapters de Categoria/Notificações atualizados. Fluxos e IDs preservados; `./gradlew testDebugUnitTest assembleDebug` OK e `git diff --check` sem erros. F3-10 concluído. |
+| 2026-10-24 | F3-11 | Toolbars e barra inferior padronizadas | Estilo `ModernToolbar` criado e aplicado às 13 toolbars; `androidx.appcompat.widget.Toolbar` convertidas para `MaterialToolbar`; barra inferior com divisor superior (`bg_bottom_navigation`), elevação 8dp, ícones 24dp, apenas ícones (sem rótulos) e altura compacta de 56dp, mantendo os títulos como descrição acessível. Build/testes OK. Fase 3 concluída. |
 
 ## Comandos de validação
 
@@ -207,6 +208,7 @@ git diff --check
 - `app/src/main/res/drawable/bg_status_badge_error.xml`
 - `app/src/main/res/drawable/bg_status_badge_success.xml`
 - `app/src/main/res/drawable/bg_status_badge_neutral.xml`
+- `app/src/main/res/drawable/bg_bottom_navigation.xml`
 - `app/src/main/res/drawable/ic_chevron_down.xml`
 - `app/src/main/res/color/navigation_item_tint.xml`
 - `app/src/main/res/layout/bottom_navigation.xml`

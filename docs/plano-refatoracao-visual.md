@@ -141,8 +141,8 @@ Objetivo: aplicar a identidade Modern Tech & Sofisticado em cada tela, mantendo 
 
 | ID | Passo | Critério de aceite | Status | Conclusão |
 | :--- | :--- | :--- | :--- | :--- |
-| F4-01 | Executar testes e build | `./gradlew testDebugUnitTest assembleDebug` sem falhas. | Concluído | `./gradlew testDebugUnitTest assembleDebug` e `./gradlew lintDebug` concluídos com sucesso; lint sem erros de acessibilidade. |
-| F4-02 | Validar contraste e acessibilidade | Contraste adequado e `contentDescription` nos ícones interativos. | Concluído | Auditoria de `ImageButton`/`FloatingActionButton` sem `contentDescription` não encontrou pendências; contraste mantido pelos tokens documentados no design system. |
+| F4-01 | Executar testes e build | `./gradlew testDebugUnitTest assembleDebug` sem falhas. | Concluído | `./gradlew testDebugUnitTest assembleDebug lintDebug` concluído com sucesso; lint sem erros de acessibilidade. |
+| F4-02 | Validar contraste e acessibilidade | Contraste adequado e `contentDescription` nos ícones interativos. | Concluído | `addTransactionFab` em `activity_transactions.xml` agora declara `@string/transactions_add_content_desc`; build, testes unitários e lint executados com sucesso. Contraste mantido pelos tokens documentados no design system. |
 | F4-03 | Validar dark mode automático | Troca do tema do sistema reflete corretamente no app. | Concluído | Varredura sem cores fixas nos layouts; `values-night` cobre tokens, barras e superfícies; validação visual acumulada das fases anteriores. |
 | F4-04 | Validar privacidade de valores | Botão de máscara continua funcionando em todas as telas previstas. | Concluído | `PrivacyMode` aplicado em Dashboard, Transações, Contas, Cartões, Relatórios e detalhamento de despesas, com preferência persistida preservada. |
 | F4-05 | Validar exportações | CSV/PDF continuam com valores reais. | Concluído | `ReportExporter` e exportação da fatura recebem valores reais e não usam `PrivacyMode`, conforme D-05. |
@@ -188,6 +188,7 @@ Objetivo: aplicar a identidade Modern Tech & Sofisticado em cada tela, mantendo 
 | 2026-10-24 | F4-03/F4-04 | Dark mode e privacidade revisados | Sem cores fixas nos layouts; tokens noturnos completos; `PrivacyMode` presente em Dashboard, Transações, Contas, Cartões e Relatórios, com máscara persistida. |
 | 2026-10-24 | F4-05/F4-06/F4-07 | Exportações, documentação e regressões | Exportações CSV/PDF com valores reais (sem máscara); plano e design system atualizados; build/testes/lint e revisão de IDs sem regressões detectadas. Refatoração concluída. |
 | 2026-10-24 | F3-03/F3-11 | Ajustes de rolagem e cabeçalho em Transações | Estrutura reorganizada em `LinearLayout` com `AppBarLayout`, `FrameLayout` (conteúdo + FABs) e barra inferior no fluxo, eliminando a sobreposição e o conflito de insets que quebrava o cabeçalho. Padding inferior de 136dp, FABs mini/alinhados com 85% de opacidade a 8dp/72dp da barra e mini FAB “Voltar ao topo” após 240dp de rolagem. Verificado no emulador: cabeçalho intacto e último lançamento acima dos FABs e da navegação. Build/testes OK. |
+| 2026-10-24 | F4-02 | Corrigir descrição acessível do FAB de transações | Adicionado `transactions_add_content_desc` e aplicado em `addTransactionFab`; `./gradlew testDebugUnitTest assembleDebug lintDebug` concluído com sucesso. |
 
 ## Comandos de validação
 

@@ -121,6 +121,7 @@
     <!-- Dashboard -->
     <string name="dashboard_open_notifications">Abrir notificações</string>
     <string name="action_back">Voltar</string>
+    <string name="transactions_add_content_desc">Adicionar transação</string>
 
     <!-- Categorias -->
     <string name="categories_title">Categorias</string>

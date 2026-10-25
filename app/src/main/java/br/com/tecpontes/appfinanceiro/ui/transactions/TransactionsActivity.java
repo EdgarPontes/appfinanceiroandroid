@@ -24,6 +24,7 @@ import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
 import androidx.appcompat.app.AlertDialog;
 import androidx.appcompat.app.AppCompatActivity;
+import androidx.core.widget.NestedScrollView;
 import androidx.lifecycle.ViewModelProvider;
 import androidx.recyclerview.widget.LinearLayoutManager;
 import br.com.tecpontes.appfinanceiro.R;
@@ -375,6 +376,20 @@ public class TransactionsActivity extends AppCompatActivity {
         binding.syncButton.setOnClickListener(v -> reloadData());
         binding.accountsFilterButton.setOnClickListener(v -> showAccountsDialog());
         binding.selectedBalanceSummary.setOnClickListener(v -> showAccountBalancesDialog());
+        binding.scrollToTopFab.setOnClickListener(v ->
+                binding.transactionsScrollView.smoothScrollTo(0, 0));
+        binding.transactionsScrollView.setOnScrollChangeListener(
+                (NestedScrollView.OnScrollChangeListener)
+                        (view, scrollX, scrollY, oldScrollX, oldScrollY) ->
+                                updateScrollToTopVisibility(scrollY));
+    }
+
+    private void updateScrollToTopVisibility(int scrollY) {
+        boolean shouldShow = scrollY > dp(240);
+        boolean isVisible = binding.scrollToTopFab.getVisibility() == View.VISIBLE;
+        if (shouldShow == isVisible) return;
+        if (shouldShow) binding.scrollToTopFab.show();
+        else binding.scrollToTopFab.hide();
     }
 
     private void loadInitialData() {

@@ -17,6 +17,7 @@ import androidx.recyclerview.widget.LinearLayoutManager;
 import br.com.tecpontes.appfinanceiro.R;
 import br.com.tecpontes.appfinanceiro.databinding.ActivityNotificationHistoryBinding;
 import br.com.tecpontes.appfinanceiro.model.MessageLogDto;
+import br.com.tecpontes.appfinanceiro.notifications.LocalNotificationPublisher;
 import br.com.tecpontes.appfinanceiro.ui.BottomNavigationHelper;
 import br.com.tecpontes.appfinanceiro.utils.SessionExpiredNavigation;
 import br.com.tecpontes.appfinanceiro.utils.TokenManager;
@@ -108,6 +109,7 @@ public class NotificationHistoryActivity extends AppCompatActivity {
         viewModel.logsData.observe(this, logs -> {
             adapter.updateData(logs, viewModel.configTitlesData.getValue());
             updateEmptyState();
+            checkAndHighlightTargetNotification(logs);
         });
 
         viewModel.configTitlesData.observe(this,
@@ -162,6 +164,23 @@ public class NotificationHistoryActivity extends AppCompatActivity {
                 && !Boolean.TRUE.equals(viewModel.isLoading.getValue());
         binding.historyEmptyLayout.setVisibility(empty ? View.VISIBLE : View.GONE);
         binding.historyRecyclerView.setVisibility(empty ? View.GONE : View.VISIBLE);
+    }
+
+    private void checkAndHighlightTargetNotification(@Nullable List<MessageLogDto> logs) {
+        if (logs == null || logs.isEmpty()) return;
+        String targetId = getIntent().getStringExtra(LocalNotificationPublisher.EXTRA_LOG_ID);
+        if (targetId == null) return;
+
+        getIntent().removeExtra(LocalNotificationPublisher.EXTRA_LOG_ID);
+
+        for (MessageLogDto log : logs) {
+            if (targetId.equals(log.id)) {
+                if (!log.isRead()) {
+                    viewModel.markAsRead(log);
+                }
+                break;
+            }
+        }
     }
 
     private void showFilterMenu() {

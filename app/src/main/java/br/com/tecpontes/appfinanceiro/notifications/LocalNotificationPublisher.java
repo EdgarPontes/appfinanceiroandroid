@@ -10,6 +10,7 @@ import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
 import androidx.core.app.NotificationCompat;
 import androidx.core.app.NotificationManagerCompat;
+import androidx.core.app.TaskStackBuilder;
 import androidx.core.content.ContextCompat;
 import br.com.tecpontes.appfinanceiro.R;
 import br.com.tecpontes.appfinanceiro.model.MessageLogDto;
@@ -18,6 +19,8 @@ import br.com.tecpontes.appfinanceiro.utils.DateFormats;
 
 /** Monta e publica as notificações locais do aparelho. */
 public final class LocalNotificationPublisher {
+
+    public static final String EXTRA_LOG_ID = "notification_log_id";
 
     private LocalNotificationPublisher() {}
 
@@ -44,22 +47,26 @@ public final class LocalNotificationPublisher {
         if (content == null || content.trim().isEmpty()) content = "Nova notificação financeira";
 
         Intent intent = new Intent(context, NotificationHistoryActivity.class);
-        intent.addFlags(Intent.FLAG_ACTIVITY_CLEAR_TOP | Intent.FLAG_ACTIVITY_SINGLE_TOP);
+        intent.putExtra(EXTRA_LOG_ID, log.id);
+
         int notificationId = Math.abs(log.id.hashCode());
-        PendingIntent pendingIntent = PendingIntent.getActivity(
-                context,
-                notificationId,
-                intent,
-                PendingIntent.FLAG_UPDATE_CURRENT | PendingIntent.FLAG_IMMUTABLE
-        );
+        PendingIntent pendingIntent = TaskStackBuilder.create(context)
+                .addNextIntentWithParentStack(intent)
+                .getPendingIntent(
+                        notificationId,
+                        PendingIntent.FLAG_UPDATE_CURRENT | PendingIntent.FLAG_IMMUTABLE
+                );
+
+        boolean important = isImportant(log);
+        String channelId = important ? NotificationChannels.CHANNEL_ID_HIGH : NotificationChannels.CHANNEL_ID;
 
         NotificationCompat.Builder builder = new NotificationCompat.Builder(
-                context, NotificationChannels.CHANNEL_ID)
+                context, channelId)
                 .setSmallIcon(R.drawable.ic_notification_small)
                 .setContentTitle(title == null || title.trim().isEmpty() ? "Notificação" : title)
                 .setContentText(content)
                 .setStyle(new NotificationCompat.BigTextStyle().bigText(content))
-                .setPriority(isImportant(log) ? NotificationCompat.PRIORITY_HIGH
+                .setPriority(important ? NotificationCompat.PRIORITY_HIGH
                         : NotificationCompat.PRIORITY_DEFAULT)
                 .setAutoCancel(true)
                 .setContentIntent(pendingIntent)

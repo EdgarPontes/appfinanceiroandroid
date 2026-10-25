@@ -42,7 +42,13 @@ public class NotificationPreferences {
         Set<String> seen = new HashSet<>(
                 preferences.getStringSet(KEY_SEEN_IDS, new HashSet<>()));
         if (seen.size() >= MAX_SEEN_IDS) {
-            seen.clear();
+            java.util.Iterator<String> iterator = seen.iterator();
+            int toRemove = MAX_SEEN_IDS / 3;
+            while (iterator.hasNext() && toRemove > 0) {
+                iterator.next();
+                iterator.remove();
+                toRemove--;
+            }
         }
         seen.add(logId);
         preferences.edit().putStringSet(KEY_SEEN_IDS, seen).apply();

@@ -4,6 +4,7 @@
 
     <uses-permission android:name="android.permission.INTERNET" />
     <uses-permission android:name="android.permission.POST_NOTIFICATIONS" />
+    <uses-permission android:name="android.permission.RECEIVE_BOOT_COMPLETED" />
 
     <application
         android:name=".AppFinanceiroApplication"
@@ -99,6 +100,7 @@
             android:name=".ui.notifications.NotificationHistoryActivity"
             android:exported="false"
             android:label="Histórico de Notificações"
+            android:parentActivityName=".ui.dashboard.DashboardActivity"
             android:theme="@style/Theme.Appfinanceiro" />
 
         <activity
@@ -112,6 +114,15 @@
             android:exported="false"
             android:label="AppFinanceiro"
             android:theme="@style/Theme.Appfinanceiro" />
+
+        <receiver
+            android:name=".notifications.BootReceiver"
+            android:enabled="true"
+            android:exported="true">
+            <intent-filter>
+                <action android:name="android.intent.action.BOOT_COMPLETED" />
+            </intent-filter>
+        </receiver>
     </application>
 
 </manifest>

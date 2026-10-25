@@ -22,8 +22,8 @@ import javax.inject.Singleton;
 @InstallIn(SingletonComponent.class)
 public class NetworkModule {
 
-    //public static final String SERVER_BASE_URL = "https://appfinanceiro.tecpontes.com.br";
-    public static final String SERVER_BASE_URL = "http://192.168.200.113:3000";
+    public static final String SERVER_BASE_URL = "https://appfinanceiro.tecpontes.com.br";
+    //public static final String SERVER_BASE_URL = "http://192.168.200.113:3000";
     public static final String BASE_URL = SERVER_BASE_URL + "/api/";
     //private static final String BASE_URL = "http://172.16.102.48:5000/api/"; // API local
     private static final String TAG = "NetworkModule";

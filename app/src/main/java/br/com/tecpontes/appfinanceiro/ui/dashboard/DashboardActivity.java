@@ -24,6 +24,7 @@ import br.com.tecpontes.appfinanceiro.model.DashboardDto;
 import br.com.tecpontes.appfinanceiro.ui.BottomNavigationHelper;
 import br.com.tecpontes.appfinanceiro.ui.auth.LoginActivity;
 import br.com.tecpontes.appfinanceiro.ui.notifications.NotificationHistoryActivity;
+import br.com.tecpontes.appfinanceiro.notifications.PushRegistrationManager;
 import br.com.tecpontes.appfinanceiro.ui.transactions.TransactionsActivity;
 import br.com.tecpontes.appfinanceiro.utils.PrivacyMode;
 import br.com.tecpontes.appfinanceiro.utils.TokenManager;
@@ -51,6 +52,9 @@ public class DashboardActivity extends AppCompatActivity {
 
     @Inject
     TokenManager tokenManager;
+
+    @Inject
+    PushRegistrationManager pushRegistrationManager;
 
     // Adapter para transações recentes
     private RecentTransactionsAdapter transactionsAdapter;
@@ -481,6 +485,7 @@ public class DashboardActivity extends AppCompatActivity {
     private void performLogout() {
         Log.d(TAG, "Realizando logout");
 
+        pushRegistrationManager.unregisterCurrentSession();
         // Limpa token
         tokenManager.clearToken();
 

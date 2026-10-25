@@ -23,7 +23,6 @@ import androidx.lifecycle.ViewModelProvider;
 import br.com.tecpontes.appfinanceiro.R;
 import br.com.tecpontes.appfinanceiro.databinding.ActivityNotificationsBinding;
 import br.com.tecpontes.appfinanceiro.model.MessageConfigDto;
-import br.com.tecpontes.appfinanceiro.notifications.NotificationPollingScheduler;
 import br.com.tecpontes.appfinanceiro.ui.BottomNavigationHelper;
 import br.com.tecpontes.appfinanceiro.utils.SessionExpiredNavigation;
 import br.com.tecpontes.appfinanceiro.utils.TokenManager;
@@ -89,6 +88,11 @@ public class NotificationsActivity extends AppCompatActivity {
     @Override
     protected void onResume() {
         super.onResume();
+        if (viewModel != null
+                && Boolean.TRUE.equals(viewModel.deviceNotificationsEnabledData.getValue())
+                && !br.com.tecpontes.appfinanceiro.notifications.LocalNotificationPublisher.canPost(this)) {
+            viewModel.setDeviceNotificationsEnabled(false);
+        }
         updateDeviceCard();
     }
 
@@ -256,15 +260,12 @@ public class NotificationsActivity extends AppCompatActivity {
 
     private void enableDeviceNotifications() {
         viewModel.setDeviceNotificationsEnabled(true);
-        NotificationPollingScheduler.schedule(this);
-        NotificationPollingScheduler.runNow(this);
         updateDeviceCard();
         Toast.makeText(this, "Notificações do aparelho ativadas.", Toast.LENGTH_SHORT).show();
     }
 
     private void disableDeviceNotifications() {
         viewModel.setDeviceNotificationsEnabled(false);
-        NotificationPollingScheduler.cancel(this);
         updateDeviceCard();
         Toast.makeText(this, "Notificações do aparelho desativadas.", Toast.LENGTH_SHORT).show();
     }

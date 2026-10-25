@@ -8,6 +8,7 @@ import androidx.lifecycle.ViewModel;
 import br.com.tecpontes.appfinanceiro.data.repository.NotificationsRepository;
 import br.com.tecpontes.appfinanceiro.model.MessageConfigDto;
 import br.com.tecpontes.appfinanceiro.notifications.NotificationPreferences;
+import br.com.tecpontes.appfinanceiro.notifications.PushRegistrationManager;
 import dagger.hilt.android.lifecycle.HiltViewModel;
 import java.util.ArrayList;
 import java.util.List;
@@ -19,6 +20,7 @@ public class NotificationsViewModel extends ViewModel {
 
     private final NotificationsRepository repository;
     private final NotificationPreferences preferences;
+    private final PushRegistrationManager pushRegistrationManager;
 
     private final MutableLiveData<List<MessageConfigDto>> configs =
             new MutableLiveData<>(new ArrayList<>());
@@ -38,9 +40,12 @@ public class NotificationsViewModel extends ViewModel {
 
     @Inject
     public NotificationsViewModel(
-            NotificationsRepository repository, NotificationPreferences preferences) {
+            NotificationsRepository repository,
+            NotificationPreferences preferences,
+            PushRegistrationManager pushRegistrationManager) {
         this.repository = repository;
         this.preferences = preferences;
+        this.pushRegistrationManager = pushRegistrationManager;
         deviceNotificationsEnabled.setValue(preferences.isDeviceNotificationsEnabled());
     }
 
@@ -155,7 +160,7 @@ public class NotificationsViewModel extends ViewModel {
     }
 
     public void setDeviceNotificationsEnabled(boolean enabled) {
-        preferences.setDeviceNotificationsEnabled(enabled);
+        pushRegistrationManager.setNotificationsEnabled(enabled);
         deviceNotificationsEnabled.setValue(enabled);
     }
 

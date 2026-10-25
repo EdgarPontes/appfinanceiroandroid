@@ -24,6 +24,7 @@ import br.com.tecpontes.appfinanceiro.databinding.ActivityProfileBinding;
 import br.com.tecpontes.appfinanceiro.di.NetworkModule;
 import br.com.tecpontes.appfinanceiro.model.ProfileDto;
 import br.com.tecpontes.appfinanceiro.model.ProfileUpdateRequestDto;
+import br.com.tecpontes.appfinanceiro.notifications.PushRegistrationManager;
 import br.com.tecpontes.appfinanceiro.ui.BottomNavigationHelper;
 import br.com.tecpontes.appfinanceiro.ui.auth.LoginActivity;
 import br.com.tecpontes.appfinanceiro.utils.SessionExpiredNavigation;
@@ -43,6 +44,7 @@ public class ProfileActivity extends AppCompatActivity {
     private boolean formattingPhone;
 
     @Inject TokenManager tokenManager;
+    @Inject PushRegistrationManager pushRegistrationManager;
 
     @Override protected void onCreate(@Nullable Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
@@ -127,6 +129,7 @@ public class ProfileActivity extends AppCompatActivity {
     }
 
     private void logout() {
+        pushRegistrationManager.unregisterCurrentSession();
         tokenManager.clearToken();
         Intent intent = new Intent(this, LoginActivity.class);
         intent.setFlags(Intent.FLAG_ACTIVITY_NEW_TASK | Intent.FLAG_ACTIVITY_CLEAR_TASK);

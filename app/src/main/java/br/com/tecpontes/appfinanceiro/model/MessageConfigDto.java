@@ -22,6 +22,8 @@ public class MessageConfigDto {
     @Nullable @SerializedName("recurrenceType") public String recurrenceType;
     @Nullable @SerializedName("recurrenceValue") public Integer recurrenceValue;
     @Nullable @SerializedName("specificDate") public String specificDate;
+    @Nullable @SerializedName("reminderTime") public String reminderTime;
+    @Nullable @SerializedName("timeZone") public String timeZone;
     @Nullable @SerializedName("relatedEntityType") public String relatedEntityType;
     @Nullable @SerializedName("relatedEntityId") public String relatedEntityId;
 

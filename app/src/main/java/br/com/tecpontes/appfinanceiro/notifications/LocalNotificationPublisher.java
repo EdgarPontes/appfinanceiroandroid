@@ -5,6 +5,7 @@ import android.app.PendingIntent;
 import android.content.Context;
 import android.content.Intent;
 import android.content.pm.PackageManager;
+import android.net.Uri;
 import android.os.Build;
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
@@ -39,6 +40,7 @@ public final class LocalNotificationPublisher {
             @Nullable String title,
             @Nullable String fallbackText) {
         if (log.id == null) return;
+        if (!canPost(context)) return;
 
         NotificationChannels.ensureCreated(context);
 
@@ -48,12 +50,12 @@ public final class LocalNotificationPublisher {
 
         Intent intent = new Intent(context, NotificationHistoryActivity.class);
         intent.putExtra(EXTRA_LOG_ID, log.id);
+        intent.setData(Uri.parse("appfinanceiro://notification/" + log.id));
 
-        int notificationId = Math.abs(log.id.hashCode());
         PendingIntent pendingIntent = TaskStackBuilder.create(context)
                 .addNextIntentWithParentStack(intent)
                 .getPendingIntent(
-                        notificationId,
+                        0,
                         PendingIntent.FLAG_UPDATE_CURRENT | PendingIntent.FLAG_IMMUTABLE
                 );
 
@@ -77,10 +79,25 @@ public final class LocalNotificationPublisher {
         }
 
         try {
-            NotificationManagerCompat.from(context).notify(notificationId, builder.build());
+            // A stable tag makes provider retries update one notification, not create duplicates.
+            NotificationManagerCompat.from(context).notify(log.id, 0, builder.build());
         } catch (SecurityException ignored) {
             // Permissão revogada entre a verificação e a publicação.
         }
+    }
+
+    public static void publishFcm(
+            @NonNull Context context,
+            @NonNull String logId,
+            @Nullable String title,
+            @Nullable String body,
+            @Nullable String priority) {
+        MessageLogDto log = new MessageLogDto();
+        log.id = logId;
+        log.content = body;
+        log.priority = priority;
+        log.sentAt = java.time.Instant.now().toString();
+        publish(context, log, title, body);
     }
 
     private static boolean isImportant(@NonNull MessageLogDto log) {

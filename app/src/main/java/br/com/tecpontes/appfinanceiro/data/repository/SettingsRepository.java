@@ -88,17 +88,6 @@ public class SettingsRepository {
                 "Não foi possível importar as metas");
     }
 
-    /** Versão síncrona usada pelo Worker de notificações (executada em thread de background). */
-    @NonNull
-    public UserSettingsDto getSettingsBlocking() throws IOException {
-        Response<UserSettingsDto> response = apiService.getUserSettings().execute();
-        if (!response.isSuccessful() || response.body() == null) {
-            throw new IOException(ApiErrorUtils.readError(response,
-                    "Não foi possível carregar as configurações"));
-        }
-        return response.body();
-    }
-
     private <T> void enqueue(
             @NonNull Call<T> call,
             @NonNull ResultCallback<T> callback,

@@ -6,6 +6,14 @@ plugins {
     alias(libs.plugins.hilt)
 }
 
+// Keep local builds usable without committing google-services.json. CI/release builds
+// should provide the Firebase client configuration for their application variant.
+val hasGoogleServicesConfig = file("google-services.json").exists() ||
+    fileTree("src").matching { include("**/google-services.json") }.files.isNotEmpty()
+if (hasGoogleServicesConfig) {
+    apply(plugin = "com.google.gms.google-services")
+}
+
 android {
     namespace = "br.com.tecpontes.appfinanceiro"
     compileSdk = 36
@@ -37,6 +45,7 @@ android {
         jvmTarget = "17"
     }
     buildFeatures {
+        buildConfig = true
         viewBinding = true
         compose = true
     }
@@ -90,6 +99,10 @@ dependencies {
 
     // Trabalho em segundo plano (notificações locais)
     implementation(libs.androidx.work.runtime)
+
+    // Firebase Cloud Messaging only (no Analytics dependency).
+    implementation(platform(libs.firebase.bom))
+    implementation(libs.firebase.messaging)
 
     // Testing
     testImplementation(libs.junit)

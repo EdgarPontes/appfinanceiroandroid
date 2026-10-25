@@ -157,30 +157,6 @@ public class NotificationsRepository {
                 });
     }
 
-    // ========== VERSÕES SÍNCRONAS (WORKER) ==========
-
-    @NonNull
-    public List<MessageLogDto> getUnreadLogsBlocking(int limit) throws IOException {
-        Response<MessageLogsResponseDto> response = apiService
-                .getMessageLogs(limit, 0, null, null, "unread", null, "false")
-                .execute();
-        if (!response.isSuccessful() || response.body() == null) {
-            throw new IOException(ApiErrorUtils.readError(response,
-                    "Não foi possível carregar as notificações não lidas"));
-        }
-        return response.body().logsOrEmpty();
-    }
-
-    @NonNull
-    public List<MessageConfigDto> getConfigsBlocking() throws IOException {
-        Response<List<MessageConfigDto>> response = apiService.getMessageConfigs().execute();
-        if (!response.isSuccessful() || response.body() == null) {
-            throw new IOException(ApiErrorUtils.readError(response,
-                    "Não foi possível carregar as notificações"));
-        }
-        return response.body();
-    }
-
     // ========== HELPERS ==========
 
     @Nullable

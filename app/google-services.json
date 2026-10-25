@@ -1,0 +1,30 @@
+{
+  "project_info": {
+    "project_number": "982844548490",
+    "firebase_url": "https://controlefinanceiro-c3ef5-default-rtdb.firebaseio.com",
+    "project_id": "controlefinanceiro-c3ef5",
+    "storage_bucket": "controlefinanceiro-c3ef5.appspot.com"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:982844548490:android:535690c95626732cecd473",
+        "android_client_info": {
+          "package_name": "br.com.tecpontes.appfinanceiro"
+        }
+      },
+      "oauth_client": [],
+      "api_key": [
+        {
+          "current_key": "AIzaSyCUtLVozDmdnpiGUu9L0IqvLoAEQINxJvw"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": []
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}

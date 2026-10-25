@@ -69,6 +69,8 @@
     <string name="notification_field_text_hint">Ex: Lembrete para trocar o óleo do carro</string>
     <string name="notification_field_date">Data do Lembrete</string>
     <string name="notification_field_date_hint">Escolha uma data</string>
+    <string name="notification_field_time">Horário do lembrete</string>
+    <string name="notification_field_time_hint">09:00</string>
     <string name="notification_field_recurrence">Recorrência</string>
     <string name="notification_recurrence_none">Nenhuma</string>
     <string name="notification_recurrence_daily">Diária</string>

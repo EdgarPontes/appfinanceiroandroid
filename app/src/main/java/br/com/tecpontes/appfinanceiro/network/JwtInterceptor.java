@@ -1,6 +1,7 @@
 package br.com.tecpontes.appfinanceiro.network;
 
 import android.util.Log;
+import br.com.tecpontes.appfinanceiro.BuildConfig;
 import androidx.annotation.NonNull;
 import br.com.tecpontes.appfinanceiro.utils.TokenManager;
 import java.io.IOException;
@@ -29,15 +30,20 @@ public class JwtInterceptor implements Interceptor {
     public Response intercept(@NonNull Chain chain) throws IOException {
         Request original = chain.request();
         String token = tokenManager.getToken();
-        boolean authenticatedRequest = token != null && !token.isEmpty();
+        boolean hasExplicitAuthorization = original.header("Authorization") != null;
+        boolean authenticatedRequest = hasExplicitAuthorization || (token != null && !token.isEmpty());
 
         Log.d("JwtInterceptor", "Interceptando requisição para: " + original.url());
 
         // Adiciona o token JWT se disponível
         Request.Builder builder = original.newBuilder();
-        if (authenticatedRequest) {
+        builder.header("X-App-Client", "android");
+        builder.header("X-App-Version", BuildConfig.VERSION_NAME);
+        if (!hasExplicitAuthorization && token != null && !token.isEmpty()) {
             builder.header("Authorization", "Bearer " + token);
             Log.d("JwtInterceptor", "Token JWT adicionado à requisição");
+        } else if (hasExplicitAuthorization) {
+            Log.d("JwtInterceptor", "Autorização explícita preservada para a requisição");
         } else {
             Log.d("JwtInterceptor", "Nenhum token disponível para adicionar");
         }

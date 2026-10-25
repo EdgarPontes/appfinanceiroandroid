@@ -1,115 +1,125 @@
-# Integração FCM no app Android
+# FCM integration plan — Android app
 
-Este guia descreve a preparação do aplicativo Android para receber lembretes e outras notificações por Firebase Cloud Messaging (FCM). O envio e o agendamento ficam no backend; o app obtém e registra o token FCM, exibe a notificação e abre o histórico.
+This document is the phased implementation plan for native Android notifications delivered by Firebase Cloud Messaging (FCM). The backend owns scheduling and sending; Android registers its installation, receives FCM data messages, renders notifications, and opens the corresponding history item.
 
-> **Estado:** documentação de implementação. FCM ainda não está integrado neste app. Alinhe o contrato de token e o formato do payload com `docs/FCM_INTEGRATION.md` do backend antes de implementar.
+> **Status:** implementation and initial internal-device validation are complete: token sync, FCM receiver, persistent deduplication, reminder time/zone fields, and removal of Android polling. Continue with staged rollout and the remaining device/edge-case checks. Keep this contract aligned with `docs/FCM_INTEGRATION.md` in the backend repository.
 
-## Situação atual
+> **Validation checkpoint:** a server-generated data-only FCM test was received on an Android installation, and tapping it opened notification history. Firebase Console notification-only tests are supported in debug builds only. Debug and release builds both process the Firebase configuration successfully.
 
-- O app não possui dependências Firebase nem um `FirebaseMessagingService`.
-- A publicação local atual é alimentada pelo `NotificationPollingWorker`, que consulta logs do servidor periodicamente.
-- `NotificationChannels` e `LocalNotificationPublisher` já fornecem infraestrutura para exibir notificações locais e navegar ao histórico.
-- `POST_NOTIFICATIONS` já está declarado no `AndroidManifest.xml` e a tela de notificações já trata a permissão em Android 13+.
-- O Web Push/VAPID do servidor é para o PWA; o Android deve registrar um token FCM próprio.
+## Target architecture and non-goals
 
-## 1. Preparar o Firebase para Android
+- **FCM is the only delivery channel for native Android notifications.** Remove the Android polling worker and scheduler; do not retain polling as a fallback.
+- Normal authenticated API calls remain necessary for login, reminder configuration, token registration, notification history, and marking logs read. “FCM-only” refers to notification delivery, not all app/server communication.
+- The PWA continues to use Web Push/VAPID. Never send an FCM token to Web Push or a Web Push subscription to FCM.
+- While an account has an active Android FCM registration, the backend uses FCM as that account's push channel and suppresses legacy/unversioned unread-log polling responses. PWA history requests and modern Android history requests remain available; Web Push resumes if the Android registration is removed.
+- Android API requests identify the client with `X-App-Client: android` and `X-App-Version`; this lets the server distinguish modern history requests from legacy polling clients.
+- FCM is best-effort, not an exact-time or exactly-once transport. The backend must retain notification history; the app must tolerate delayed, expired, duplicated, and out-of-order messages.
+- Do not put service-account credentials in the app. Avoid sensitive financial details in push data; FCM is not end-to-end encrypted.
 
-1. Use o mesmo projeto Firebase configurado para o backend.
-2. Registre um app Android com application ID `br.com.tecpontes.appfinanceiro`.
-3. Baixe o `google-services.json` desse app e coloque-o em `app/google-services.json`.
-4. Confira que o arquivo corresponde aos ambientes/application IDs usados no build. Se houver variantes, configure um arquivo por variante.
-5. O arquivo de configuração cliente não é uma service account. Nunca adicione credenciais Admin SDK ou chaves privadas ao app.
+## Shared contract (agree before coding)
 
-## 2. Adicionar Firebase Messaging ao Gradle
+### Device registration
 
-O projeto usa Gradle Kotlin DSL e version catalog (`gradle/libs.versions.toml`). Siga as versões compatíveis vigentes na documentação oficial Firebase:
+- `POST /api/device-push-tokens` with the authenticated JWT and body:
+  `{"token":"<fcm-token>","deviceId":"<installation-uuid>","platform":"android","appVersion":"<version>"}`.
+- `deviceId` is a random UUID generated once per app installation and persisted in app-private, non-backed-up storage. It is not an Android hardware identifier. It is required so a rotated FCM token can replace the token for the same installation.
+- The endpoint is idempotent for the same installation. It returns the registration `id` and an opaque `bindingId` for the current account-to-installation association. Repeated registration for the same account does not rotate `bindingId`; changing the account or creating a new association does.
+- `DELETE /api/device-push-tokens/:id` removes only the authenticated account’s registration. Never send a client-supplied `userId`.
+- The server upserts by installation, replaces the old token on `onNewToken`, and ensures that a token cannot remain active under two accounts. The exact database constraints and transaction behavior are specified in the backend plan.
 
-1. Declare o plugin `com.google.gms.google-services` no version catalog e no `build.gradle.kts` raiz com `apply false`.
-2. Aplique o plugin no `app/build.gradle.kts`.
-3. Adicione o Firebase BoM e a dependência `com.google.firebase:firebase-messaging` usando o version catalog, sem fixar uma versão independente para Messaging.
-4. Sincronize o Gradle e compile uma variante de debug com o arquivo de configuração no local correto.
+### FCM message
 
-Não adicione Firebase Analytics se o requisito for somente mensagens FCM.
+Use an FCM **data-only** message; do not include the FCM `notification` block because the app must create the local notification and use its channels. Every data value is a string. Shared fields:
 
-## 3. Implementar registro e renovação do token
+`schemaVersion`, `logId`, `bindingId`, `type`, `title`, `body`, `priority`, `deepLink`.
 
-Crie um serviço/repositório do app para registrar o token junto à API autenticada. Contrato proposto pelo guia do backend:
+`logId` is the stable message-log UUID and the idempotency key. `bindingId` must match the current local registration so queued messages from a previous account association are ignored. `deepLink` is an allow-listed in-app route, never an arbitrary URL. Keep the total payload within FCM limits and omit sensitive details where possible. The backend sets Android delivery priority and TTL according to the message’s urgency and expiry; distinct reminder occurrences must not be collapsed into one another.
 
-- `POST /api/device-push-tokens`
-- corpo JSON: `{"token":"<token-fcm>","deviceId":"<id-da-instalacao>","platform":"android"}`
-- `DELETE /api/device-push-tokens/:id` para remover o registro associado a esta instalação.
+FCM acceptance by Google is not proof that a device displayed the notification. Do not call a message “delivered to device” solely because the Admin SDK accepted it.
 
-Implemente o fluxo:
+## Current app state
 
-1. Solicite o token com `FirebaseMessaging.getInstance().token` depois que a sessão estiver autenticada.
-2. Envie-o à API com o JWT atual. Não coloque o token FCM em logs de produção.
-3. Persista localmente o ID de registro retornado pela API, se aplicável.
-4. Implemente uma subclasse de `FirebaseMessagingService` e, em `onNewToken`, atualize o registro no backend quando o usuário estiver autenticado. Se não houver sessão/rede, guarde a atualização para retry após login/conexão.
-5. Registre novamente após login e ao reabrir o app para cobrir reinstalação, troca de conta e falhas de sincronização.
-6. No logout, remova do backend o token/registro da conta atual antes de limpar a sessão. Não remova o token Firebase global do aparelho se o app permitir login subsequente; reassocie-o à nova conta após autenticação.
-7. Trate HTTP 401/rede indisponível sem bloquear login ou uso normal do app.
+- Firebase Messaging dependency and `AppFirebaseMessagingService` are present. The build applies Google Services only when the variant has its `../app/google-services.json` file.
+- Android notification polling classes and scheduling hooks have been removed. History remains available through authenticated REST calls.
+- `NotificationChannels` and `LocalNotificationPublisher` provide reusable local notification infrastructure.
+- `POST_NOTIFICATIONS` is declared; preserve the Android 13+ runtime permission flow and handle system-level notification/channel settings.
+- Reminder creation now sends date, `HH:mm`, and the phone's IANA timezone. Timezone changes are synchronized on app start and timezone-change broadcasts.
 
-O token FCM identifica uma instalação, não um usuário autenticado. O backend deve associá-lo à conta a partir da sessão e nunca confiar num `userId` enviado pelo app.
+## Phased implementation
 
-## 4. Declarar o serviço FCM
+### Phase 0 — Freeze the contract and migration gates
 
-Registre a implementação de `FirebaseMessagingService` no `AndroidManifest.xml` com `android:exported="false"` e o intent filter `com.google.firebase.MESSAGING_EVENT`. O serviço deve:
+1. Review this document with the backend plan and agree on endpoint schemas, payload fields, binding behavior, expiry, and delivery-status semantics before either side ships.
+2. Decide the minimum Android version for FCM-only delivery and a forced-update/deprecation strategy for older polling clients. Do not activate FCM for an account while an unsupported legacy client can still poll the same logs.
+3. Define that notification history remains available through the existing authenticated API; the history API is not a delivery fallback and must not publish local notifications.
+4. Define privacy behavior: do not display FCM messages while logged out; reject messages whose `bindingId` does not match the active installation association. Push text must not expose sensitive account data on a locked screen.
 
-- tratar `onNewToken` para atualizar o backend;
-- tratar `onMessageReceived` para validar e exibir o payload;
-- ignorar payload inválido sem encerrar o processo;
-- evitar registrar tokens ou dados privados nos logs.
+**Exit criteria:** Android and backend contract tests use the same sample request and payload; rollout and legacy-client policy are approved.
 
-## 5. Processar e mostrar notificações
+### Phase 1 — Firebase client setup
 
-Combine o payload com o backend antes da implementação. O formato recomendado é uma mensagem de dados com valores string, incluindo `logId`, `type`, `title`, `body` e `deepLink`.
+1. Use the Firebase project and Android application ID `br.com.tecpontes.appfinanceiro` agreed with the backend.
+2. Add the Google Services Gradle plugin through `gradle/libs.versions.toml`, apply it to the app, and add Firebase Messaging through the Firebase BoM.
+3. Place the correct `../app/google-services.json` in the appropriate build-variant location. It is client configuration, not a service-account credential.
+4. Do not add Firebase Analytics unless separately required. Build debug and release variants; do not commit private Admin SDK credentials.
 
-1. Em `onMessageReceived`, valide o `logId` e o conteúdo e crie uma notificação local usando o canal já existente em `NotificationChannels`.
-2. Reutilize ou adapte `LocalNotificationPublisher` para aceitar o payload FCM. Preserve o canal/prioridade coerentes com o nível da mensagem e verifique a permissão antes de publicar.
-3. Inclua o ID do `message_log` no `PendingIntent`, para abrir `NotificationHistoryActivity` e marcar a notificação correspondente como lida.
-4. Se o payload não possuir `logId` (por exemplo, mensagem de teste), publique com fallback seguro e sem quebrar o histórico.
-5. Teste app em foreground, background, processo encerrado, aparelho sem rede e permissão negada. FCM pode ser adiado por rede, economia de bateria e políticas do Android; não prometa entrega exata ao segundo.
+**Exit criteria:** debug/release builds resolve Firebase configuration for each supported application ID.
 
-O backend deve criar o log antes do envio, para incluir o ID no FCM. Assim, o app abre o mesmo item que aparece no histórico sincronizado.
+### Phase 2 — Device identity, reminder time, and token lifecycle
 
-## 6. Evitar duplicação com o polling existente
+1. Add a `TimePicker` to reminder creation/editing. Send `reminderTime` as `HH:mm` and the phone’s IANA zone from `ZoneId.systemDefault().id` (for example, `America/Sao_Paulo`) with the reminder. Keep `specificDate` as a date, not a server-local timestamp.
+2. The timezone used for a reminder is the device timezone at create/update time. When the phone timezone changes, detect it on app start/resume and synchronize the affected reminder configurations so the backend recalculates future occurrences. Document that the server cannot know about a timezone change while the app is offline.
+3. Generate and persist a random installation UUID in app-private, non-backed-up storage. Fetch the FCM token after authentication and POST token, installation UUID, platform, and app version with the current JWT.
+4. On `onNewToken`, enqueue a unique network-constrained retry that updates that same installation. Retry transient failures with bounded exponential backoff; do not block login or log token/JWT values. Re-register after login and app start to repair missed syncs.
+5. Persist the returned registration ID and `bindingId`. Do not trust a user ID from the client.
+6. On account switch, remove the old association before clearing the session when online, then register the same installation for the new account. The backend rotates `bindingId` on ownership change; the client must ignore queued messages with an old binding.
+7. On logout or local notification opt-out, immediately suppress local display and attempt authenticated DELETE before clearing credentials. If offline, keep the app locally disabled and retry revocation safely when possible; never display messages while logged out. Keep push text non-sensitive and short-lived so a stale server registration cannot expose private content.
+8. When the user enables notifications again, obtain the current token and register the installation. A denied OS permission must not block saving reminders; explain that delivery may be received but not displayed.
 
-Durante a migração, um mesmo `message_log` pode chegar por FCM e por `NotificationPollingWorker`. Não deixe os dois caminhos publicar a mesma notificação.
+**Exit criteria:** tests cover token rotation, retries, account switching, logout offline, timezone changes, and no token/user leakage in logs.
 
-1. Use o `logId` como chave de deduplicação.
-2. Ao publicar via FCM, persista esse ID usando `NotificationPreferences` (ou armazenamento compartilhado equivalente), que o worker também consulta antes de publicar.
-3. Faça o worker ignorar IDs já entregues ao app; garanta que o registro local sobreviva ao encerramento do processo e reinício do aparelho, conforme o comportamento atual das preferências.
-4. Para cobrir a corrida em que o polling ocorre antes do FCM, alinhe com o backend a indicação de entrega Android por log/destino. O cliente deve ignorar logs marcados pelo servidor como enviados ao FCM, ou o polling deve ser desativado para esses registros após validar a migração.
-5. Não desative o polling de fallback de forma global antes de validar recebimento, permissão e renovação de token em dispositivos reais. Escolha uma regra explícita para logs antigos e dispositivos que não têm token registrado.
+### Phase 3 — FCM receiver and idempotent local display
 
-## 7. Permissões, canal e UX
+1. Implement `FirebaseMessagingService`, declare it with `android:exported="false"` and `com.google.firebase.MESSAGING_EVENT`, and handle both `onNewToken` and `onMessageReceived`.
+2. Accept only the documented schema/version, required fields, valid UUID `logId`, current `bindingId`, supported `type`/`priority`, bounded text, and allow-listed `deepLink`. Ignore malformed, stale, logged-out, or wrong-account messages safely.
+3. Use a durable local table (Room or equivalent) with a unique constraint on `logId` for received notifications. Do not rely on the current capped `SharedPreferences` set for correctness. Use `logId` as the stable notification tag/identity so an FCM retry updates the same system notification instead of creating a second alert.
+4. Publish immediately from `onMessageReceived` using `LocalNotificationPublisher`/`NotificationChannels`; check `POST_NOTIFICATIONS`, notification enablement, and channel settings. Do not make a network request before displaying a valid push.
+5. Put `logId` in the `PendingIntent`, open `NotificationHistoryActivity`, and mark that same log read through the authenticated API. Deep-link routing must not launch arbitrary external content.
+6. Treat `onMessageReceived` as time-limited. Do not perform long work there; use a short bounded operation and enqueue non-display follow-up work if required. A force-stopped app may not receive FCM until the user launches it again; do not promise otherwise.
 
-- Preserve a solicitação da permissão `POST_NOTIFICATIONS` em Android 13+; uma permissão negada impede exibição mesmo que o FCM chegue.
-- Crie os canais antes da primeira notificação (a inicialização atual já chama `NotificationChannels.ensureCreated`). Em versões Android que deixam o usuário controlar canais, respeite a configuração do sistema.
-- A interface deve informar quando notificações do aparelho estão desativadas, sem impedir salvar lembretes no servidor.
-- Se o usuário desativar notificações pelo app, envie a preferência ao backend ou remova o token de entrega conforme a regra de produto; apenas parar de publicar localmente ainda deixa o servidor enviando FCM.
+**Exit criteria:** duplicate deliveries for the same `logId` produce one visible notification; invalid or stale bindings never display; tap opens and marks the correct history item.
 
-## 8. Testes e validação
+### Phase 4 — Remove Android polling (required cutover)
 
-Valide com dispositivo/emulador Google Play Services e token obtido em runtime:
+1. Polling removal is implemented. Preserve this invariant when changing notification startup, login, or screen code: do not reintroduce periodic unread-log fetching for delivery.
+2. Remove only deduplication state used exclusively by polling. Keep device notification preferences and history behavior that remain relevant.
+3. Do not add a silent REST polling fallback for missing/late FCM. Show the server-backed history when the user opens it; explain that push delivery is best effort.
+4. Coordinate release with the backend’s minimum-version/legacy-client policy. Native Android sends use FCM only; PWA sends remain Web Push. Do not send both transports to the same registered Android installation.
 
-- registro pós-login, atualização em `onNewToken`, retry offline e remoção no logout;
-- isolamento entre usuários ao trocar de conta no mesmo aparelho;
-- payload válido/inválido, toque e deep link ao histórico;
-- foreground, background, processo encerrado e permissão negada;
-- um único alerta quando o mesmo log chegar por FCM e polling;
-- logs não duplicados, modo “Não Perturbe” e lembretes recorrentes;
-- build de debug e release com as configurações Firebase correspondentes.
+**Exit criteria:** static search and tests confirm no Android notification polling work is scheduled or used; all supported native clients have FCM registration before backend activation.
 
-Use Firebase Console ou Firebase Admin no backend para enviar uma mensagem de teste ao token de um dispositivo. Não use a chave privada Admin SDK no app para testar.
+### Phase 5 — Verification and production rollout
 
-## Referências deste repositório
+Test on physical devices with Google Play services, not just Firebase Console:
 
-- `app/build.gradle.kts` — dependências Android.
-- `gradle/libs.versions.toml` — catálogo de versões Gradle.
-- `app/src/main/AndroidManifest.xml` — permissões e componentes declarados.
-- `app/src/main/java/br/com/tecpontes/appfinanceiro/notifications/NotificationChannels.java` — canais Android.
-- `app/src/main/java/br/com/tecpontes/appfinanceiro/notifications/LocalNotificationPublisher.java` — publicação e navegação.
-- `app/src/main/java/br/com/tecpontes/appfinanceiro/notifications/NotificationPollingWorker.java` — fallback/polling e deduplicação atual.
-- `app/src/main/java/br/com/tecpontes/appfinanceiro/notifications/NotificationPreferences.java` — estado local de notificações já apresentadas.
-- `docs/FCM_INTEGRATION.md` no repositório do backend — armazenamento de tokens, envio, agenda e API.
+- registration after login, token rotation, reinstall, offline retry, logout, account switch, and stale `bindingId`;
+- reminder creation/edit with device time and IANA zone, timezone change while app is active, DST gaps/overlaps, and server recurrence behavior;
+- valid/invalid payload, duplicate/out-of-order FCM delivery, process recreation, foreground/background, force-stop limitation, and notification permission/channel disabled;
+- taps, deep links, read-state update, and history consistency;
+- no polling work, no FCM/Web Push double-send to an Android installation, and no sensitive tokens/payloads in logs;
+- debug and release builds, staged internal rollout, monitoring of FCM acceptance/errors and invalid-token cleanup.
+
+The app accepts Firebase Console notification-only test messages as a display smoke test in debug builds. Production delivery uses the validated data-only payload from the backend; a Console test is not an end-to-end history/binding test. Use only non-sensitive test content. Never put an Admin SDK key in the app or use it for client-side tests.
+
+## Android references
+
+- `app/src/main/AndroidManifest.xml` — permissions and service declaration.
+- `app/src/main/java/br/com/tecpontes/appfinanceiro/notifications/NotificationChannels.java` — notification channels.
+- `app/src/main/java/br/com/tecpontes/appfinanceiro/notifications/LocalNotificationPublisher.java` — local notification rendering and navigation.
+- `app/src/main/java/br/com/tecpontes/appfinanceiro/notifications/AppFirebaseMessagingService.java` — validated data-message receiver.
+- `app/src/main/java/br/com/tecpontes/appfinanceiro/notifications/PushRegistrationManager.java` — token registration, timezone synchronization, and logout/opt-out cleanup.
+- `app/src/main/java/br/com/tecpontes/appfinanceiro/notifications/FcmMessageDeduplicator.java` — durable, non-backed-up local `logId` deduplication.
+- `app/src/main/java/br/com/tecpontes/appfinanceiro/notifications/NotificationPreferences.java` — device preference state.
+- `app/src/main/res/layout/dialog_create_reminder.xml` and `model/MessageConfigDto.java` — reminder time and device-zone fields.
+- `docs/fcm_manual_testing_report.artifact.md` — manual device-test procedure; record each scenario's actual result before broad rollout.
+- Backend `docs/FCM_INTEGRATION.md` — token API, scheduler, delivery records, and shared payload contract.

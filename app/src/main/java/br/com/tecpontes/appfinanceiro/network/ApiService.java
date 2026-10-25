@@ -32,6 +32,8 @@ import br.com.tecpontes.appfinanceiro.model.DeactivateAccountRequestDto;
 import br.com.tecpontes.appfinanceiro.model.PasswordUpdateRequestDto;
 import br.com.tecpontes.appfinanceiro.model.ProfileDto;
 import br.com.tecpontes.appfinanceiro.model.ProfileUpdateRequestDto;
+import br.com.tecpontes.appfinanceiro.model.PushTokenRegistrationRequest;
+import br.com.tecpontes.appfinanceiro.model.PushTokenRegistrationResponse;
 import br.com.tecpontes.appfinanceiro.model.TransactionDto;
 import br.com.tecpontes.appfinanceiro.model.TransactionListItemDto;
 import br.com.tecpontes.appfinanceiro.model.TransactionWriteDto;
@@ -52,6 +54,7 @@ import retrofit2.http.PUT;
 import retrofit2.http.Part;
 import retrofit2.http.Path;
 import retrofit2.http.Query;
+import retrofit2.http.Header;
 import okhttp3.ResponseBody;
 
 /**
@@ -251,6 +254,15 @@ public interface ApiService {
     Call<UserSettingsDto> updateUserSettings(@Body UserSettingsUpdateRequestDto request);
 
     // ========== NOTIFICAÇÕES ==========
+
+    @POST("device-push-tokens")
+    Call<PushTokenRegistrationResponse> registerDevicePushToken(
+            @Body PushTokenRegistrationRequest request);
+
+    @DELETE("device-push-tokens/{id}")
+    Call<Void> deleteDevicePushToken(
+            @Header("Authorization") String authorization,
+            @Path("id") String registrationId);
 
     @GET("message-configs")
     Call<List<MessageConfigDto>> getMessageConfigs();

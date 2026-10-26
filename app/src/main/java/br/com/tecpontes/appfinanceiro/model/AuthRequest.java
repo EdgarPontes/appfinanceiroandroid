@@ -25,8 +25,17 @@ public class AuthRequest {
     @SerializedName("cellphone")
     private String cellphone;
 
+    @Nullable
+    @SerializedName("remember")
+    private Boolean remember;
+
     public AuthRequest(@NonNull String email, @NonNull String password) {
         this(email, password, null, null);
+    }
+
+    public AuthRequest(@NonNull String email, @NonNull String password, boolean remember) {
+        this(email, password, null, null);
+        this.remember = remember;
     }
 
     public AuthRequest(@NonNull String email, @NonNull String password,
@@ -73,6 +82,15 @@ public class AuthRequest {
         this.cellphone = cellphone;
     }
 
+    @Nullable
+    public Boolean getRemember() {
+        return remember;
+    }
+
+    public void setRemember(@Nullable Boolean remember) {
+        this.remember = remember;
+    }
+
     @Override
     public String toString() {
         return "AuthRequest{" +
@@ -80,6 +98,7 @@ public class AuthRequest {
                 ", password='[PROTECTED]'" +
                 ", firstName='" + firstName + '\'' +
                 ", cellphone='" + cellphone + '\'' +
+                ", remember=" + remember +
                 '}';
     }
 }

@@ -97,6 +97,7 @@ public class LoginActivity extends AppCompatActivity {
             binding.googleAuthButton.setEnabled(!loading);
             binding.loginTabButton.setEnabled(!loading);
             binding.registerTabButton.setEnabled(!loading);
+            binding.keepConnectedCheckBox.setEnabled(!loading);
         });
 
         loginViewModel.error.observe(this, error -> {
@@ -165,7 +166,7 @@ public class LoginActivity extends AppCompatActivity {
         binding.loginButton.setOnClickListener(v -> loginViewModel.login(
                 textOf(binding.loginEmailEditText).trim(),
                 textOf(binding.loginPasswordEditText),
-                true));
+                binding.keepConnectedCheckBox.isChecked()));
 
         binding.registerButton.setOnClickListener(v -> submitRegistration());
         binding.forgotPasswordTextView.setOnClickListener(v -> openForgotPasswordDialog());

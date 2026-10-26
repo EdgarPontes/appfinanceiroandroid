@@ -41,7 +41,7 @@ public class AuthRepository {
                       @NonNull AuthCallback callback) {
         Log.d(TAG, "Tentando fazer login para: " + email);
 
-        AuthRequest request = new AuthRequest(email, password);
+        AuthRequest request = new AuthRequest(email, password, keepConnected);
         Call<AuthResponse> call = apiService.login(request);
 
         call.enqueue(new Callback<AuthResponse>() {

@@ -19,6 +19,8 @@ import br.com.tecpontes.appfinanceiro.model.CreditCardRequestDto;
 import br.com.tecpontes.appfinanceiro.model.ImportCategoryGoalsRequestDto;
 import br.com.tecpontes.appfinanceiro.model.InvoiceDetailsDto;
 import br.com.tecpontes.appfinanceiro.model.InvoicePaymentRequestDto;
+import br.com.tecpontes.appfinanceiro.model.InvoicePendingRequestDto;
+import br.com.tecpontes.appfinanceiro.model.InvoicePendingResponseDto;
 import br.com.tecpontes.appfinanceiro.model.MessageConfigDto;
 import br.com.tecpontes.appfinanceiro.model.MessageLogDto;
 import br.com.tecpontes.appfinanceiro.model.MessageLogsResponseDto;
@@ -146,6 +148,9 @@ public interface ApiService {
             @Path("id") String invoiceId,
             @Body InvoicePaymentRequestDto request
     );
+
+    @POST("invoices/pending")
+    Call<InvoicePendingResponseDto> getInvoicePending(@Body InvoicePendingRequestDto request);
 
     // ========== TRANSAÇÕES ==========
 

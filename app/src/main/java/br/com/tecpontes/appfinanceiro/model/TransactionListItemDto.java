@@ -5,6 +5,7 @@ import com.google.gson.annotations.SerializedName;
 import java.time.Instant;
 import java.time.LocalDate;
 import java.time.ZoneId;
+import java.util.List;
 
 /** Resposta detalhada de GET /api/transactions, usada para apresentar a lista mobile. */
 public class TransactionListItemDto {
@@ -35,6 +36,18 @@ public class TransactionListItemDto {
 
     private Double runningBalance;
 
+    /**
+     * Campos transitórios usados apenas na lista local. Quando preenchidos, o item
+     * representa a fatura consolidada de um cartão, não um lançamento individual.
+     */
+    @Nullable public transient List<TransactionListItemDto> invoiceTransactions;
+    @Nullable public transient InvoicePendingDto invoicePending;
+    public transient boolean partialInvoice;
+
+    public boolean isConsolidatedInvoice() {
+        return invoiceTransactions != null;
+    }
+
     public double getAmountValue() {
         if (amount == null) return 0;
         try {
@@ -45,12 +58,20 @@ public class TransactionListItemDto {
     }
 
     public long getDateMillis() {
-        if (date == null || date.trim().isEmpty()) return 0;
+        return parseTimestamp(date);
+    }
+
+    public long getInvoiceDueDateMillis() {
+        return parseTimestamp(invoice == null ? null : invoice.dueDate);
+    }
+
+    private static long parseTimestamp(@Nullable String value) {
+        if (value == null || value.trim().isEmpty()) return 0;
         try {
-            return Instant.parse(date).toEpochMilli();
+            return Instant.parse(value).toEpochMilli();
         } catch (RuntimeException ignored) {
             try {
-                return LocalDate.parse(date.substring(0, Math.min(10, date.length())))
+                return LocalDate.parse(value.substring(0, Math.min(10, value.length())))
                         .atStartOfDay(ZoneId.systemDefault()).toInstant().toEpochMilli();
             } catch (RuntimeException ignoredDate) {
                 return 0;

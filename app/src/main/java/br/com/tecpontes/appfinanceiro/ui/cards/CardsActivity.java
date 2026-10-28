@@ -666,11 +666,11 @@ public class CardsActivity extends AppCompatActivity {
                         return true;
                     });
             menu.getMenu().add("Editar").setOnMenuItemClickListener(item -> {
-                showTransactionDialog(transaction, false);
+                showEditTransactionDialog(transaction);
                 return true;
             });
             menu.getMenu().add("Clonar").setOnMenuItemClickListener(item -> {
-                showTransactionDialog(transaction, true);
+                showCloneTransactionDialog(transaction);
                 return true;
             });
             if (transaction.isReconciled() && !transaction.isIncome()) {
@@ -759,85 +759,114 @@ public class CardsActivity extends AppCompatActivity {
         dialog.dismiss();
     }
 
-    private void showTransactionDialog(@Nullable TransactionListItemDto transaction, boolean clone) {
+    private void showEditTransactionDialog(@NonNull TransactionListItemDto transaction) {
         InvoiceDetailsDto invoice = viewModel.invoiceData.getValue();
         if (invoice == null) return;
         if ("CLOSED".equalsIgnoreCase(invoice.status)) {
             Toast.makeText(this, "Reabra a fatura antes de alterar lançamentos.", Toast.LENGTH_LONG).show();
             return;
         }
-        List<CategoryDto> options = transaction != null && transaction.isIncome()
-                ? new ArrayList<>(categories) : expenseCategories();
-        if (options.isEmpty()) {
-            Toast.makeText(this, "Cadastre uma categoria de despesa antes de adicionar lançamentos.", Toast.LENGTH_LONG).show();
+        if (transaction.id == null || transaction.id.isEmpty()) {
+            Toast.makeText(this, "ID do lançamento indisponível", Toast.LENGTH_LONG).show();
             return;
         }
-        LinearLayout form = dialogForm();
-        EditText descriptionInput = new EditText(this);
-        descriptionInput.setSingleLine(true);
-        descriptionInput.setHint("Descrição");
-        descriptionInput.setText(transaction == null ? "" : safe(transaction.description));
-        form.addView(descriptionInput);
-        EditText amountInput = new EditText(this);
-        amountInput.setSingleLine(true);
-        amountInput.setInputType(InputType.TYPE_CLASS_NUMBER | InputType.TYPE_NUMBER_FLAG_DECIMAL);
-        amountInput.setHint("Valor (R$)");
-        if (transaction != null) amountInput.setText(String.format(Locale.US, "%.2f", Math.abs(transaction.getAmountValue())));
-        form.addView(amountInput);
-        Spinner categorySpinner = createObjectSpinner(options);
-        form.addView(fieldLabel("Categoria"));
-        form.addView(categorySpinner);
-        if (transaction != null && transaction.categoryId != null) {
-            for (int i = 0; i < options.size(); i++) {
-                if (transaction.categoryId.equals(options.get(i).getId())) categorySpinner.setSelection(i);
-            }
-        }
-        Calendar transactionDate = Calendar.getInstance();
-        if (transaction != null && transaction.getDateMillis() > 0) {
-            transactionDate.setTimeInMillis(transaction.getDateMillis());
-        }
-        TextView dateButton = new TextView(this);
-        updateDateButton(dateButton, transactionDate);
-        dateButton.setPadding(dp(12), dp(12), dp(12), dp(12));
-        dateButton.setBackgroundResource(R.drawable.bg_period_selector);
-        dateButton.setOnClickListener(v -> showDatePicker(transactionDate, () -> updateDateButton(dateButton, transactionDate)));
-        form.addView(fieldLabel("Data"));
-        form.addView(dateButton);
 
-        AlertDialog dialog = new AlertDialog.Builder(this)
-                .setTitle(transaction == null ? "Nova despesa" : clone ? "Clonar lançamento" : "Editar lançamento")
-                .setView(form).setNegativeButton("Cancelar", null)
-                .setPositiveButton(transaction == null || clone ? "Criar" : "Salvar", null).create();
-        dialog.setOnShowListener(ignored -> dialog.getButton(AlertDialog.BUTTON_POSITIVE).setOnClickListener(v -> {
-            String description = descriptionInput.getText().toString().trim();
-            if (description.isEmpty()) {
-                descriptionInput.setError("Informe uma descrição");
-                return;
+        String cardId = transaction.cardId != null ? transaction.cardId : selectedCardId;
+        createTransactionDialog = new CreateTransactionDialog(this, transaction,
+                request -> {
+                    if (isSeriesTransaction(transaction)) {
+                        closeCreateTransactionDialog();
+                        showTransactionUpdateScope(transaction.id, request);
+                    } else {
+                        saveEditedTransaction(transaction.id, request);
+                    }
+                }).presetCreditCard(cardId);
+        showTransactionForm();
+    }
+
+    private void showCloneTransactionDialog(@NonNull TransactionListItemDto transaction) {
+        InvoiceDetailsDto invoice = viewModel.invoiceData.getValue();
+        if (invoice == null) return;
+        if ("CLOSED".equalsIgnoreCase(invoice.status)) {
+            Toast.makeText(this, "Reabra a fatura antes de alterar lançamentos.", Toast.LENGTH_LONG).show();
+            return;
+        }
+
+        String cardId = transaction.cardId != null ? transaction.cardId : selectedCardId;
+        createTransactionDialog = new CreateTransactionDialog(this, transaction, true,
+                new CreateTransactionDialog.OnTransactionCreatedListener() {
+                    @Override
+                    public void onCreateTransaction(@NonNull TransactionWriteDto request) {
+                        CreateTransactionDialog dialog = createTransactionDialog;
+                        if (dialog != null) dialog.setSaving(true);
+                        viewModel.saveTransaction(null, request,
+                                new CreditCardRepository.ActionCallback() {
+                                    @Override public void onSuccess() {
+                                        closeCreateTransactionDialog();
+                                        Toast.makeText(CardsActivity.this,
+                                                "Lançamento clonado.", Toast.LENGTH_SHORT).show();
+                                        reloadCurrent();
+                                    }
+
+                                    @Override
+                                    public void onError(@NonNull String message) {
+                                        if (createTransactionDialog != null) {
+                                            createTransactionDialog.showError(message);
+                                        } else {
+                                            Toast.makeText(CardsActivity.this, message,
+                                                    Toast.LENGTH_LONG).show();
+                                        }
+                                    }
+                                });
+                    }
+
+                    @Override
+                    public void onCreateTransfer(@NonNull TransactionTransferRequestDto transfer) {
+                        // Transferências não estão disponíveis no contexto do cartão.
+                    }
+                }).presetCreditCard(cardId);
+        showTransactionForm();
+    }
+
+    private void showTransactionForm() {
+        if (createTransactionDialog == null) return;
+        createTransactionDialog.setOnDismissListener(dialog -> createTransactionDialog = null);
+        createTransactionDialog.show();
+        createTransactionDialog.setOptionsLoading(true);
+        createTransactionDialog.setOptions(accounts, categories, cards);
+        createTransactionDialog.setOptionsLoading(false);
+        if (cards.isEmpty()) viewModel.loadCards();
+        viewModel.loadPaymentOptions();
+    }
+
+    private void saveEditedTransaction(@NonNull String id, @NonNull TransactionWriteDto request) {
+        CreateTransactionDialog dialog = createTransactionDialog;
+        if (dialog != null) dialog.setSaving(true);
+        viewModel.saveTransaction(id, request, new CreditCardRepository.ActionCallback() {
+            @Override
+            public void onSuccess() {
+                closeCreateTransactionDialog();
+                Toast.makeText(CardsActivity.this,
+                        "Lançamento atualizado.", Toast.LENGTH_SHORT).show();
+                reloadCurrent();
             }
-            double amount;
-            try { amount = parseLocalizedAmount(amountInput.getText().toString()); }
-            catch (NumberFormatException error) {
-                amountInput.setError("Informe um valor válido");
-                return;
+
+            @Override
+            public void onError(@NonNull String message) {
+                if (createTransactionDialog != null) {
+                    createTransactionDialog.showError(message);
+                } else {
+                    Toast.makeText(CardsActivity.this, message, Toast.LENGTH_LONG).show();
+                }
             }
-            if (amount <= 0) {
-                amountInput.setError("O valor precisa ser maior que zero");
-                return;
-            }
-            CategoryDto category = (CategoryDto) categorySpinner.getSelectedItem();
-            TransactionWriteDto request = buildTransactionRequest(transaction, clone, description,
-                    amount, category, transactionDate);
-            String id = transaction == null || clone ? null : transaction.id;
-            if (transaction != null && !clone &&
-                    (transaction.isInstallmentTransaction() || transaction.isFixedExpenseTransaction())) {
-                dialog.dismiss();
-                showTransactionUpdateScope(id, request);
-            } else {
-                dialog.dismiss();
-                viewModel.saveTransaction(id, request, actionCallback(clone ? "Lançamento clonado." : "Lançamento salvo."));
-            }
-        }));
-        dialog.show();
+        });
+    }
+
+    private boolean isSeriesTransaction(@NonNull TransactionListItemDto transaction) {
+        return transaction.isInstallmentTransaction()
+                || transaction.isFixedExpenseTransaction()
+                || transaction.installmentGroupId != null
+                || transaction.fixedExpenseGroupId != null;
     }
 
     private TransactionWriteDto buildTransactionRequest(

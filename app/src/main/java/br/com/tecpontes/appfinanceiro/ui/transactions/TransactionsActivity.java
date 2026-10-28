@@ -2,9 +2,11 @@ package br.com.tecpontes.appfinanceiro.ui.transactions;
 
 import android.app.Dialog;
 import android.content.Intent;
+import android.graphics.Typeface;
 import android.net.Uri;
 import android.os.Bundle;
 import android.util.Log;
+import android.view.Gravity;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.Window;
@@ -31,10 +33,12 @@ import br.com.tecpontes.appfinanceiro.R;
 import br.com.tecpontes.appfinanceiro.data.local.entity.Account;
 import br.com.tecpontes.appfinanceiro.databinding.ActivityTransactionsBinding;
 import br.com.tecpontes.appfinanceiro.databinding.DialogEditTransactionBinding;
+import br.com.tecpontes.appfinanceiro.databinding.DialogInvoiceItemsBinding;
 import br.com.tecpontes.appfinanceiro.model.TransactionListItemDto;
 import br.com.tecpontes.appfinanceiro.model.AccountDto;
 import br.com.tecpontes.appfinanceiro.model.CategoryDto;
 import br.com.tecpontes.appfinanceiro.model.CreditCardDto;
+import br.com.tecpontes.appfinanceiro.model.InvoicePendingDto;
 import br.com.tecpontes.appfinanceiro.model.TransactionTransferRequestDto;
 import br.com.tecpontes.appfinanceiro.model.TransactionWriteDto;
 import br.com.tecpontes.appfinanceiro.ui.BottomNavigationHelper;
@@ -54,9 +58,11 @@ import java.util.Calendar;
 import java.util.Comparator;
 import java.util.Date;
 import java.util.LinkedHashMap;
+import java.util.LinkedHashSet;
 import java.util.List;
 import java.util.Locale;
 import java.util.Map;
+import java.util.Set;
 
 /** Lista mobile de transações com filtros e dados detalhados fornecidos pela API. */
 @AndroidEntryPoint
@@ -93,6 +99,8 @@ public class TransactionsActivity extends AppCompatActivity {
     private double selectedBalance;
     private boolean balanceAvailable;
     private Map<String, String> balancesByAccount = new LinkedHashMap<>();
+    private Map<String, InvoicePendingDto> invoicePendingByInvoiceId = new LinkedHashMap<>();
+    private String requestedInvoicePendingKey = "";
 
     @Override
     @SuppressWarnings("deprecation")
@@ -109,6 +117,7 @@ public class TransactionsActivity extends AppCompatActivity {
         selectedReconciliation = getIntent().getStringExtra(EXTRA_RECONCILIATION_FILTER);
         transactionsAdapter = new TransactionsAdapter(
                 this::showTransactionDetails, this::showTransactionOptions);
+        transactionsAdapter.setInvoiceAmountClickListener(this::showInvoiceItemsDialog);
         binding.transactionsRecyclerView.setLayoutManager(new LinearLayoutManager(this));
         binding.transactionsRecyclerView.setAdapter(transactionsAdapter);
 
@@ -330,6 +339,11 @@ public class TransactionsActivity extends AppCompatActivity {
         transactionsViewModel.filteredTransactions.observe(this, transactions -> {
             apiTransactions = transactions != null ? transactions : new ArrayList<>();
             updateCategoryOptions();
+            requestInvoicePendingIfNeeded();
+            applyLocalFilters();
+        });
+        transactionsViewModel.invoicePending.observe(this, pending -> {
+            invoicePendingByInvoiceId = pending != null ? pending : new LinkedHashMap<>();
             applyLocalFilters();
         });
         transactionsViewModel.accounts.observe(this, loadedAccounts -> {
@@ -340,6 +354,7 @@ public class TransactionsActivity extends AppCompatActivity {
                 for (Account account : accounts) selectedAccountIds.add(account.getId());
                 updateAccountButton();
                 requestBalanceForPeriod();
+                applyLocalFilters();
             } else {
                 updateAccountButton();
             }
@@ -400,10 +415,10 @@ public class TransactionsActivity extends AppCompatActivity {
 
     private void reloadData() {
         updatePeriodRange();
-        String start = periodStart == null ? null : periodStart.toInstant().toString();
-        String end = periodEnd == null ? null : periodEnd.toInstant().toString();
-        // A tela web carrega todas as contas e aplica a seleção do usuário na lista.
-        transactionsViewModel.loadFilteredTransactions(null, start, end, null, null, null, null);
+        requestedInvoicePendingKey = "";
+        // A tela web carrega todas as contas e períodos e aplica os filtros na lista.
+        // Isso permite consolidar a fatura inteira, inclusive lançamentos de outros meses.
+        transactionsViewModel.loadFilteredTransactions(null, null, null, null, null, null, null);
         requestBalanceForPeriod();
     }
 
@@ -618,11 +633,15 @@ public class TransactionsActivity extends AppCompatActivity {
     }
 
     private void applyLocalFilters() {
+        List<TransactionListItemDto> grouped = CreditCardInvoiceConsolidator.consolidate(
+                apiTransactions, invoicePendingByInvoiceId,
+                selectedMonth.get(Calendar.YEAR), selectedMonth.get(Calendar.MONTH));
         List<TransactionListItemDto> filtered = new ArrayList<>();
         String term = searchQuery.toLowerCase(Locale.ROOT);
 
-        for (TransactionListItemDto item : apiTransactions) {
+        for (TransactionListItemDto item : grouped) {
             if (item == null) continue;
+            if (!item.isConsolidatedInvoice() && !isInSelectedPeriod(item)) continue;
             if (accountSelectionInitialized) {
                 if (selectedAccountIds.isEmpty()) continue;
                 boolean belongsToSelectedAccount = item.accountId != null
@@ -632,8 +651,20 @@ public class TransactionsActivity extends AppCompatActivity {
                 }
                 if (!belongsToSelectedAccount) continue;
             }
-            if (selectedType != null && !selectedType.equalsIgnoreCase(item.type)) continue;
-            if (selectedCategoryId != null && !selectedCategoryId.equals(item.categoryId)) continue;
+            if (selectedType != null) {
+                if (item.isConsolidatedInvoice()) {
+                    if (!"EXPENSE".equalsIgnoreCase(selectedType)) continue;
+                } else if (!selectedType.equalsIgnoreCase(item.type)) {
+                    continue;
+                }
+            }
+            if (selectedCategoryId != null) {
+                if (item.isConsolidatedInvoice()) {
+                    if (!groupHasCategory(item, selectedCategoryId)) continue;
+                } else if (!selectedCategoryId.equals(item.categoryId)) {
+                    continue;
+                }
+            }
             if (selectedReconciliation != null
                     && Boolean.parseBoolean(selectedReconciliation) != item.isReconciled()) continue;
             if (!term.isEmpty()) {
@@ -649,6 +680,45 @@ public class TransactionsActivity extends AppCompatActivity {
         transactionsAdapter.updateTransactions(filtered);
         updateEmptyState(filtered.isEmpty());
         updateSummary(filtered);
+    }
+
+    private boolean isInSelectedPeriod(TransactionListItemDto item) {
+        if (periodStart == null || periodEnd == null) return true;
+        long dateMillis = item.getDateMillis();
+        if (dateMillis <= 0) return true;
+        return dateMillis >= periodStart.getTimeInMillis()
+                && dateMillis <= periodEnd.getTimeInMillis();
+    }
+
+    private boolean groupHasCategory(TransactionListItemDto invoice, String categoryId) {
+        if (invoice.invoiceTransactions == null) return false;
+        for (TransactionListItemDto item : invoice.invoiceTransactions) {
+            if (item != null && categoryId.equals(item.categoryId)) return true;
+        }
+        return false;
+    }
+
+    private void requestInvoicePendingIfNeeded() {
+        Set<String> uniqueIds = new LinkedHashSet<>();
+        for (TransactionListItemDto item : apiTransactions) {
+            if (item == null || item.cardId == null || item.invoiceId == null) continue;
+            long dueMillis = item.getInvoiceDueDateMillis();
+            if (dueMillis <= 0) continue;
+            Calendar due = Calendar.getInstance();
+            due.setTimeInMillis(dueMillis);
+            if (due.get(Calendar.YEAR) != selectedMonth.get(Calendar.YEAR)
+                    || due.get(Calendar.MONTH) != selectedMonth.get(Calendar.MONTH)) {
+                continue;
+            }
+            uniqueIds.add(item.invoiceId);
+        }
+
+        List<String> ids = new ArrayList<>(uniqueIds);
+        ids.sort(String::compareTo);
+        String key = android.text.TextUtils.join(",", ids);
+        if (key.equals(requestedInvoicePendingKey)) return;
+        requestedInvoicePendingKey = key;
+        transactionsViewModel.loadInvoicePending(ids);
     }
 
     private void sortTransactions(List<TransactionListItemDto> values) {
@@ -812,6 +882,136 @@ public class TransactionsActivity extends AppCompatActivity {
                 .setMessage(details)
                 .setPositiveButton("Fechar", null)
                 .show();
+    }
+
+    /** Mostra os lançamentos individuais que compõem uma fatura consolidada. */
+    private void showInvoiceItemsDialog(@Nullable TransactionListItemDto invoice) {
+        if (invoice == null || !invoice.isConsolidatedInvoice()) return;
+
+        DialogInvoiceItemsBinding dialogBinding =
+                DialogInvoiceItemsBinding.inflate(getLayoutInflater());
+        String subtitle = invoice.getSourceName();
+        long dueMillis = invoice.getInvoiceDueDateMillis();
+        if (dueMillis > 0) subtitle += " · vencimento " + formatDate(dueMillis);
+        dialogBinding.invoiceItemsSubtitleTextView.setText(subtitle);
+
+        List<TransactionListItemDto> items = new ArrayList<>(invoice.invoiceTransactions);
+        items.sort(Comparator.comparingLong(TransactionListItemDto::getDateMillis));
+        dialogBinding.invoiceItemsStateTextView.setText(items.size() == 1
+                ? "1 lançamento compõe esta fatura"
+                : items.size() + " lançamentos compõem esta fatura");
+        dialogBinding.invoiceItemsRowsContainer.removeAllViews();
+
+        double componentsTotal = 0;
+        for (TransactionListItemDto item : items) {
+            if (item == null) continue;
+            componentsTotal += signedAmount(item);
+            addInvoiceItemRow(dialogBinding.invoiceItemsRowsContainer, item);
+        }
+        dialogBinding.invoiceComponentsTotalTextView.setText(
+                formatSummaryCurrency(Math.abs(componentsTotal)));
+        dialogBinding.invoiceComponentsTotalTextView.setTextColor(
+                getColor(R.color.money_negative));
+        dialogBinding.invoicePendingTotalTextView.setText(
+                formatSummaryCurrency(invoice.getAmountValue()));
+        dialogBinding.invoicePendingTotalTextView.setTextColor(
+                getColor(R.color.money_negative));
+
+        InvoicePendingDto pending = invoice.invoicePending;
+        double previousBalance = pending == null ? 0 : pending.previousBalanceValue();
+        dialogBinding.invoicePreviousBalanceRow.setVisibility(
+                previousBalance > 0 ? View.VISIBLE : View.GONE);
+        dialogBinding.invoicePreviousBalanceTextView.setText(
+                formatSummaryCurrency(previousBalance));
+        double totalPaid = pending == null ? 0 : pending.totalPaidValue();
+        dialogBinding.invoicePaidRow.setVisibility(totalPaid > 0 ? View.VISIBLE : View.GONE);
+        dialogBinding.invoicePaidTextView.setText(formatSummaryCurrency(totalPaid));
+
+        Dialog dialog = buildDialog(dialogBinding.getRoot());
+        dialogBinding.closeButton.setOnClickListener(v -> dialog.dismiss());
+        dialogBinding.footerCloseButton.setOnClickListener(v -> dialog.dismiss());
+        showSizedDialog(dialog, 0.78f);
+    }
+
+    private void addInvoiceItemRow(LinearLayout parent, TransactionListItemDto item) {
+        LinearLayout row = new LinearLayout(this);
+        row.setOrientation(LinearLayout.HORIZONTAL);
+        row.setGravity(Gravity.CENTER_VERTICAL);
+        row.setPadding(0, dp(10), 0, dp(10));
+
+        long itemDateMillis = item.getDateMillis();
+        TextView date = bodyText(itemDateMillis > 0 ? formatDate(itemDateMillis) : "—");
+        date.setTextSize(11);
+        row.addView(date, new LinearLayout.LayoutParams(dp(72), -2));
+
+        LinearLayout details = new LinearLayout(this);
+        details.setOrientation(LinearLayout.VERTICAL);
+        details.setPadding(dp(8), 0, dp(8), 0);
+        TextView description = bodyText(item.description == null || item.description.trim().isEmpty()
+                ? item.getCategoryName() : item.description);
+        description.setTextSize(13);
+        description.setMaxLines(2);
+        description.setEllipsize(android.text.TextUtils.TruncateAt.END);
+        details.addView(description);
+        TextView category = secondaryText(item.getCategoryName() + " · " + item.getSourceName());
+        category.setTextSize(11);
+        category.setMaxLines(1);
+        category.setEllipsize(android.text.TextUtils.TruncateAt.END);
+        details.addView(category);
+        row.addView(details, new LinearLayout.LayoutParams(0, -2, 1));
+
+        double value = Math.abs(item.getAmountValue());
+        TextView amount = bodyText((item.isIncome() ? "+" : "−") + formatSummaryCurrency(value));
+        amount.setTextSize(12);
+        amount.setTypeface(null, Typeface.BOLD);
+        amount.setGravity(Gravity.END);
+        amount.setTextColor(moneyColor(item.isIncome() ? value : -value));
+        row.addView(amount, new LinearLayout.LayoutParams(dp(112), -2));
+
+        parent.addView(row);
+        parent.addView(divider(), new LinearLayout.LayoutParams(-1, dp(1)));
+    }
+
+    private TextView bodyText(String value) {
+        TextView text = new TextView(this);
+        text.setText(value);
+        text.setTextColor(getColor(R.color.on_surface));
+        text.setTextSize(13);
+        return text;
+    }
+
+    private TextView secondaryText(String value) {
+        TextView text = bodyText(value);
+        text.setTextColor(getColor(R.color.on_surface_variant));
+        return text;
+    }
+
+    private View divider() {
+        View divider = new View(this);
+        divider.setBackgroundColor(getColor(R.color.outline));
+        return divider;
+    }
+
+    private Dialog buildDialog(View content) {
+        Dialog dialog = new Dialog(this);
+        dialog.requestWindowFeature(Window.FEATURE_NO_TITLE);
+        dialog.setContentView(content);
+        Window window = dialog.getWindow();
+        if (window != null) {
+            window.setBackgroundDrawableResource(android.R.color.transparent);
+            window.setSoftInputMode(WindowManager.LayoutParams.SOFT_INPUT_ADJUST_RESIZE
+                    | WindowManager.LayoutParams.SOFT_INPUT_STATE_ALWAYS_HIDDEN);
+        }
+        return dialog;
+    }
+
+    private void showSizedDialog(Dialog dialog, float heightFactor) {
+        dialog.show();
+        Window window = dialog.getWindow();
+        if (window == null) return;
+        int width = getResources().getDisplayMetrics().widthPixels - dp(32);
+        int height = (int) (getResources().getDisplayMetrics().heightPixels * heightFactor);
+        window.setLayout(width, height);
     }
 
     private void showTransactionOptions(View anchor, TransactionListItemDto item) {

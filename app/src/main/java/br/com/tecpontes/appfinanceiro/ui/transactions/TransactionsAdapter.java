@@ -24,12 +24,18 @@ public class TransactionsAdapter extends RecyclerView.Adapter<TransactionsAdapte
     private final List<TransactionListItemDto> transactions = new ArrayList<>();
     private final OnTransactionClickListener clickListener;
     private final OnTransactionOptionsListener optionsListener;
+    @Nullable private OnInvoiceAmountClickListener invoiceAmountClickListener;
 
     public TransactionsAdapter(
             OnTransactionClickListener clickListener,
             OnTransactionOptionsListener optionsListener) {
         this.clickListener = clickListener;
         this.optionsListener = optionsListener;
+    }
+
+    public void setInvoiceAmountClickListener(
+            @Nullable OnInvoiceAmountClickListener invoiceAmountClickListener) {
+        this.invoiceAmountClickListener = invoiceAmountClickListener;
     }
 
     @NonNull
@@ -44,12 +50,39 @@ public class TransactionsAdapter extends RecyclerView.Adapter<TransactionsAdapte
     public void onBindViewHolder(@NonNull ViewHolder holder, int position) {
         TransactionListItemDto transaction = transactions.get(position);
         holder.bind(transaction);
-        holder.itemView.setOnClickListener(v -> {
-            if (clickListener != null) clickListener.onTransactionClick(transaction);
-        });
-        holder.moreOptions.setOnClickListener(v -> {
-            if (optionsListener != null) optionsListener.onTransactionOptions(v, transaction);
-        });
+
+        if (transaction.isConsolidatedInvoice()) {
+            holder.itemView.setClickable(false);
+            holder.itemView.setFocusable(false);
+            holder.itemView.setOnClickListener(null);
+            holder.moreOptions.setVisibility(View.GONE);
+            holder.moreOptions.setOnClickListener(null);
+            holder.amount.setClickable(true);
+            holder.amount.setFocusable(true);
+            holder.amount.setBackgroundResource(R.drawable.bg_text_action);
+            holder.amount.setContentDescription(
+                    "Ver os lançamentos que compõem esta fatura");
+            holder.amount.setOnClickListener(v -> {
+                if (invoiceAmountClickListener != null) {
+                    invoiceAmountClickListener.onInvoiceAmountClick(transaction);
+                }
+            });
+        } else {
+            holder.itemView.setClickable(true);
+            holder.itemView.setFocusable(true);
+            holder.itemView.setOnClickListener(v -> {
+                if (clickListener != null) clickListener.onTransactionClick(transaction);
+            });
+            holder.moreOptions.setVisibility(View.VISIBLE);
+            holder.moreOptions.setOnClickListener(v -> {
+                if (optionsListener != null) optionsListener.onTransactionOptions(v, transaction);
+            });
+            holder.amount.setClickable(false);
+            holder.amount.setFocusable(false);
+            holder.amount.setBackground(null);
+            holder.amount.setContentDescription(null);
+            holder.amount.setOnClickListener(null);
+        }
     }
 
     @Override
@@ -115,6 +148,7 @@ public class TransactionsAdapter extends RecyclerView.Adapter<TransactionsAdapte
             status.setBackground(statusBackground);
 
             List<String> indicators = new ArrayList<>();
+            if (transaction.partialInvoice) indicators.add("Parcial");
             if (transaction.isFixedExpenseTransaction()) indicators.add("Fixa");
             if (transaction.isInstallmentTransaction()) {
                 if (transaction.installmentNumber != null && transaction.totalInstallments != null) {
@@ -141,5 +175,9 @@ public class TransactionsAdapter extends RecyclerView.Adapter<TransactionsAdapte
 
     public interface OnTransactionOptionsListener {
         void onTransactionOptions(View anchor, TransactionListItemDto transaction);
+    }
+
+    public interface OnInvoiceAmountClickListener {
+        void onInvoiceAmountClick(TransactionListItemDto invoice);
     }
 }

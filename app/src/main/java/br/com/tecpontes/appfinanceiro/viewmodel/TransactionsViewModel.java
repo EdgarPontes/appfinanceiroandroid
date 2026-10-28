@@ -21,9 +21,12 @@ import br.com.tecpontes.appfinanceiro.model.TransactionWriteDto;
 import br.com.tecpontes.appfinanceiro.model.AccountDto;
 import br.com.tecpontes.appfinanceiro.model.CategoryDto;
 import br.com.tecpontes.appfinanceiro.model.CreditCardDto;
+import br.com.tecpontes.appfinanceiro.model.InvoicePendingDto;
 import br.com.tecpontes.appfinanceiro.model.TransactionTransferRequestDto;
 import dagger.hilt.android.lifecycle.HiltViewModel;
+import java.util.LinkedHashMap;
 import java.util.List;
+import java.util.Map;
 import javax.inject.Inject;
 
 /**
@@ -62,6 +65,10 @@ public class TransactionsViewModel extends ViewModel {
 
     private final MutableLiveData<List<TransactionListItemDto>> _filteredTransactions = new MutableLiveData<>();
     public final LiveData<List<TransactionListItemDto>> filteredTransactions = _filteredTransactions;
+
+    private final MutableLiveData<Map<String, InvoicePendingDto>> _invoicePending =
+            new MutableLiveData<>(new LinkedHashMap<>());
+    public final LiveData<Map<String, InvoicePendingDto>> invoicePending = _invoicePending;
 
     private final MutableLiveData<BalanceHistoryDto> _balanceAtDate = new MutableLiveData<>();
     public final LiveData<BalanceHistoryDto> balanceAtDate = _balanceAtDate;
@@ -169,6 +176,24 @@ public class TransactionsViewModel extends ViewModel {
                     public void onError(String error) {
                         _loading.postValue(false);
                         _error.postValue(error);
+                    }
+                });
+    }
+
+    /** Atualiza os valores pendentes das faturas visíveis na lista. */
+    public void loadInvoicePending(@NonNull List<String> invoiceIds) {
+        creditCardRepository.getPendingInvoices(invoiceIds,
+                new CreditCardRepository.ResultCallback<Map<String, InvoicePendingDto>>() {
+                    @Override
+                    public void onSuccess(Map<String, InvoicePendingDto> result) {
+                        _invoicePending.postValue(result == null
+                                ? new LinkedHashMap<>() : result);
+                    }
+
+                    @Override
+                    public void onError(String error) {
+                        Log.w(TAG, "Não foi possível carregar as faturas: " + error);
+                        _invoicePending.postValue(new LinkedHashMap<>());
                     }
                 });
     }

@@ -140,6 +140,24 @@ public class CreateTransactionDialog extends Dialog {
             @Nullable List<AccountDto> loadedAccounts,
             @Nullable List<CategoryDto> loadedCategories,
             @Nullable List<CreditCardDto> loadedCards) {
+        String selectedAccountId = null;
+        String selectedCardId = null;
+        String selectedCategoryId = null;
+        String selectedFromAccountId = null;
+        String selectedToAccountId = null;
+        if (binding != null) {
+            AccountDto account = selectedAccount(binding.accountSpinner);
+            CreditCardDto card = selectedCard();
+            CategoryOption category = selectedCategory();
+            AccountDto fromAccount = selectedAccount(binding.fromAccountSpinner);
+            AccountDto toAccount = selectedAccount(binding.toAccountSpinner);
+            selectedAccountId = account == null ? null : account.getId();
+            selectedCardId = card == null ? null : card.getId();
+            selectedCategoryId = category == null ? null : category.id;
+            selectedFromAccountId = fromAccount == null ? null : fromAccount.getId();
+            selectedToAccountId = toAccount == null ? null : toAccount.getId();
+        }
+
         accounts.clear();
         cards.clear();
         categories.clear();
@@ -165,6 +183,12 @@ public class CreateTransactionDialog extends Dialog {
         setSpinnerItems(binding.fromAccountSpinner, namesOfAccounts(), "Selecione a conta de origem");
         setSpinnerItems(binding.toAccountSpinner, namesOfAccounts(), "Selecione a conta de destino");
         refreshCategoryOptions();
+        // Recarregar as opções recria os adapters; restaura o que já estava selecionado.
+        selectAccountFromSpinner(binding.accountSpinner, selectedAccountId);
+        selectCardById(selectedCardId);
+        selectCategoryById(selectedCategoryId);
+        selectAccountFromSpinner(binding.fromAccountSpinner, selectedFromAccountId);
+        selectAccountFromSpinner(binding.toAccountSpinner, selectedToAccountId);
         renderLoadingState();
         prefillIfReady();
         applyPresetCard();
@@ -190,8 +214,15 @@ public class CreateTransactionDialog extends Dialog {
 
     private void prefillIfReady() {
         if (!hasSourceItem() || prefillApplied || binding == null || optionsLoading) return;
+        TransactionListItemDto item = editingItem;
+        if (item == null) return;
+        // As opções chegam em chamadas assíncronas distintas; só preenche quando
+        // todos os seletores necessários já têm dados.
+        if (item.categoryId != null && categories.isEmpty()) return;
+        if (item.cardId != null && cards.isEmpty()) return;
+        if (item.cardId == null && item.accountId != null && accounts.isEmpty()) return;
         prefillApplied = true;
-        applyEditingItem(editingItem);
+        applyEditingItem(item);
     }
 
     private void applyPresetCard() {
@@ -205,8 +236,10 @@ public class CreateTransactionDialog extends Dialog {
         binding.paymentMethodSpinner.setAlpha(0.7f);
         updatePaymentMethodVisibility();
         if (presetCardId != null) selectCardById(presetCardId);
-        binding.formTitleTextView.setText("Novo lançamento");
-        binding.formSubtitleTextView.setText("Despesa ou crédito no cartão de crédito");
+        if (!hasSourceItem()) {
+            binding.formTitleTextView.setText("Novo lançamento");
+            binding.formSubtitleTextView.setText("Despesa ou crédito no cartão de crédito");
+        }
         renderLoadingState();
     }
 

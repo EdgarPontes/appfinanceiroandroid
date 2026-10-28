@@ -261,10 +261,17 @@
                                 android:layout_weight="1"
                                 android:insetTop="0dp"
                                 android:insetBottom="0dp"
+                                android:maxLines="1"
+                                android:paddingStart="8dp"
+                                android:paddingEnd="8dp"
                                 android:text="Fechar fatura"
                                 android:textAllCaps="false"
                                 android:textColor="?attr/colorOnSurface"
                                 android:textSize="13sp"
+                                app:autoSizeMaxTextSize="13sp"
+                                app:autoSizeMinTextSize="10sp"
+                                app:autoSizeStepGranularity="1sp"
+                                app:autoSizeTextType="uniform"
                                 app:cornerRadius="14dp"
                                 app:strokeColor="?attr/colorOutline" />
 
@@ -275,8 +282,15 @@
                                 android:layout_height="52dp"
                                 android:layout_marginStart="8dp"
                                 android:layout_weight="1"
+                                android:maxLines="1"
+                                android:paddingStart="8dp"
+                                android:paddingEnd="8dp"
                                 android:text="Lançar pagamento"
-                                android:textSize="13sp" />
+                                android:textSize="13sp"
+                                app:autoSizeMaxTextSize="13sp"
+                                app:autoSizeMinTextSize="10sp"
+                                app:autoSizeStepGranularity="1sp"
+                                app:autoSizeTextType="uniform" />
                         </LinearLayout>
 
                         <com.google.android.material.button.MaterialButton

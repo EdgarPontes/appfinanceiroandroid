@@ -95,7 +95,7 @@
 
                 <LinearLayout
                     android:layout_width="match_parent"
-                    android:layout_height="52dp"
+                    android:layout_height="48dp"
                     android:layout_marginBottom="12dp"
                     android:gravity="center_vertical"
                     android:orientation="horizontal">
@@ -159,6 +159,8 @@
                         android:layout_marginStart="8dp"
                         android:layout_weight="1"
                         android:ellipsize="end"
+                        android:insetBottom="0dp"
+                        android:insetTop="0dp"
                         android:maxLines="1"
                         android:text="Todas as contas"
                         android:textAllCaps="false"
@@ -178,8 +180,10 @@
                     android:id="@+id/filtersButton"
                     style="@style/Widget.Material3.Button.TonalButton"
                     android:layout_width="match_parent"
-                    android:layout_height="46dp"
+                    android:layout_height="48dp"
                     android:layout_marginBottom="12dp"
+                    android:insetBottom="0dp"
+                    android:insetTop="0dp"
                     android:text="Filtros"
                     android:textAllCaps="false"
                     android:textColor="?attr/colorOnSurface"

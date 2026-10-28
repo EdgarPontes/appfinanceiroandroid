@@ -7,11 +7,16 @@ import br.com.tecpontes.appfinanceiro.model.CategoryDto;
 import br.com.tecpontes.appfinanceiro.model.CreditCardDto;
 import br.com.tecpontes.appfinanceiro.model.InvoiceDetailsDto;
 import br.com.tecpontes.appfinanceiro.model.InvoicePaymentRequestDto;
+import br.com.tecpontes.appfinanceiro.model.InvoicePendingDto;
+import br.com.tecpontes.appfinanceiro.model.InvoicePendingRequestDto;
+import br.com.tecpontes.appfinanceiro.model.InvoicePendingResponseDto;
 import br.com.tecpontes.appfinanceiro.model.ReconciliationRequestDto;
 import br.com.tecpontes.appfinanceiro.model.TransactionWriteDto;
 import br.com.tecpontes.appfinanceiro.network.ApiService;
 import dagger.hilt.android.scopes.ViewModelScoped;
+import java.util.LinkedHashMap;
 import java.util.List;
+import java.util.Map;
 import javax.inject.Inject;
 import okhttp3.ResponseBody;
 import retrofit2.Call;
@@ -42,6 +47,40 @@ public class CreditCardRepository {
 
     public void getAccounts(@NonNull ResultCallback<List<AccountDto>> callback) {
         enqueue(apiService.getAccounts(), callback, "Não foi possível carregar as contas");
+    }
+
+    /** Busca o valor pendente de várias faturas de uma só vez. */
+    public void getPendingInvoices(
+            @NonNull List<String> invoiceIds,
+            @NonNull ResultCallback<Map<String, InvoicePendingDto>> callback) {
+        if (invoiceIds.isEmpty()) {
+            callback.onSuccess(new LinkedHashMap<>());
+            return;
+        }
+        apiService.getInvoicePending(new InvoicePendingRequestDto(invoiceIds))
+                .enqueue(new Callback<InvoicePendingResponseDto>() {
+                    @Override
+                    public void onResponse(
+                            @NonNull Call<InvoicePendingResponseDto> ignored,
+                            @NonNull Response<InvoicePendingResponseDto> response) {
+                        if (response.isSuccessful() && response.body() != null) {
+                            callback.onSuccess(response.body().getPending());
+                        } else if (response.isSuccessful()) {
+                            callback.onSuccess(new LinkedHashMap<>());
+                        } else {
+                            callback.onError("Não foi possível carregar as faturas: "
+                                    + response.message());
+                        }
+                    }
+
+                    @Override
+                    public void onFailure(
+                            @NonNull Call<InvoicePendingResponseDto> ignored,
+                            @NonNull Throwable error) {
+                        callback.onError("Erro de conexão ao carregar as faturas: "
+                                + error.getMessage());
+                    }
+                });
     }
 
     public void getCategories(@NonNull ResultCallback<List<CategoryDto>> callback) {

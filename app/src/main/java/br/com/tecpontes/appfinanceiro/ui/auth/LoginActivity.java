@@ -15,6 +15,7 @@ import android.util.Patterns;
 import android.view.View;
 import android.widget.Toast;
 import androidx.activity.EdgeToEdge;
+import androidx.annotation.NonNull;
 import androidx.appcompat.app.AlertDialog;
 import androidx.appcompat.app.AppCompatActivity;
 import androidx.core.graphics.Insets;
@@ -47,6 +48,7 @@ public class LoginActivity extends AppCompatActivity {
     private LoginViewModel loginViewModel;
     private boolean showingRegister;
     private boolean formattingCellphone;
+    private boolean googleSignInInProgress;
 
     @Inject
     TokenManager tokenManager;
@@ -56,6 +58,9 @@ public class LoginActivity extends AppCompatActivity {
 
     @Inject
     TransactionSyncScheduler transactionSyncScheduler;
+
+    @Inject
+    GoogleSignInClient googleSignInClient;
 
     @Inject
     OptionsBootstrap optionsBootstrap;
@@ -166,10 +171,7 @@ public class LoginActivity extends AppCompatActivity {
             }
         });
 
-        binding.googleAuthButton.setOnClickListener(v -> Toast.makeText(
-                this,
-                "Login com Google estará disponível em breve.",
-                Toast.LENGTH_SHORT).show());
+        binding.googleAuthButton.setOnClickListener(v -> startGoogleSignIn());
 
         binding.loginButton.setOnClickListener(v -> loginViewModel.login(
                 textOf(binding.loginEmailEditText).trim(),
@@ -215,6 +217,37 @@ public class LoginActivity extends AppCompatActivity {
         });
 
         setupCellphoneFormatter();
+    }
+
+    private void startGoogleSignIn() {
+        if (googleSignInInProgress) return;
+        googleSignInInProgress = true;
+        binding.googleAuthButton.setEnabled(false);
+
+        googleSignInClient.signIn(this, new GoogleSignInClient.Callback() {
+            @Override
+            public void onSuccess(@NonNull String idToken) {
+                googleSignInInProgress = false;
+                if (binding == null) return;
+                loginViewModel.loginWithGoogle(idToken,
+                        binding.keepConnectedCheckBox.isChecked());
+            }
+
+            @Override
+            public void onCancelled() {
+                googleSignInInProgress = false;
+                if (binding == null) return;
+                binding.googleAuthButton.setEnabled(true);
+            }
+
+            @Override
+            public void onError(@NonNull String message) {
+                googleSignInInProgress = false;
+                if (binding == null) return;
+                binding.googleAuthButton.setEnabled(true);
+                Toast.makeText(LoginActivity.this, message, Toast.LENGTH_LONG).show();
+            }
+        });
     }
 
     private void showForm(boolean register) {

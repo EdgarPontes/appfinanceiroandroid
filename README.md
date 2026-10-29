@@ -125,6 +125,43 @@ O aplicativo implementa autenticação automática via JWT:
 2. **Tratamento de 401**: Token inválido/expirado limpa sessão automaticamente
 3. **Persistência Segura**: Token armazenado em SharedPreferences (recomenda-se migrar para EncryptedSharedPreferences em produção)
 
+### Login com Google
+
+O app usa o **AndroidX Credential Manager** para obter o ID token do Google e o envia à API, que valida o token e devolve o JWT da aplicação (`POST /api/auth/google`). O ID token nunca é armazenado como sessão.
+
+#### Como obter o GOOGLE_CLIENT_ID
+
+1. Acesse o [Google Cloud Console](https://console.cloud.google.com/) e selecione (ou crie) o projeto.
+2. Configure a **tela de consentimento OAuth** (Google Auth Platform → Branding/Consent).
+3. Crie um **OAuth Client ID → Web application**. Copie o Client ID, que termina em `.apps.googleusercontent.com`. Ele é o mesmo valor usado como:
+   - `GOOGLE_CLIENT_ID` no backend;
+   - `GOOGLE_WEB_CLIENT_ID` no app Android.
+4. Crie também um **OAuth Client ID → Android**, informando:
+   - Nome do pacote: `br.com.tecpontes.appfinanceiro`;
+   - SHA-1 do certificado de debug e de release.
+   Para obter as impressões digitais, execute na raiz do projeto:
+   ```bash
+   ./gradlew signingReport
+   ```
+   Use o SHA-1 (e o SHA-256) exibidos em `Variant: debug` e `Variant: release`.
+5. Defina o Web Client ID em `local.properties` (não versionado) ou em `gradle.properties`:
+   ```
+   GOOGLE_WEB_CLIENT_ID=000000000000-xxxxxxxx.apps.googleusercontent.com
+   ```
+6. Configure o backend com o **mesmo** Web Client ID em `GOOGLE_CLIENT_ID` e garanta que `POST /api/auth/google` esteja disponível.
+7. Gere o app novamente para que o `BuildConfig` receba o valor:
+   ```bash
+   ./gradlew assembleDebug
+   ```
+
+**Importante:**
+
+- `local.properties` é um arquivo local (contém o caminho do SDK) e **não deve ser commitado**; ele já está no `.gitignore`.
+- O Client ID é público, mas o **Client Secret** do cliente Web não deve ser usado nem incluído no app Android.
+- O cliente Android não substitui o Web Client ID: ele apenas autoriza o app a obter o token; a audiência validada pelo backend continua sendo o cliente Web.
+
+Sem essa configuração, o botão exibe "Login com Google não configurado neste build.". Acompanhe pendências e critérios de aceite em [docs/plano-integracao-login-google.md](docs/plano-integracao-login-google.md).
+
 ## 🎨 Design Glassmorphism
 
 O aplicativo utiliza design glassmorphism com:

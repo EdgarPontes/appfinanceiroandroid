@@ -85,6 +85,37 @@ public class LoginViewModel extends ViewModel {
     }
 
     /**
+     * Troca o ID token do Google pelo JWT da aplicação.
+     */
+    public void loginWithGoogle(@NonNull String idToken, boolean keepConnected) {
+        if (idToken.trim().isEmpty()) {
+            _error.setValue("Credencial do Google inválida. Tente novamente.");
+            return;
+        }
+
+        Log.d(TAG, "Tentando login com Google");
+        _loading.setValue(true);
+        _error.setValue(null);
+
+        authRepository.loginWithGoogle(idToken, keepConnected,
+                new AuthRepository.AuthCallback() {
+                    @Override
+                    public void onSuccess(AuthResponse response) {
+                        _loading.postValue(false);
+                        _loginSuccess.postValue(true);
+                        Log.d(TAG, "Login com Google realizado com sucesso");
+                    }
+
+                    @Override
+                    public void onError(String error) {
+                        _loading.postValue(false);
+                        _error.postValue(error);
+                        Log.d(TAG, "Erro no login com Google: " + error);
+                    }
+                });
+    }
+
+    /**
      * Realiza registro do usuário
      */
     public void register(@NonNull String name, @NonNull String email,

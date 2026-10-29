@@ -1,3 +1,5 @@
+import java.util.Properties
+
 plugins {
     alias(libs.plugins.android.application)
     alias(libs.plugins.kotlin.android)
@@ -14,6 +16,18 @@ if (hasGoogleServicesConfig) {
     apply(plugin = "com.google.gms.google-services")
 }
 
+// Web client ID do OAuth. Configure via gradle.properties ou local.properties
+// (GOOGLE_WEB_CLIENT_ID=...apps.googleusercontent.com). O valor é público,
+// mas não deve ser hardcoded no código para permitir builds por ambiente.
+val localProperties = Properties().apply {
+    val file = rootProject.file("local.properties")
+    if (file.exists()) {
+        file.inputStream().use { load(it) }
+    }
+}
+val googleWebClientId = (project.findProperty("GOOGLE_WEB_CLIENT_ID") as String?)
+    ?: localProperties.getProperty("GOOGLE_WEB_CLIENT_ID", "")
+
 android {
     namespace = "br.com.tecpontes.appfinanceiro"
     compileSdk = 36
@@ -26,6 +40,8 @@ android {
         versionName = "1.0"
 
         testInstrumentationRunner = "androidx.test.runner.AndroidJUnitRunner"
+
+        buildConfigField("String", "GOOGLE_WEB_CLIENT_ID", "\"$googleWebClientId\"")
     }
 
     buildTypes {
@@ -103,6 +119,11 @@ dependencies {
     // Firebase Cloud Messaging only (no Analytics dependency).
     implementation(platform(libs.firebase.bom))
     implementation(libs.firebase.messaging)
+
+    // Login com Google (Credential Manager)
+    implementation(libs.androidx.credentials)
+    implementation(libs.androidx.credentials.play.services.auth)
+    implementation(libs.googleid)
 
     // Testing
     testImplementation(libs.junit)

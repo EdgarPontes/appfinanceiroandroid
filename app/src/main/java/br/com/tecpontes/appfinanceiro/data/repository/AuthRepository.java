@@ -2,11 +2,13 @@ package br.com.tecpontes.appfinanceiro.data.repository;
 
 import android.util.Log;
 import androidx.annotation.NonNull;
+import androidx.annotation.Nullable;
 import androidx.lifecycle.LiveData;
 import androidx.lifecycle.MutableLiveData;
 import br.com.tecpontes.appfinanceiro.model.AuthRequest;
 import br.com.tecpontes.appfinanceiro.model.AuthResponse;
 import br.com.tecpontes.appfinanceiro.model.ForgotPasswordRequestDto;
+import br.com.tecpontes.appfinanceiro.model.GoogleAuthRequestDto;
 import br.com.tecpontes.appfinanceiro.network.ApiService;
 import br.com.tecpontes.appfinanceiro.utils.ApiErrorUtils;
 import br.com.tecpontes.appfinanceiro.utils.NetworkErrors;
@@ -49,26 +51,8 @@ public class AuthRepository {
             @Override
             public void onResponse(@NonNull Call<AuthResponse> call,
                                  @NonNull Response<AuthResponse> response) {
-                if (response.isSuccessful() && response.body() != null) {
-                    AuthResponse authResponse = response.body();
-                    String token = authResponse.getToken();
-                    if (token == null || token.trim().isEmpty()) {
-                        callback.onError("A API não retornou um token de autenticação");
-                        return;
-                    }
-
-                    // Salva token e dados do usuário
-                    tokenManager.saveToken(token, keepConnected);
-                    String authenticatedEmail = authResponse.getUser() == null
-                            ? email : authResponse.getUser().getEmail();
-                    tokenManager.saveUserEmail(authenticatedEmail, keepConnected);
-
-                    Log.d(TAG, "Login realizado com sucesso");
-                    callback.onSuccess(authResponse);
-                } else {
-                    Log.d(TAG, "Erro no login: " + response.message());
-                    callback.onError(ApiErrorUtils.readError(response, "Credenciais inválidas"));
-                }
+                handleAuthResponse(response, email, keepConnected,
+                        "Credenciais inválidas", callback);
             }
 
             @Override
@@ -78,6 +62,65 @@ public class AuthRepository {
                         t, "Não foi possível concluir a solicitação. Tente novamente."));
             }
         });
+    }
+
+    /**
+     * Troca o ID token do Google pelo JWT da aplicação. A validação do token
+     * e a decisão de criar/vincular conta são responsabilidade do backend.
+     */
+    public void loginWithGoogle(@NonNull String idToken, boolean keepConnected,
+                                @NonNull AuthCallback callback) {
+        if (idToken.trim().isEmpty()) {
+            callback.onError("Credencial do Google inválida. Tente novamente.");
+            return;
+        }
+
+        Log.d(TAG, "Tentando login com Google");
+        GoogleAuthRequestDto request = new GoogleAuthRequestDto(idToken, keepConnected);
+        apiService.loginWithGoogle(request).enqueue(new Callback<AuthResponse>() {
+            @Override
+            public void onResponse(@NonNull Call<AuthResponse> call,
+                                   @NonNull Response<AuthResponse> response) {
+                handleAuthResponse(response, null, keepConnected,
+                        "Não foi possível entrar com o Google", callback);
+            }
+
+            @Override
+            public void onFailure(@NonNull Call<AuthResponse> call, @NonNull Throwable t) {
+                Log.e(TAG, "Falha na requisição de login com Google", t);
+                callback.onError(NetworkErrors.message(
+                        t, "Não foi possível entrar com o Google. Tente novamente."));
+            }
+        });
+    }
+
+    private void handleAuthResponse(@NonNull Response<AuthResponse> response,
+                                    @Nullable String fallbackEmail,
+                                    boolean keepConnected,
+                                    @NonNull String fallbackError,
+                                    @NonNull AuthCallback callback) {
+        if (!response.isSuccessful() || response.body() == null) {
+            Log.d(TAG, "Erro na autenticação: " + response.message());
+            callback.onError(ApiErrorUtils.readError(response, fallbackError));
+            return;
+        }
+
+        AuthResponse authResponse = response.body();
+        String token = authResponse.getToken();
+        if (token == null || token.trim().isEmpty()) {
+            callback.onError("A API não retornou um token de autenticação");
+            return;
+        }
+
+        tokenManager.saveToken(token, keepConnected);
+        String authenticatedEmail = authResponse.getUser() == null
+                ? fallbackEmail : authResponse.getUser().getEmail();
+        if (authenticatedEmail != null && !authenticatedEmail.isEmpty()) {
+            tokenManager.saveUserEmail(authenticatedEmail, keepConnected);
+        }
+
+        Log.d(TAG, "Autenticação realizada com sucesso");
+        callback.onSuccess(authResponse);
     }
 
     /**

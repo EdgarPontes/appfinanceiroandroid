@@ -9,6 +9,7 @@ import br.com.tecpontes.appfinanceiro.model.AuthResponse;
 import br.com.tecpontes.appfinanceiro.model.ForgotPasswordRequestDto;
 import br.com.tecpontes.appfinanceiro.network.ApiService;
 import br.com.tecpontes.appfinanceiro.utils.ApiErrorUtils;
+import br.com.tecpontes.appfinanceiro.utils.NetworkErrors;
 import br.com.tecpontes.appfinanceiro.utils.TokenManager;
 import javax.inject.Inject;
 import javax.inject.Singleton;
@@ -58,9 +59,9 @@ public class AuthRepository {
 
                     // Salva token e dados do usuário
                     tokenManager.saveToken(token, keepConnected);
-                    if (authResponse.getUser() != null) {
-                        tokenManager.saveUserEmail(authResponse.getUser().getEmail(), keepConnected);
-                    }
+                    String authenticatedEmail = authResponse.getUser() == null
+                            ? email : authResponse.getUser().getEmail();
+                    tokenManager.saveUserEmail(authenticatedEmail, keepConnected);
 
                     Log.d(TAG, "Login realizado com sucesso");
                     callback.onSuccess(authResponse);
@@ -73,7 +74,8 @@ public class AuthRepository {
             @Override
             public void onFailure(@NonNull Call<AuthResponse> call, @NonNull Throwable t) {
                 Log.e(TAG, "Falha na requisição de login", t);
-                callback.onError("Erro de conexão: " + t.getMessage());
+                callback.onError(NetworkErrors.message(
+                        t, "Não foi possível concluir a solicitação. Tente novamente."));
             }
         });
     }
@@ -108,7 +110,8 @@ public class AuthRepository {
             @Override
             public void onFailure(@NonNull Call<AuthResponse> call, @NonNull Throwable t) {
                 Log.e(TAG, "Falha na requisição de registro", t);
-                callback.onError("Erro de conexão: " + t.getMessage());
+                callback.onError(NetworkErrors.message(
+                        t, "Não foi possível concluir a solicitação. Tente novamente."));
             }
         });
     }
@@ -136,7 +139,8 @@ public class AuthRepository {
                     @Override
                     public void onFailure(@NonNull Call<ResponseBody> call,
                                           @NonNull Throwable error) {
-                        callback.onError("Erro de conexão: " + error.getMessage());
+                        callback.onError(NetworkErrors.message(
+                                error, "Não foi possível concluir a solicitação. Tente novamente."));
                     }
                 });
     }

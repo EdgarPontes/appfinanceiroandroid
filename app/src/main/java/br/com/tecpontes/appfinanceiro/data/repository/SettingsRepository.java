@@ -11,6 +11,7 @@ import br.com.tecpontes.appfinanceiro.model.ImportCategoryGoalsRequestDto;
 import br.com.tecpontes.appfinanceiro.model.UserSettingsDto;
 import br.com.tecpontes.appfinanceiro.model.UserSettingsUpdateRequestDto;
 import br.com.tecpontes.appfinanceiro.network.ApiService;
+import br.com.tecpontes.appfinanceiro.utils.NetworkErrors;
 import br.com.tecpontes.appfinanceiro.utils.ApiErrorUtils;
 import java.io.IOException;
 import java.util.List;
@@ -102,7 +103,8 @@ public class SettingsRepository {
             }
 
             @Override public void onFailure(@NonNull Call<T> ignored, @NonNull Throwable error) {
-                callback.onError("Erro de conexão: " + error.getMessage());
+                callback.onError(NetworkErrors.message(
+                        error, failureMessage + ". Tente novamente."));
             }
         });
     }
@@ -125,7 +127,8 @@ public class SettingsRepository {
 
             @Override public void onFailure(
                     @NonNull Call<ResponseBody> ignored, @NonNull Throwable error) {
-                callback.onError("Erro de conexão: " + error.getMessage());
+                callback.onError(NetworkErrors.message(
+                        error, failureMessage + ". Tente novamente."));
             }
         });
     }

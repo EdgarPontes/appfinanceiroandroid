@@ -2,6 +2,7 @@ package br.com.tecpontes.appfinanceiro.data.repository;
 
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
+import br.com.tecpontes.appfinanceiro.data.local.LocalOptionsCache;
 import br.com.tecpontes.appfinanceiro.model.AccountDto;
 import br.com.tecpontes.appfinanceiro.model.CategoryDto;
 import br.com.tecpontes.appfinanceiro.model.CreditCardDto;
@@ -13,6 +14,7 @@ import br.com.tecpontes.appfinanceiro.model.InvoicePendingResponseDto;
 import br.com.tecpontes.appfinanceiro.model.ReconciliationRequestDto;
 import br.com.tecpontes.appfinanceiro.model.TransactionWriteDto;
 import br.com.tecpontes.appfinanceiro.network.ApiService;
+import br.com.tecpontes.appfinanceiro.utils.NetworkErrors;
 import dagger.hilt.android.scopes.ViewModelScoped;
 import java.util.LinkedHashMap;
 import java.util.List;
@@ -28,14 +30,51 @@ import retrofit2.Response;
 public class CreditCardRepository {
 
     private final ApiService apiService;
+    private final LocalOptionsCache optionsCache;
+    private final PendingTransactionQueue pendingQueue;
 
     @Inject
-    public CreditCardRepository(ApiService apiService) {
+    public CreditCardRepository(
+            ApiService apiService,
+            LocalOptionsCache optionsCache,
+            PendingTransactionQueue pendingQueue) {
         this.apiService = apiService;
+        this.optionsCache = optionsCache;
+        this.pendingQueue = pendingQueue;
     }
 
     public void getCards(@NonNull ResultCallback<List<CreditCardDto>> callback) {
-        enqueue(apiService.getCreditCards(), callback, "Não foi possível carregar os cartões");
+        apiService.getCreditCards().enqueue(new Callback<List<CreditCardDto>>() {
+            @Override
+            public void onResponse(
+                    @NonNull Call<List<CreditCardDto>> ignored,
+                    @NonNull Response<List<CreditCardDto>> response) {
+                if (response.isSuccessful()) {
+                    List<CreditCardDto> cards = response.body();
+                    optionsCache.saveCards(cards);
+                    callback.onSuccess(cards);
+                } else if (response.code() >= 500) {
+                    fallbackCards(callback);
+                } else {
+                    callback.onError("Não foi possível carregar os cartões: "
+                            + response.message());
+                }
+            }
+
+            @Override
+            public void onFailure(
+                    @NonNull Call<List<CreditCardDto>> ignored,
+                    @NonNull Throwable error) {
+                fallbackCards(callback);
+            }
+        });
+    }
+
+    private void fallbackCards(@NonNull ResultCallback<List<CreditCardDto>> callback) {
+        List<CreditCardDto> cached = optionsCache.getCards();
+        if (!cached.isEmpty()) callback.onSuccess(cached);
+        else callback.onError(
+                "Conecte-se à internet para carregar seus cartões. Depois eles ficarão disponíveis offline.");
     }
 
     public void getInvoice(
@@ -46,7 +85,37 @@ public class CreditCardRepository {
     }
 
     public void getAccounts(@NonNull ResultCallback<List<AccountDto>> callback) {
-        enqueue(apiService.getAccounts(), callback, "Não foi possível carregar as contas");
+        apiService.getAccounts().enqueue(new Callback<List<AccountDto>>() {
+            @Override
+            public void onResponse(
+                    @NonNull Call<List<AccountDto>> ignored,
+                    @NonNull Response<List<AccountDto>> response) {
+                if (response.isSuccessful()) {
+                    List<AccountDto> accounts = response.body();
+                    optionsCache.saveAccounts(accounts);
+                    callback.onSuccess(accounts);
+                } else if (response.code() >= 500) {
+                    fallbackAccounts(callback);
+                } else {
+                    callback.onError("Não foi possível carregar as contas: "
+                            + response.message());
+                }
+            }
+
+            @Override
+            public void onFailure(
+                    @NonNull Call<List<AccountDto>> ignored,
+                    @NonNull Throwable error) {
+                fallbackAccounts(callback);
+            }
+        });
+    }
+
+    private void fallbackAccounts(@NonNull ResultCallback<List<AccountDto>> callback) {
+        List<AccountDto> cached = optionsCache.getAccounts();
+        if (!cached.isEmpty()) callback.onSuccess(cached);
+        else callback.onError(
+                "Conecte-se à internet para carregar suas contas. Depois elas ficarão disponíveis offline.");
     }
 
     /** Busca o valor pendente de várias faturas de uma só vez. */
@@ -77,14 +146,44 @@ public class CreditCardRepository {
                     public void onFailure(
                             @NonNull Call<InvoicePendingResponseDto> ignored,
                             @NonNull Throwable error) {
-                        callback.onError("Erro de conexão ao carregar as faturas: "
-                                + error.getMessage());
+                        callback.onError(NetworkErrors.message(
+                                error, "Não foi possível carregar as faturas. Tente novamente."));
                     }
                 });
     }
 
     public void getCategories(@NonNull ResultCallback<List<CategoryDto>> callback) {
-        enqueue(apiService.getCategories(null), callback, "Não foi possível carregar as categorias");
+        apiService.getCategories(null).enqueue(new Callback<List<CategoryDto>>() {
+            @Override
+            public void onResponse(
+                    @NonNull Call<List<CategoryDto>> ignored,
+                    @NonNull Response<List<CategoryDto>> response) {
+                if (response.isSuccessful()) {
+                    List<CategoryDto> categories = response.body();
+                    optionsCache.saveCategories(categories);
+                    callback.onSuccess(categories);
+                } else if (response.code() >= 500) {
+                    fallbackCategories(callback);
+                } else {
+                    callback.onError("Não foi possível carregar as categorias: "
+                            + response.message());
+                }
+            }
+
+            @Override
+            public void onFailure(
+                    @NonNull Call<List<CategoryDto>> ignored,
+                    @NonNull Throwable error) {
+                fallbackCategories(callback);
+            }
+        });
+    }
+
+    private void fallbackCategories(@NonNull ResultCallback<List<CategoryDto>> callback) {
+        List<CategoryDto> cached = optionsCache.getCategories();
+        if (!cached.isEmpty()) callback.onSuccess(cached);
+        else callback.onError(
+                "Conecte-se à internet para carregar suas categorias. Depois elas ficarão disponíveis offline.");
     }
 
     public void closeInvoice(@NonNull String invoiceId, @NonNull ActionCallback callback) {
@@ -107,10 +206,22 @@ public class CreditCardRepository {
             @Nullable String transactionId,
             @NonNull TransactionWriteDto transaction,
             @NonNull ActionCallback callback) {
-        Call<ResponseBody> call = transactionId == null || transactionId.trim().isEmpty()
-                ? apiService.createTransactionFromList(transaction)
-                : apiService.updateTransaction(transactionId, transaction);
-        enqueueAction(call, callback, "Não foi possível salvar o lançamento");
+        if (transactionId == null || transactionId.trim().isEmpty()) {
+            pendingQueue.enqueue(transaction, new PendingTransactionQueue.Callback() {
+                @Override
+                public void onSuccess() {
+                    callback.onSuccess();
+                }
+
+                @Override
+                public void onError(@NonNull String error) {
+                    callback.onError(error);
+                }
+            });
+            return;
+        }
+        enqueueAction(apiService.updateTransaction(transactionId, transaction), callback,
+                "Não foi possível salvar o lançamento");
     }
 
     public void deleteTransaction(
@@ -144,7 +255,8 @@ public class CreditCardRepository {
 
             @Override
             public void onFailure(@NonNull Call<T> ignored, @NonNull Throwable error) {
-                callback.onError("Erro de conexão: " + error.getMessage());
+                callback.onError(NetworkErrors.message(
+                        error, failureMessage + ". Tente novamente."));
             }
         });
     }
@@ -164,7 +276,8 @@ public class CreditCardRepository {
 
             @Override
             public void onFailure(@NonNull Call<ResponseBody> ignored, @NonNull Throwable error) {
-                callback.onError("Erro de conexão: " + error.getMessage());
+                callback.onError(NetworkErrors.message(
+                        error, failureMessage + ". Tente novamente."));
             }
         });
     }

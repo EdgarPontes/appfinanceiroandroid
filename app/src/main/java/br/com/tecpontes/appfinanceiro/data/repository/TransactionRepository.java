@@ -6,6 +6,7 @@ import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
 import androidx.lifecycle.LiveData;
 import br.com.tecpontes.appfinanceiro.data.local.dao.TransactionDao;
+import br.com.tecpontes.appfinanceiro.data.local.entity.PendingTransaction;
 import br.com.tecpontes.appfinanceiro.data.local.entity.Transaction;
 import br.com.tecpontes.appfinanceiro.model.TransactionDto;
 import br.com.tecpontes.appfinanceiro.model.TransactionListItemDto;
@@ -14,6 +15,7 @@ import br.com.tecpontes.appfinanceiro.model.TransactionWriteDto;
 import br.com.tecpontes.appfinanceiro.model.TransactionTransferRequestDto;
 import br.com.tecpontes.appfinanceiro.network.ApiService;
 import br.com.tecpontes.appfinanceiro.utils.ApiErrorUtils;
+import br.com.tecpontes.appfinanceiro.utils.NetworkErrors;
 import java.io.File;
 import java.util.List;
 import java.util.concurrent.ExecutorService;
@@ -38,12 +40,17 @@ public class TransactionRepository {
 
     private final ApiService apiService;
     private final TransactionDao transactionDao;
+    private final PendingTransactionQueue pendingQueue;
     private final ExecutorService executorService;
 
     @Inject
-    public TransactionRepository(ApiService apiService, TransactionDao transactionDao) {
+    public TransactionRepository(
+            ApiService apiService,
+            TransactionDao transactionDao,
+            PendingTransactionQueue pendingQueue) {
         this.apiService = apiService;
         this.transactionDao = transactionDao;
+        this.pendingQueue = pendingQueue;
         this.executorService = Executors.newSingleThreadExecutor();
     }
 
@@ -102,7 +109,8 @@ public class TransactionRepository {
             public void onFailure(@NonNull Call<List<TransactionListItemDto>> call,
                                   @NonNull Throwable error) {
                 Log.e(TAG, "Falha ao carregar transações", error);
-                callback.onError("Erro de conexão: " + error.getMessage());
+                callback.onError(NetworkErrors.message(
+                        error, "Não foi possível carregar as transações. Tente novamente."));
             }
         });
     }
@@ -127,31 +135,44 @@ public class TransactionRepository {
             @Override
             public void onFailure(@NonNull Call<BalanceHistoryDto> call, @NonNull Throwable error) {
                 Log.e(TAG, "Falha ao consultar saldos", error);
-                callback.onError("Erro de conexão ao consultar saldos: " + error.getMessage());
+                callback.onError(NetworkErrors.message(
+                        error, "Não foi possível consultar os saldos. Tente novamente."));
             }
         });
     }
 
+    /** Salva primeiro no aparelho; o envio remoto ocorre em segundo plano. */
     public void createTransactionFromList(
             @NonNull TransactionWriteDto transaction,
             @NonNull RemoteActionCallback callback) {
-        apiService.createTransactionFromList(transaction).enqueue(new Callback<ResponseBody>() {
+        pendingQueue.enqueue(transaction, new PendingTransactionQueue.Callback() {
             @Override
-            public void onResponse(@NonNull Call<ResponseBody> call,
-                                   @NonNull Response<ResponseBody> response) {
-                if (response.isSuccessful()) {
-                    ApiErrorUtils.closeBody(response.body());
-                    callback.onSuccess();
-                } else {
-                    callback.onError(ApiErrorUtils.readError(response, "Não foi possível salvar o lançamento"));
-                }
+            public void onSuccess() {
+                callback.onSuccess();
             }
 
             @Override
-            public void onFailure(@NonNull Call<ResponseBody> call, @NonNull Throwable error) {
-                callback.onError("Erro de conexão ao salvar: " + error.getMessage());
+            public void onError(@NonNull String error) {
+                callback.onError(error);
             }
         });
+    }
+
+    @NonNull
+    public LiveData<List<PendingTransaction>> getPendingTransactions() {
+        return pendingQueue.observeAll();
+    }
+
+    public void discardPendingTransaction(@NonNull String id) {
+        pendingQueue.discard(id);
+    }
+
+    public void retryPendingTransactions() {
+        pendingQueue.retryAll();
+    }
+
+    public void requestPendingSync() {
+        pendingQueue.requestSync();
     }
 
     public void createTransactionTransfer(
@@ -171,7 +192,8 @@ public class TransactionRepository {
 
             @Override
             public void onFailure(@NonNull Call<ResponseBody> call, @NonNull Throwable error) {
-                callback.onError("Erro de conexão ao salvar: " + error.getMessage());
+                callback.onError(NetworkErrors.message(
+                        error, "Não foi possível salvar o lançamento. Tente novamente."));
             }
         });
     }
@@ -190,7 +212,8 @@ public class TransactionRepository {
 
             @Override
             public void onFailure(@NonNull Call<ResponseBody> call, @NonNull Throwable error) {
-                callback.onError("Erro de conexão ao editar: " + error.getMessage());
+                callback.onError(NetworkErrors.message(
+                        error, "Não foi possível editar o lançamento. Tente novamente."));
             }
         });
     }
@@ -209,7 +232,8 @@ public class TransactionRepository {
 
             @Override
             public void onFailure(@NonNull Call<ResponseBody> call, @NonNull Throwable error) {
-                callback.onError("Erro de conexão ao excluir: " + error.getMessage());
+                callback.onError(NetworkErrors.message(
+                        error, "Não foi possível excluir o lançamento. Tente novamente."));
             }
         });
     }
@@ -263,7 +287,8 @@ public class TransactionRepository {
             @Override
             public void onFailure(@NonNull Call<List<TransactionListItemDto>> call, @NonNull Throwable t) {
                 Log.e(TAG, "Falha na sincronização", t);
-                callback.onError("Erro de conexão: " + t.getMessage());
+                callback.onError(NetworkErrors.message(
+                        t, "Não foi possível carregar as transações. Tente novamente."));
             }
         });
     }
@@ -313,7 +338,8 @@ public class TransactionRepository {
             @Override
             public void onFailure(@NonNull Call<TransactionDto> call, @NonNull Throwable t) {
                 Log.e(TAG, "Falha na criação", t);
-                callback.onError("Erro de conexão: " + t.getMessage());
+                callback.onError(NetworkErrors.message(
+                        t, "Não foi possível carregar as transações. Tente novamente."));
             }
         });
     }
@@ -370,7 +396,8 @@ public class TransactionRepository {
                 @Override
                 public void onFailure(@NonNull Call<List<TransactionDto>> call, @NonNull Throwable t) {
                     Log.e(TAG, "Falha na importação OFX", t);
-                    callback.onError("Erro de conexão: " + t.getMessage());
+                    callback.onError(NetworkErrors.message(
+                        t, "Não foi possível carregar as transações. Tente novamente."));
                 }
             });
 

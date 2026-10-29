@@ -5,8 +5,10 @@ import androidx.room.Database;
 import androidx.room.RoomDatabase;
 import androidx.room.TypeConverters;
 import br.com.tecpontes.appfinanceiro.data.local.dao.AccountDao;
+import br.com.tecpontes.appfinanceiro.data.local.dao.PendingTransactionDao;
 import br.com.tecpontes.appfinanceiro.data.local.dao.TransactionDao;
 import br.com.tecpontes.appfinanceiro.data.local.entity.Account;
+import br.com.tecpontes.appfinanceiro.data.local.entity.PendingTransaction;
 import br.com.tecpontes.appfinanceiro.data.local.entity.Transaction;
 
 /**
@@ -15,9 +17,10 @@ import br.com.tecpontes.appfinanceiro.data.local.entity.Transaction;
 @Database(
     entities = {
         Account.class,
-        Transaction.class
+        Transaction.class,
+        PendingTransaction.class
     },
-    version = 1,
+    version = 2,
     exportSchema = false
 )
 public abstract class AppDatabase extends RoomDatabase {
@@ -27,6 +30,7 @@ public abstract class AppDatabase extends RoomDatabase {
 
     public abstract AccountDao accountDao();
     public abstract TransactionDao transactionDao();
+    public abstract PendingTransactionDao pendingTransactionDao();
 
     /**
      * Classe utilitária para conversões de tipo

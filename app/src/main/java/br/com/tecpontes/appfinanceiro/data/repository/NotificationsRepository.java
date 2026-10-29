@@ -8,6 +8,7 @@ import br.com.tecpontes.appfinanceiro.model.MessageConfigDto;
 import br.com.tecpontes.appfinanceiro.model.MessageLogDto;
 import br.com.tecpontes.appfinanceiro.model.MessageLogsResponseDto;
 import br.com.tecpontes.appfinanceiro.network.ApiService;
+import br.com.tecpontes.appfinanceiro.utils.NetworkErrors;
 import br.com.tecpontes.appfinanceiro.utils.ApiErrorUtils;
 import java.io.IOException;
 import java.util.Collections;
@@ -152,7 +153,8 @@ public class NotificationsRepository {
                     @Override public void onFailure(
                             @NonNull Call<MessageLogsResponseDto> ignored,
                             @NonNull Throwable error) {
-                        callback.onError("Erro de conexão: " + error.getMessage());
+                        callback.onError(NetworkErrors.message(
+                                error, "Não foi possível carregar as notificações. Tente novamente."));
                     }
                 });
     }
@@ -178,7 +180,8 @@ public class NotificationsRepository {
             }
 
             @Override public void onFailure(@NonNull Call<T> ignored, @NonNull Throwable error) {
-                callback.onError("Erro de conexão: " + error.getMessage());
+                callback.onError(NetworkErrors.message(
+                        error, failureMessage + ". Tente novamente."));
             }
         });
     }
@@ -201,7 +204,8 @@ public class NotificationsRepository {
 
             @Override public void onFailure(
                     @NonNull Call<ResponseBody> ignored, @NonNull Throwable error) {
-                callback.onError("Erro de conexão: " + error.getMessage());
+                callback.onError(NetworkErrors.message(
+                        error, failureMessage + ". Tente novamente."));
             }
         });
     }

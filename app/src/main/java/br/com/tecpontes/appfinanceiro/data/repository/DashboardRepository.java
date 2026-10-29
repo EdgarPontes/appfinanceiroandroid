@@ -9,6 +9,7 @@ import br.com.tecpontes.appfinanceiro.data.local.dao.AccountDao;
 import br.com.tecpontes.appfinanceiro.data.local.dao.TransactionDao;
 import br.com.tecpontes.appfinanceiro.model.DashboardDto;
 import br.com.tecpontes.appfinanceiro.network.ApiService;
+import br.com.tecpontes.appfinanceiro.utils.NetworkErrors;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 import javax.inject.Inject;
@@ -72,7 +73,8 @@ public class DashboardRepository {
             @Override
             public void onFailure(@NonNull Call<DashboardDto> call, @NonNull Throwable t) {
                 Log.e(TAG, "Falha ao carregar dashboard", t);
-                callback.onError("Erro de conexão: " + t.getMessage());
+                callback.onError(NetworkErrors.message(
+                        t, "Não foi possível carregar o dashboard. Tente novamente."));
             }
         });
     }

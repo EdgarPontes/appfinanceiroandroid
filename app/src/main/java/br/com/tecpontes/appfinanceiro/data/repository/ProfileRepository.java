@@ -14,6 +14,7 @@ import br.com.tecpontes.appfinanceiro.model.PasswordUpdateRequestDto;
 import br.com.tecpontes.appfinanceiro.model.ProfileDto;
 import br.com.tecpontes.appfinanceiro.model.ProfileUpdateRequestDto;
 import br.com.tecpontes.appfinanceiro.network.ApiService;
+import br.com.tecpontes.appfinanceiro.utils.NetworkErrors;
 import dagger.hilt.android.qualifiers.ApplicationContext;
 import dagger.hilt.android.scopes.ViewModelScoped;
 import java.io.File;
@@ -93,7 +94,8 @@ public class ProfileRepository {
                 }
                 @Override public void onFailure(@NonNull Call<ResponseBody> call, @NonNull Throwable error) {
                     fileToDelete.delete();
-                    callback.onError("Falha de conexão ao enviar a foto: " + error.getMessage());
+                    callback.onError(NetworkErrors.message(
+                            error, "Não foi possível enviar a foto. Tente novamente."));
                 }
             });
         } catch (Exception error) {
@@ -159,7 +161,8 @@ public class ProfileRepository {
                 else callback.onError(readError(response, failureMessage));
             }
             @Override public void onFailure(@NonNull Call<T> ignored, @NonNull Throwable error) {
-                callback.onError("Erro de conexão: " + error.getMessage());
+                callback.onError(NetworkErrors.message(
+                        error, "Não foi possível concluir a operação. Tente novamente."));
             }
         });
     }
@@ -176,7 +179,8 @@ public class ProfileRepository {
                 else callback.onError(readError(response, failureMessage));
             }
             @Override public void onFailure(@NonNull Call<ResponseBody> ignored, @NonNull Throwable error) {
-                callback.onError("Erro de conexão: " + error.getMessage());
+                callback.onError(NetworkErrors.message(
+                        error, "Não foi possível concluir a operação. Tente novamente."));
             }
         });
     }

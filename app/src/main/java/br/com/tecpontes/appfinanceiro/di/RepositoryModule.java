@@ -5,6 +5,7 @@ import br.com.tecpontes.appfinanceiro.data.local.dao.TransactionDao;
 import br.com.tecpontes.appfinanceiro.data.repository.AccountRepository;
 import br.com.tecpontes.appfinanceiro.data.repository.AuthRepository;
 import br.com.tecpontes.appfinanceiro.data.repository.DashboardRepository;
+import br.com.tecpontes.appfinanceiro.data.repository.PendingTransactionQueue;
 import br.com.tecpontes.appfinanceiro.data.repository.TransactionRepository;
 import br.com.tecpontes.appfinanceiro.network.ApiService;
 import br.com.tecpontes.appfinanceiro.utils.TokenManager;
@@ -35,8 +36,11 @@ public class RepositoryModule {
 
     @Provides
     @Singleton
-    public TransactionRepository provideTransactionRepository(ApiService apiService, TransactionDao transactionDao) {
-        return new TransactionRepository(apiService, transactionDao);
+    public TransactionRepository provideTransactionRepository(
+            ApiService apiService,
+            TransactionDao transactionDao,
+            PendingTransactionQueue pendingQueue) {
+        return new TransactionRepository(apiService, transactionDao, pendingQueue);
     }
 
     @Provides

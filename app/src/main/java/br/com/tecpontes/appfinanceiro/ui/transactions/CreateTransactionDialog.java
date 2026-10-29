@@ -566,6 +566,10 @@ public class CreateTransactionDialog extends Dialog {
         request.categoryId = category.id;
         request.accountId = useCard ? null : account.getId();
         request.cardId = useCard ? card.getId() : null;
+        request.localCategoryName = category.label;
+        request.localAccountName = useCard ? null : account.getName();
+        request.localCardName = useCard ? card.getName() : null;
+        request.localCardDebitAccountId = useCard ? card.getDebitAccountId() : null;
         String note = textOf(binding.noteEditText).trim();
         request.note = note.isEmpty() ? null : note;
         request.isInstallment = isInstallment();

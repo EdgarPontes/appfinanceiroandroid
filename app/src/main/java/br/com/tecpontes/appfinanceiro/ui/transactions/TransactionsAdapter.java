@@ -136,13 +136,18 @@ public class TransactionsAdapter extends RecyclerView.Adapter<TransactionsAdapte
                 date.setText("Data indisponível");
             }
 
-            status.setText(transaction.isReconciled() ? "Conciliado" : "Pendente");
+            boolean syncError = transaction.isOfflinePending() && transaction.offlineSyncError;
+            status.setText(transaction.isOfflinePending()
+                    ? (syncError ? "Falha no envio" : "Aguardando envio")
+                    : (transaction.isReconciled() ? "Conciliado" : "Pendente"));
             status.setTextColor(itemView.getContext().getColor(
-                    transaction.isReconciled() ? R.color.on_success_container
+                    syncError ? R.color.on_error_container
+                            : transaction.isReconciled() ? R.color.on_success_container
                             : R.color.on_neutral_container));
             GradientDrawable statusBackground = new GradientDrawable();
             statusBackground.setColor(itemView.getContext().getColor(
-                    transaction.isReconciled() ? R.color.success_container
+                    syncError ? R.color.error_container
+                            : transaction.isReconciled() ? R.color.success_container
                             : R.color.neutral_container));
             statusBackground.setCornerRadius(itemView.getResources().getDisplayMetrics().density * 12);
             status.setBackground(statusBackground);

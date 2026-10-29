@@ -43,9 +43,15 @@ public class TransactionListItemDto {
     @Nullable public transient List<TransactionListItemDto> invoiceTransactions;
     @Nullable public transient InvoicePendingDto invoicePending;
     public transient boolean partialInvoice;
+    public transient boolean offlinePending;
+    public transient boolean offlineSyncError;
 
     public boolean isConsolidatedInvoice() {
         return invoiceTransactions != null;
+    }
+
+    public boolean isOfflinePending() {
+        return offlinePending;
     }
 
     public double getAmountValue() {

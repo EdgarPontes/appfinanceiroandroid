@@ -7,6 +7,7 @@ import br.com.tecpontes.appfinanceiro.data.local.dao.AccountDao;
 import br.com.tecpontes.appfinanceiro.data.local.entity.Account;
 import br.com.tecpontes.appfinanceiro.model.AccountDto;
 import br.com.tecpontes.appfinanceiro.network.ApiService;
+import br.com.tecpontes.appfinanceiro.utils.NetworkErrors;
 import java.util.List;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
@@ -101,7 +102,8 @@ public class AccountRepository {
             @Override
             public void onFailure(@NonNull Call<List<AccountDto>> call, @NonNull Throwable t) {
                 Log.e(TAG, "Falha na requisição de contas", t);
-                callback.onError("Erro de conexão: " + t.getMessage());
+                callback.onError(NetworkErrors.message(
+                        t, "Não foi possível carregar as contas. Tente novamente."));
             }
         });
     }
@@ -149,7 +151,8 @@ public class AccountRepository {
             @Override
             public void onFailure(@NonNull Call<AccountDto> call, @NonNull Throwable t) {
                 Log.e(TAG, "Falha na criação de conta", t);
-                callback.onError("Erro de conexão: " + t.getMessage());
+                callback.onError(NetworkErrors.message(
+                        t, "Não foi possível criar a conta. Tente novamente."));
             }
         });
     }

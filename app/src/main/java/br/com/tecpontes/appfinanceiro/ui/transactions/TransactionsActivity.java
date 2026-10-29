@@ -31,6 +31,7 @@ import androidx.lifecycle.ViewModelProvider;
 import androidx.recyclerview.widget.LinearLayoutManager;
 import br.com.tecpontes.appfinanceiro.R;
 import br.com.tecpontes.appfinanceiro.data.local.entity.Account;
+import br.com.tecpontes.appfinanceiro.data.local.entity.PendingTransaction;
 import br.com.tecpontes.appfinanceiro.databinding.ActivityTransactionsBinding;
 import br.com.tecpontes.appfinanceiro.databinding.DialogEditTransactionBinding;
 import br.com.tecpontes.appfinanceiro.databinding.DialogInvoiceItemsBinding;
@@ -86,7 +87,11 @@ public class TransactionsActivity extends AppCompatActivity {
     private List<String> selectedAccountIds = new ArrayList<>();
     private boolean accountSelectionInitialized;
     private List<TransactionListItemDto> apiTransactions = new ArrayList<>();
+    private List<PendingTransaction> pendingTransactions = new ArrayList<>();
     private final List<CategoryOption> categoryOptions = new ArrayList<>();
+    private final Runnable pendingSyncReload = () -> {
+        if (binding != null) reloadData();
+    };
 
     private String selectedType;
     private String selectedCategoryId;
@@ -342,6 +347,16 @@ public class TransactionsActivity extends AppCompatActivity {
             requestInvoicePendingIfNeeded();
             applyLocalFilters();
         });
+        transactionsViewModel.pendingTransactions.observe(this, pending -> {
+            int previousCount = pendingTransactions.size();
+            pendingTransactions = visiblePendingTransactions(pending);
+            updateCategoryOptions();
+            applyLocalFilters();
+            if (pendingTransactions.size() < previousCount) {
+                binding.getRoot().removeCallbacks(pendingSyncReload);
+                binding.getRoot().postDelayed(pendingSyncReload, 700);
+            }
+        });
         transactionsViewModel.invoicePending.observe(this, pending -> {
             invoicePendingByInvoiceId = pending != null ? pending : new LinkedHashMap<>();
             applyLocalFilters();
@@ -410,6 +425,7 @@ public class TransactionsActivity extends AppCompatActivity {
     private void loadInitialData() {
         updatePeriodRange();
         transactionsViewModel.syncAccounts();
+        transactionsViewModel.requestPendingSync();
         reloadData();
     }
 
@@ -614,7 +630,7 @@ public class TransactionsActivity extends AppCompatActivity {
 
     private void updateCategoryOptions() {
         Map<String, String> labelsById = new LinkedHashMap<>();
-        for (TransactionListItemDto transaction : apiTransactions) {
+        for (TransactionListItemDto transaction : combinedTransactions()) {
             if (transaction.categoryId != null && transaction.category != null
                     && transaction.category.name != null) {
                 labelsById.put(transaction.categoryId, transaction.category.name);
@@ -634,7 +650,7 @@ public class TransactionsActivity extends AppCompatActivity {
 
     private void applyLocalFilters() {
         List<TransactionListItemDto> grouped = CreditCardInvoiceConsolidator.consolidate(
-                apiTransactions, invoicePendingByInvoiceId,
+                combinedTransactions(), invoicePendingByInvoiceId,
                 selectedMonth.get(Calendar.YEAR), selectedMonth.get(Calendar.MONTH));
         List<TransactionListItemDto> filtered = new ArrayList<>();
         String term = searchQuery.toLowerCase(Locale.ROOT);
@@ -680,6 +696,29 @@ public class TransactionsActivity extends AppCompatActivity {
         transactionsAdapter.updateTransactions(filtered);
         updateEmptyState(filtered.isEmpty());
         updateSummary(filtered);
+    }
+
+    @NonNull
+    private List<TransactionListItemDto> combinedTransactions() {
+        List<TransactionListItemDto> combined = new ArrayList<>(apiTransactions);
+        for (PendingTransaction pending : pendingTransactions) {
+            combined.add(pending.toListItemDto());
+        }
+        return combined;
+    }
+
+    @NonNull
+    private List<PendingTransaction> visiblePendingTransactions(
+            @Nullable List<PendingTransaction> pending) {
+        List<PendingTransaction> visible = new ArrayList<>();
+        if (pending == null) return visible;
+        String owner = tokenManager.getUserIdentity();
+        for (PendingTransaction item : pending) {
+            if (item == null) continue;
+            if (owner == null || !owner.equals(item.ownerEmail)) continue;
+            visible.add(item);
+        }
+        return visible;
     }
 
     private boolean isInSelectedPeriod(TransactionListItemDto item) {
@@ -805,7 +844,8 @@ public class TransactionsActivity extends AppCompatActivity {
                                 runOnUiThread(() -> {
                                     closeCreateTransactionDialog();
                                     Toast.makeText(TransactionsActivity.this,
-                                            "Lançamento salvo", Toast.LENGTH_SHORT).show();
+                                            "Lançamento salvo. Sincronização em andamento.",
+                                            Toast.LENGTH_SHORT).show();
                                     reloadData();
                                 });
                             }
@@ -862,7 +902,9 @@ public class TransactionsActivity extends AppCompatActivity {
 
     private void showTransactionDetails(TransactionListItemDto item) {
         String description = item.description == null ? item.getCategoryName() : item.description;
-        String state = item.isReconciled() ? "Conciliado" : "Pendente de conciliação";
+        String state = item.isOfflinePending()
+                ? (item.offlineSyncError ? "Falha ao enviar" : "Aguardando envio")
+                : (item.isReconciled() ? "Conciliado" : "Pendente de conciliação");
         String source = item.getSourceName();
         String date = formatDate(item.getDateMillis());
         String amount = formatCurrency(item.getAmountValue());
@@ -1016,6 +1058,22 @@ public class TransactionsActivity extends AppCompatActivity {
 
     private void showTransactionOptions(View anchor, TransactionListItemDto item) {
         PopupMenu menu = new PopupMenu(this, anchor);
+        if (item.isOfflinePending()) {
+            if (item.offlineSyncError) {
+                menu.getMenu().add("Tentar enviar novamente").setOnMenuItemClickListener(clicked -> {
+                    transactionsViewModel.retryPendingTransactions();
+                    Toast.makeText(this, "Tentando sincronizar os lançamentos pendentes.",
+                            Toast.LENGTH_SHORT).show();
+                    return true;
+                });
+            }
+            menu.getMenu().add("Descartar lançamento").setOnMenuItemClickListener(clicked -> {
+                confirmDiscardPending(item);
+                return true;
+            });
+            menu.show();
+            return;
+        }
         menu.getMenu().add("Editar").setOnMenuItemClickListener(clicked -> {
             showEditTransactionDialog(item);
             return true;
@@ -1029,6 +1087,19 @@ public class TransactionsActivity extends AppCompatActivity {
             return true;
         });
         menu.show();
+    }
+
+    private void confirmDiscardPending(TransactionListItemDto item) {
+        String description = item.description == null ? item.getCategoryName() : item.description;
+        new AlertDialog.Builder(this)
+                .setTitle("Descartar lançamento")
+                .setMessage("Descartar \"" + description + "\" que ainda não foi enviado ao servidor?")
+                .setNegativeButton("Cancelar", null)
+                .setPositiveButton("Descartar", (dialog, which) -> {
+                    transactionsViewModel.discardPendingTransaction(item.id);
+                    Toast.makeText(this, "Lançamento descartado.", Toast.LENGTH_SHORT).show();
+                })
+                .show();
     }
 
     private void showEditTransactionDialog(TransactionListItemDto item) {
@@ -1238,7 +1309,8 @@ public class TransactionsActivity extends AppCompatActivity {
                                     @Override public void onSuccess() {
                                         closeCreateTransactionDialog();
                                         Toast.makeText(TransactionsActivity.this,
-                                                "Lançamento clonado", Toast.LENGTH_SHORT).show();
+                                                "Lançamento clonado. Sincronização em andamento.",
+                                                Toast.LENGTH_SHORT).show();
                                         reloadData();
                                     }
 
@@ -1348,6 +1420,7 @@ public class TransactionsActivity extends AppCompatActivity {
 
     @Override
     protected void onDestroy() {
+        if (binding != null) binding.getRoot().removeCallbacks(pendingSyncReload);
         super.onDestroy();
         binding = null;
     }

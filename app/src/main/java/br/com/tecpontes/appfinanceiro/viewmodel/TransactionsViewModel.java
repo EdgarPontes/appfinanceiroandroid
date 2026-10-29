@@ -9,6 +9,7 @@ import androidx.lifecycle.MutableLiveData;
 import androidx.lifecycle.Transformations;
 import androidx.lifecycle.ViewModel;
 import br.com.tecpontes.appfinanceiro.data.local.entity.Account;
+import br.com.tecpontes.appfinanceiro.data.local.entity.PendingTransaction;
 import br.com.tecpontes.appfinanceiro.data.local.entity.Transaction;
 import br.com.tecpontes.appfinanceiro.data.repository.AccountRepository;
 import br.com.tecpontes.appfinanceiro.data.repository.CategoryRepository;
@@ -59,6 +60,7 @@ public class TransactionsViewModel extends ViewModel {
 
     // LiveData para dados
     public final LiveData<List<Transaction>> transactions;
+    public final LiveData<List<PendingTransaction>> pendingTransactions;
 
     private final MutableLiveData<String> _selectedAccountId = new MutableLiveData<>();
     public final LiveData<List<Transaction>> transactionsByAccount;
@@ -102,6 +104,7 @@ public class TransactionsViewModel extends ViewModel {
         this.creditCardRepository = creditCardRepository;
         this.accounts = accountRepository.getAllAccounts();
         this.transactions = transactionRepository.getAllTransactions();
+        this.pendingTransactions = transactionRepository.getPendingTransactions();
         this.transactionsByAccount = Transformations.switchMap(_selectedAccountId, accountId -> {
             if (accountId == null || accountId.isEmpty()) {
                 return transactionRepository.getAllTransactions();
@@ -196,6 +199,18 @@ public class TransactionsViewModel extends ViewModel {
                         _invoicePending.postValue(new LinkedHashMap<>());
                     }
                 });
+    }
+
+    public void discardPendingTransaction(@NonNull String id) {
+        transactionRepository.discardPendingTransaction(id);
+    }
+
+    public void retryPendingTransactions() {
+        transactionRepository.retryPendingTransactions();
+    }
+
+    public void requestPendingSync() {
+        transactionRepository.requestPendingSync();
     }
 
     public void loadBalanceAtDate(@NonNull String accountIds, @NonNull String date) {

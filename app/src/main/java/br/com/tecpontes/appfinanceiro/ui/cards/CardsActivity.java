@@ -357,7 +357,9 @@ public class CardsActivity extends AppCompatActivity {
             binding.invoiceStatusButton.setVisibility(View.GONE);
             binding.payInvoiceButton.setVisibility(View.GONE);
             binding.reversePaymentButton.setVisibility(View.GONE);
-            binding.addTransactionButton.setEnabled(false);
+            // Sem conexão a fatura pode não carregar; o lançamento ainda pode
+            // ser salvo localmente e sincronizado depois.
+            binding.addTransactionButton.setEnabled(findSelectedCard() != null);
             binding.exportInvoiceButton.setEnabled(false);
             binding.transactionsEmptyTextView.setVisibility(View.VISIBLE);
             binding.invoiceCreditsTitle.setVisibility(View.GONE);
@@ -720,7 +722,8 @@ public class CardsActivity extends AppCompatActivity {
                                 runOnUiThread(() -> {
                                     closeCreateTransactionDialog();
                                     Toast.makeText(CardsActivity.this,
-                                            "Lançamento salvo", Toast.LENGTH_SHORT).show();
+                                            "Lançamento salvo. Sincronização em andamento.",
+                                            Toast.LENGTH_SHORT).show();
                                     reloadCurrent();
                                 });
                             }
@@ -804,7 +807,8 @@ public class CardsActivity extends AppCompatActivity {
                                     @Override public void onSuccess() {
                                         closeCreateTransactionDialog();
                                         Toast.makeText(CardsActivity.this,
-                                                "Lançamento clonado.", Toast.LENGTH_SHORT).show();
+                                                "Lançamento clonado. Sincronização em andamento.",
+                                                Toast.LENGTH_SHORT).show();
                                         reloadCurrent();
                                     }
 
@@ -882,8 +886,13 @@ public class CardsActivity extends AppCompatActivity {
         request.date = date.getTime().toInstant().toString();
         request.type = old != null && old.type != null ? old.type : "EXPENSE";
         request.categoryId = category.getId();
+        request.localCategoryName = category.getName();
         CreditCardDto card = findSelectedCard();
         request.cardId = card == null ? null : card.getId();
+        if (card != null) {
+            request.localCardName = card.getName();
+            request.localCardDebitAccountId = card.getDebitAccountId();
+        }
         request.note = old == null ? null : old.note;
         if (old != null) {
             request.isInstallment = old.isInstallment;

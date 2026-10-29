@@ -14,6 +14,7 @@ import br.com.tecpontes.appfinanceiro.model.ReconciliationPreviewDto;
 import br.com.tecpontes.appfinanceiro.model.ReconciliationPreviewRequestDto;
 import br.com.tecpontes.appfinanceiro.model.ReconciliationSummaryDto;
 import br.com.tecpontes.appfinanceiro.network.ApiService;
+import br.com.tecpontes.appfinanceiro.utils.NetworkErrors;
 import dagger.hilt.android.scopes.ViewModelScoped;
 import java.util.List;
 import javax.inject.Inject;
@@ -121,7 +122,8 @@ public class AccountsRepository {
                 else callback.onError(readError(response, failureMessage));
             }
             @Override public void onFailure(@NonNull Call<T> ignored, @NonNull Throwable error) {
-                callback.onError("Erro de conexão: " + error.getMessage());
+                callback.onError(NetworkErrors.message(
+                        error, failureMessage + ". Tente novamente."));
             }
         });
     }
@@ -135,7 +137,8 @@ public class AccountsRepository {
                 else callback.onError(readError(response, failureMessage));
             }
             @Override public void onFailure(@NonNull Call<ResponseBody> ignored, @NonNull Throwable error) {
-                callback.onError("Erro de conexão: " + error.getMessage());
+                callback.onError(NetworkErrors.message(
+                        error, failureMessage + ". Tente novamente."));
             }
         });
     }

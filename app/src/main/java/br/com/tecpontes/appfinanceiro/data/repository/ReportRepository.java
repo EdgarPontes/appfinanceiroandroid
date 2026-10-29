@@ -5,6 +5,7 @@ import androidx.annotation.Nullable;
 import br.com.tecpontes.appfinanceiro.model.CategoryDto;
 import br.com.tecpontes.appfinanceiro.model.TransactionListItemDto;
 import br.com.tecpontes.appfinanceiro.network.ApiService;
+import br.com.tecpontes.appfinanceiro.utils.NetworkErrors;
 import br.com.tecpontes.appfinanceiro.utils.ApiErrorUtils;
 import java.time.LocalDate;
 import java.time.ZoneId;
@@ -61,7 +62,8 @@ public class ReportRepository {
             }
 
             @Override public void onFailure(@NonNull Call<T> ignored, @NonNull Throwable error) {
-                callback.onError("Erro de conexão: " + error.getMessage());
+                callback.onError(NetworkErrors.message(
+                        error, failureMessage + ". Tente novamente."));
             }
         });
     }

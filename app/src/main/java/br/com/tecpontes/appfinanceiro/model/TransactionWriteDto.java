@@ -21,4 +21,10 @@ public class TransactionWriteDto {
     @Nullable @SerializedName("totalValue") public String totalValue;
     @Nullable @SerializedName("isFixedExpense") public Boolean isFixedExpense;
     @Nullable @SerializedName("fixedExpenseGroupId") public String fixedExpenseGroupId;
+
+    // Metadados locais para exibição enquanto o lançamento aguarda sincronização.
+    @Nullable public transient String localCategoryName;
+    @Nullable public transient String localAccountName;
+    @Nullable public transient String localCardName;
+    @Nullable public transient String localCardDebitAccountId;
 }

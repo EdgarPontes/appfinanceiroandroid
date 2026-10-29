@@ -22,9 +22,11 @@ import androidx.core.view.ViewCompat;
 import androidx.core.view.WindowInsetsCompat;
 import androidx.lifecycle.ViewModelProvider;
 import br.com.tecpontes.appfinanceiro.R;
+import br.com.tecpontes.appfinanceiro.data.repository.OptionsBootstrap;
 import br.com.tecpontes.appfinanceiro.databinding.ActivityLoginBinding;
 import br.com.tecpontes.appfinanceiro.ui.dashboard.DashboardActivity;
 import br.com.tecpontes.appfinanceiro.notifications.PushRegistrationManager;
+import br.com.tecpontes.appfinanceiro.sync.TransactionSyncScheduler;
 import br.com.tecpontes.appfinanceiro.utils.TokenManager;
 import br.com.tecpontes.appfinanceiro.viewmodel.LoginViewModel;
 import com.google.android.material.textfield.TextInputEditText;
@@ -51,6 +53,12 @@ public class LoginActivity extends AppCompatActivity {
 
     @Inject
     PushRegistrationManager pushRegistrationManager;
+
+    @Inject
+    TransactionSyncScheduler transactionSyncScheduler;
+
+    @Inject
+    OptionsBootstrap optionsBootstrap;
 
     @Override
     @SuppressWarnings("deprecation")
@@ -426,6 +434,8 @@ public class LoginActivity extends AppCompatActivity {
 
     private void navigateToDashboard() {
         pushRegistrationManager.requestSync();
+        transactionSyncScheduler.requestSync();
+        optionsBootstrap.refresh();
         Intent intent = new Intent(this, DashboardActivity.class);
         intent.setFlags(Intent.FLAG_ACTIVITY_NEW_TASK | Intent.FLAG_ACTIVITY_CLEAR_TASK);
         startActivity(intent);

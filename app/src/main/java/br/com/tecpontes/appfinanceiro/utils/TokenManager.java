@@ -7,10 +7,13 @@ import androidx.annotation.Nullable;
 import androidx.lifecycle.LiveData;
 import androidx.lifecycle.MutableLiveData;
 import dagger.hilt.android.qualifiers.ApplicationContext;
+import java.nio.charset.StandardCharsets;
+import java.util.Base64;
 import javax.inject.Inject;
 import javax.inject.Singleton;
 import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.concurrent.atomic.AtomicLong;
+import org.json.JSONObject;
 
 /**
  * Gerencia o armazenamento e recuperação do token JWT
@@ -94,6 +97,34 @@ public class TokenManager {
     public String getUserEmail() {
         String currentSessionEmail = sessionUserEmail;
         return currentSessionEmail != null ? currentSessionEmail : preferences.getString(KEY_USER_EMAIL, null);
+    }
+
+    /**
+     * Identidade estável do usuário para dados locais (cache e fila offline).
+     * Usa o userId do JWT, que a API sempre envia, independentemente do corpo do login.
+     */
+    @Nullable
+    public String getUserIdentity() {
+        String userId = getTokenUserId();
+        if (userId != null && !userId.isEmpty()) return "user:" + userId;
+        String email = getUserEmail();
+        return email == null || email.trim().isEmpty() ? null : email;
+    }
+
+    @Nullable
+    private String getTokenUserId() {
+        String token = getToken();
+        if (token == null || token.trim().isEmpty()) return null;
+        String[] parts = token.split("\\.");
+        if (parts.length < 2) return null;
+        try {
+            byte[] payload = Base64.getUrlDecoder().decode(parts[1]);
+            JSONObject json = new JSONObject(new String(payload, StandardCharsets.UTF_8));
+            String userId = json.optString("userId", null);
+            return userId == null || userId.trim().isEmpty() ? null : userId;
+        } catch (Exception ignored) {
+            return null;
+        }
     }
 
     /**

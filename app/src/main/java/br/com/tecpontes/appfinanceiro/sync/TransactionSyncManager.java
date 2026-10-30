@@ -42,7 +42,10 @@ public class TransactionSyncManager {
 
             final Response<ResponseBody> response;
             try {
-                response = apiService.createTransactionFromList(pending.toWriteDto()).execute();
+                String targetSpace = pending.financeSpaceId == null
+                        ? "personal" : pending.financeSpaceId;
+                response = apiService.createPendingTransactionInSpace(
+                        targetSpace, pending.toWriteDto()).execute();
             } catch (IOException error) {
                 pendingDao.markAttempt(pending.id, messageOf(error));
                 throw error;

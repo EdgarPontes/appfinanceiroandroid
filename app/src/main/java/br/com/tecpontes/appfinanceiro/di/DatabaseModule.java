@@ -62,6 +62,17 @@ public class DatabaseModule {
         }
     };
 
+    private static final Migration MIGRATION_2_3 = new Migration(2, 3) {
+        @Override
+        public void migrate(@NonNull SupportSQLiteDatabase database) {
+            database.execSQL("ALTER TABLE `pending_transactions` ADD COLUMN `financeSpaceId` TEXT");
+            database.execSQL("UPDATE `pending_transactions` SET `financeSpaceId` = 'personal' "
+                    + "WHERE `financeSpaceId` IS NULL");
+            database.execSQL("CREATE INDEX IF NOT EXISTS `index_pending_transactions_financeSpaceId` "
+                    + "ON `pending_transactions` (`financeSpaceId`)");
+        }
+    };
+
     @Provides
     @Singleton
     public AppDatabase provideAppDatabase(@ApplicationContext Context context) {
@@ -74,6 +85,7 @@ public class DatabaseModule {
             )
             .addCallback(AppDatabase.createCallback())
             .addMigrations(MIGRATION_1_2)
+            .addMigrations(MIGRATION_2_3)
             .build();
     }
 

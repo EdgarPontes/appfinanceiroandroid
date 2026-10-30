@@ -21,6 +21,7 @@ public class PendingTransactionQueue {
 
     private final PendingTransactionDao dao;
     private final TokenManager tokenManager;
+    private final ActiveFinanceSpaceStore activeFinanceSpaceStore;
     private final TransactionSyncScheduler scheduler;
     private final ExecutorService executor = Executors.newSingleThreadExecutor();
     private final Handler mainHandler = new Handler(Looper.getMainLooper());
@@ -29,9 +30,11 @@ public class PendingTransactionQueue {
     public PendingTransactionQueue(
             PendingTransactionDao dao,
             TokenManager tokenManager,
+            ActiveFinanceSpaceStore activeFinanceSpaceStore,
             TransactionSyncScheduler scheduler) {
         this.dao = dao;
         this.tokenManager = tokenManager;
+        this.activeFinanceSpaceStore = activeFinanceSpaceStore;
         this.scheduler = scheduler;
     }
 
@@ -41,8 +44,11 @@ public class PendingTransactionQueue {
     }
 
     public void enqueue(@NonNull TransactionWriteDto request, @NonNull Callback callback) {
+        String spaceId = activeFinanceSpaceStore.getActiveSpaceId();
         PendingTransaction pending = PendingTransaction.from(
-                tokenManager.getUserIdentity(), request);
+                tokenManager.getUserIdentity(),
+                spaceId == null ? "personal" : spaceId,
+                request);
         executor.execute(() -> {
             try {
                 dao.insert(pending);

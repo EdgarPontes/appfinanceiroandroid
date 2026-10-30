@@ -8,6 +8,7 @@ import br.com.tecpontes.appfinanceiro.model.AccountDto;
 import br.com.tecpontes.appfinanceiro.model.CategoryDto;
 import br.com.tecpontes.appfinanceiro.model.CreditCardDto;
 import br.com.tecpontes.appfinanceiro.utils.TokenManager;
+import br.com.tecpontes.appfinanceiro.data.repository.ActiveFinanceSpaceStore;
 import com.google.gson.Gson;
 import com.google.gson.reflect.TypeToken;
 import dagger.hilt.android.qualifiers.ApplicationContext;
@@ -29,13 +30,17 @@ public class LocalOptionsCache {
 
     private final SharedPreferences preferences;
     private final TokenManager tokenManager;
+    private final ActiveFinanceSpaceStore activeFinanceSpaceStore;
     private final Gson gson = new Gson();
 
     @Inject
     public LocalOptionsCache(
-            @ApplicationContext Context context, TokenManager tokenManager) {
+            @ApplicationContext Context context,
+            TokenManager tokenManager,
+            ActiveFinanceSpaceStore activeFinanceSpaceStore) {
         this.preferences = context.getSharedPreferences(PREF_NAME, Context.MODE_PRIVATE);
         this.tokenManager = tokenManager;
+        this.activeFinanceSpaceStore = activeFinanceSpaceStore;
     }
 
     @NonNull
@@ -101,7 +106,7 @@ public class LocalOptionsCache {
     }
 
     private <T> void saveList(String key, @Nullable List<T> items) {
-        String owner = tokenManager.getUserIdentity();
+        String owner = currentOwnerKey();
         if (owner == null || owner.trim().isEmpty()) return;
         String previousOwner = preferences.getString(KEY_OWNER, null);
         SharedPreferences.Editor editor = preferences.edit();
@@ -115,7 +120,15 @@ public class LocalOptionsCache {
     }
 
     private boolean matchesCurrentOwner() {
-        String owner = tokenManager.getUserIdentity();
+        String owner = currentOwnerKey();
         return owner != null && owner.equals(preferences.getString(KEY_OWNER, null));
+    }
+
+    @Nullable
+    private String currentOwnerKey() {
+        String owner = tokenManager.getUserIdentity();
+        if (owner == null || owner.trim().isEmpty()) return null;
+        String spaceId = activeFinanceSpaceStore.getActiveSpaceId();
+        return owner + "|space:" + (spaceId == null ? "personal" : spaceId);
     }
 }

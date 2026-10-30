@@ -1284,6 +1284,14 @@ public class TransactionsActivity extends AppCompatActivity {
                                     }
 
                                     @Override
+                                    public void onPendingApproval() {
+                                        Toast.makeText(TransactionsActivity.this,
+                                                "Pedido enviado ao proprietário. O lançamento ficará aguardando aprovação.",
+                                                Toast.LENGTH_LONG).show();
+                                        reloadData();
+                                    }
+
+                                    @Override
                                     public void onError(String error) {
                                         Toast.makeText(TransactionsActivity.this,
                                                 error, Toast.LENGTH_LONG).show();

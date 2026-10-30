@@ -26,6 +26,7 @@ import br.com.tecpontes.appfinanceiro.R;
 import br.com.tecpontes.appfinanceiro.data.repository.OptionsBootstrap;
 import br.com.tecpontes.appfinanceiro.databinding.ActivityLoginBinding;
 import br.com.tecpontes.appfinanceiro.ui.dashboard.DashboardActivity;
+import br.com.tecpontes.appfinanceiro.ui.finance.FinanceSpaceInvitationActivity;
 import br.com.tecpontes.appfinanceiro.notifications.PushRegistrationManager;
 import br.com.tecpontes.appfinanceiro.sync.TransactionSyncScheduler;
 import br.com.tecpontes.appfinanceiro.utils.TokenManager;
@@ -469,7 +470,15 @@ public class LoginActivity extends AppCompatActivity {
         pushRegistrationManager.requestSync();
         transactionSyncScheduler.requestSync();
         optionsBootstrap.refresh();
-        Intent intent = new Intent(this, DashboardActivity.class);
+        String invitationToken = getIntent().getStringExtra(
+                FinanceSpaceInvitationActivity.EXTRA_INVITATION_TOKEN);
+        Intent intent;
+        if (invitationToken != null && !invitationToken.trim().isEmpty()) {
+            intent = new Intent(this, FinanceSpaceInvitationActivity.class);
+            intent.putExtra(FinanceSpaceInvitationActivity.EXTRA_INVITATION_TOKEN, invitationToken);
+        } else {
+            intent = new Intent(this, DashboardActivity.class);
+        }
         intent.setFlags(Intent.FLAG_ACTIVITY_NEW_TASK | Intent.FLAG_ACTIVITY_CLEAR_TASK);
         startActivity(intent);
         finish();

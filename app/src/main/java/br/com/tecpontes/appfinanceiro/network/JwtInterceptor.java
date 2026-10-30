@@ -4,6 +4,7 @@ import android.util.Log;
 import br.com.tecpontes.appfinanceiro.BuildConfig;
 import androidx.annotation.NonNull;
 import br.com.tecpontes.appfinanceiro.utils.TokenManager;
+import br.com.tecpontes.appfinanceiro.data.repository.ActiveFinanceSpaceStore;
 import java.io.IOException;
 import javax.inject.Inject;
 import javax.inject.Singleton;
@@ -19,10 +20,14 @@ import okhttp3.Response;
 public class JwtInterceptor implements Interceptor {
 
     private final TokenManager tokenManager;
+    private final ActiveFinanceSpaceStore activeFinanceSpaceStore;
 
     @Inject
-    public JwtInterceptor(TokenManager tokenManager) {
+    public JwtInterceptor(
+            TokenManager tokenManager,
+            ActiveFinanceSpaceStore activeFinanceSpaceStore) {
         this.tokenManager = tokenManager;
+        this.activeFinanceSpaceStore = activeFinanceSpaceStore;
     }
 
     @NonNull
@@ -46,6 +51,12 @@ public class JwtInterceptor implements Interceptor {
             Log.d("JwtInterceptor", "Autorização explícita preservada para a requisição");
         } else {
             Log.d("JwtInterceptor", "Nenhum token disponível para adicionar");
+        }
+
+        String activeSpaceId = activeFinanceSpaceStore.getActiveSpaceId();
+        if (authenticatedRequest && activeSpaceId != null
+                && original.header("X-Finance-Space-Id") == null) {
+            builder.header("X-Finance-Space-Id", activeSpaceId);
         }
 
         Request request = builder.build();

@@ -176,6 +176,10 @@ O aplicativo utiliza design glassmorphism com:
 
 A modernização para o estilo **Modern Tech & Sofisticado** está planejada em fases, com status, critérios de aceite e registro de execução. Consulte [docs/plano-refatoracao-visual.md](docs/plano-refatoracao-visual.md) para acompanhar o andamento.
 
+### Compartilhamento financeiro familiar
+
+O plano e o status da implementação de espaços financeiros, convites e acesso conjunto estão em [docs/plano-compartilhamento-financeiro-familiar.md](docs/plano-compartilhamento-financeiro-familiar.md).
+
 ## 💾 Persistência Local
 
 ### Room Database

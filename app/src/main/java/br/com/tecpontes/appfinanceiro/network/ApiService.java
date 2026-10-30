@@ -14,6 +14,15 @@ import br.com.tecpontes.appfinanceiro.model.CategoryGoalRequestDto;
 import br.com.tecpontes.appfinanceiro.model.CategoryRequestDto;
 import br.com.tecpontes.appfinanceiro.model.DashboardDto;
 import br.com.tecpontes.appfinanceiro.model.ForgotPasswordRequestDto;
+import br.com.tecpontes.appfinanceiro.model.FinanceSpaceDto;
+import br.com.tecpontes.appfinanceiro.model.FinanceSpaceInvitationDto;
+import br.com.tecpontes.appfinanceiro.model.FinanceSpaceInvitationPreviewDto;
+import br.com.tecpontes.appfinanceiro.model.FinanceSpaceInvitationAcceptResponseDto;
+import br.com.tecpontes.appfinanceiro.model.FinanceSpaceDeletionRequestDto;
+import br.com.tecpontes.appfinanceiro.model.FinanceSpaceInvitationRequestDto;
+import br.com.tecpontes.appfinanceiro.model.FinanceSpaceInvitationTokenRequestDto;
+import br.com.tecpontes.appfinanceiro.model.FinanceSpaceInvitationVerificationRequestDto;
+import br.com.tecpontes.appfinanceiro.model.FinanceSpaceMemberDto;
 import br.com.tecpontes.appfinanceiro.model.GoogleAuthRequestDto;
 import br.com.tecpontes.appfinanceiro.model.CreditCardDto;
 import br.com.tecpontes.appfinanceiro.model.CreditCardRequestDto;
@@ -78,6 +87,60 @@ public interface ApiService {
 
     @POST("auth/google")
     Call<AuthResponse> loginWithGoogle(@Body GoogleAuthRequestDto request);
+
+    // ========== COMPARTILHAMENTO FINANCEIRO ==========
+
+    @GET("finance-spaces")
+    Call<List<FinanceSpaceDto>> getFinanceSpaces();
+
+    @GET("finance-spaces/{spaceId}/members")
+    Call<List<FinanceSpaceMemberDto>> getFinanceSpaceMembers(@Path("spaceId") String spaceId);
+
+    @GET("finance-spaces/{spaceId}/invitations")
+    Call<List<FinanceSpaceInvitationDto>> getFinanceSpaceInvitations(@Path("spaceId") String spaceId);
+
+    @POST("finance-spaces/{spaceId}/invitations")
+    Call<FinanceSpaceInvitationDto> createFinanceSpaceInvitation(
+            @Path("spaceId") String spaceId,
+            @Body FinanceSpaceInvitationRequestDto request);
+
+    @POST("finance-spaces/{spaceId}/invitations/{invitationId}/resend")
+    Call<FinanceSpaceInvitationDto> resendFinanceSpaceInvitation(
+            @Path("spaceId") String spaceId,
+            @Path("invitationId") String invitationId);
+
+    @DELETE("finance-spaces/{spaceId}/invitations/{invitationId}")
+    Call<ResponseBody> revokeFinanceSpaceInvitation(
+            @Path("spaceId") String spaceId,
+            @Path("invitationId") String invitationId);
+
+    @GET("finance-spaces/{spaceId}/deletion-requests")
+    Call<List<FinanceSpaceDeletionRequestDto>> getFinanceSpaceDeletionRequests(
+            @Path("spaceId") String spaceId);
+
+    @POST("finance-spaces/{spaceId}/deletion-requests/{requestId}/approve")
+    Call<ResponseBody> approveFinanceSpaceDeletionRequest(
+            @Path("spaceId") String spaceId,
+            @Path("requestId") String requestId);
+
+    @POST("finance-spaces/{spaceId}/deletion-requests/{requestId}/reject")
+    Call<ResponseBody> rejectFinanceSpaceDeletionRequest(
+            @Path("spaceId") String spaceId,
+            @Path("requestId") String requestId);
+
+    @GET("finance-spaces/invitations/preview/{token}")
+    Call<FinanceSpaceInvitationPreviewDto> previewFinanceSpaceInvitation(@Path("token") String token);
+
+    @POST("finance-spaces/invitations/accept")
+    Call<FinanceSpaceInvitationAcceptResponseDto> acceptFinanceSpaceInvitation(
+            @Body FinanceSpaceInvitationTokenRequestDto request);
+
+    @POST("finance-spaces/invitations/verify-email")
+    Call<ResponseBody> verifyFinanceSpaceInvitationEmail(
+            @Body FinanceSpaceInvitationVerificationRequestDto request);
+
+    @POST("finance-spaces/invitations/decline")
+    Call<ResponseBody> declineFinanceSpaceInvitation(@Body FinanceSpaceInvitationTokenRequestDto request);
 
     // ========== PERFIL ==========
 
@@ -195,6 +258,11 @@ public interface ApiService {
 
     @POST("transactions")
     Call<ResponseBody> createTransactionFromList(@Body TransactionWriteDto transaction);
+
+    @POST("transactions")
+    Call<ResponseBody> createPendingTransactionInSpace(
+            @Header("X-Finance-Space-Id") String financeSpaceId,
+            @Body TransactionWriteDto transaction);
 
     @POST("transactions/transfer")
     Call<ResponseBody> createTransactionTransfer(@Body TransactionTransferRequestDto transfer);

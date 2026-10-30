@@ -15,6 +15,7 @@ public class TransactionListItemDto {
     @Nullable @SerializedName("amount") public String amount;
     @Nullable @SerializedName("date") public String date;
     @Nullable @SerializedName("type") public String type;
+    @Nullable @SerializedName("createdByUserId") public String createdByUserId;
     @Nullable @SerializedName("accountId") public String accountId;
     @Nullable @SerializedName("cardId") public String cardId;
     @Nullable @SerializedName("invoiceId") public String invoiceId;

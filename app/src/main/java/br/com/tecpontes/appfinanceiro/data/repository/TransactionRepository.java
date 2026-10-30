@@ -226,7 +226,8 @@ public class TransactionRepository {
             @Override
             public void onResponse(@NonNull Call<ResponseBody> call,
                                    @NonNull Response<ResponseBody> response) {
-                if (response.isSuccessful()) callback.onSuccess();
+                if (response.code() == 202) callback.onPendingApproval();
+                else if (response.isSuccessful()) callback.onSuccess();
                 else callback.onError("Não foi possível excluir o lançamento: " + response.message());
             }
 
@@ -469,6 +470,7 @@ public class TransactionRepository {
     public interface RemoteActionCallback {
         void onSuccess();
         void onError(String error);
+        default void onPendingApproval() { }
     }
 
     public interface CreateCallback {

@@ -270,6 +270,11 @@ public class TransactionsViewModel extends ViewModel {
             }
 
             @Override
+            public void onPendingApproval() {
+                callback.onPendingApproval();
+            }
+
+            @Override
             public void onError(String error) {
                 callback.onError(error);
             }
@@ -490,5 +495,6 @@ public class TransactionsViewModel extends ViewModel {
     public interface ActionCallback {
         void onSuccess();
         void onError(String error);
+        default void onPendingApproval() { }
     }
 }

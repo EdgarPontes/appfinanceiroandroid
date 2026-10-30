@@ -14,6 +14,7 @@ import br.com.tecpontes.appfinanceiro.ui.reports.ReportsActivity;
 import br.com.tecpontes.appfinanceiro.ui.settings.SettingsActivity;
 import br.com.tecpontes.appfinanceiro.ui.transactions.TransactionsActivity;
 import br.com.tecpontes.appfinanceiro.ui.profile.ProfileActivity;
+import br.com.tecpontes.appfinanceiro.ui.finance.FinanceSpaceActivity;
 
 /** Menu para destinos secundários do aplicativo. */
 public class MenuActivity extends AppCompatActivity {
@@ -38,6 +39,8 @@ public class MenuActivity extends AppCompatActivity {
                 "Configurações", "Preferências do aplicativo", FeatureDestinationActivity.SETTINGS);
         configureRow(R.id.menuNotifications, R.drawable.ic_menu_notifications,
                 "Notificações", "Avisos e lembretes", FeatureDestinationActivity.NOTIFICATIONS);
+        configureRow(R.id.menuFinanceSpace, R.drawable.ic_menu_profile,
+                "Espaço financeiro", "Compartilhe suas finanças", "finance_space");
     }
 
     private void configureRow(
@@ -52,7 +55,9 @@ public class MenuActivity extends AppCompatActivity {
                 return;
             }
             Intent intent;
-            if (FeatureDestinationActivity.PROFILE.equals(destination)) {
+            if ("finance_space".equals(destination)) {
+                intent = new Intent(this, FinanceSpaceActivity.class);
+            } else if (FeatureDestinationActivity.PROFILE.equals(destination)) {
                 intent = new Intent(this, ProfileActivity.class);
             } else if (FeatureDestinationActivity.SETTINGS.equals(destination)) {
                 intent = new Intent(this, SettingsActivity.class);

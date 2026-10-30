@@ -15,7 +15,7 @@ import java.util.UUID;
  */
 @Entity(
         tableName = "pending_transactions",
-        indices = {@Index("ownerEmail"), @Index("status")}
+        indices = {@Index("ownerEmail"), @Index("status"), @Index("financeSpaceId")}
 )
 public class PendingTransaction {
 
@@ -27,6 +27,8 @@ public class PendingTransaction {
     public String id;
 
     @Nullable public String ownerEmail;
+    /** Target workspace captured when this offline operation was created. */
+    @Nullable public String financeSpaceId;
     @Nullable public String description;
     @Nullable public String amount;
     @Nullable public String date;
@@ -58,8 +60,17 @@ public class PendingTransaction {
     @NonNull
     public static PendingTransaction from(
             @Nullable String ownerEmail, @NonNull TransactionWriteDto request) {
+        return from(ownerEmail, null, request);
+    }
+
+    @NonNull
+    public static PendingTransaction from(
+            @Nullable String ownerEmail,
+            @Nullable String financeSpaceId,
+            @NonNull TransactionWriteDto request) {
         PendingTransaction pending = new PendingTransaction();
         pending.ownerEmail = ownerEmail;
+        pending.financeSpaceId = financeSpaceId;
         pending.description = request.description;
         pending.amount = request.amount;
         pending.date = request.date;

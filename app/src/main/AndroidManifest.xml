@@ -110,6 +110,28 @@
             android:theme="@style/Theme.Appfinanceiro" />
 
         <activity
+            android:name=".ui.finance.FinanceSpaceActivity"
+            android:exported="false"
+            android:label="Espaço financeiro"
+            android:theme="@style/Theme.Appfinanceiro" />
+
+        <activity
+            android:name=".ui.finance.FinanceSpaceInvitationActivity"
+            android:exported="true"
+            android:label="Convite financeiro"
+            android:theme="@style/Theme.Appfinanceiro">
+            <intent-filter android:autoVerify="true">
+                <action android:name="android.intent.action.VIEW" />
+                <category android:name="android.intent.category.DEFAULT" />
+                <category android:name="android.intent.category.BROWSABLE" />
+                <data
+                    android:scheme="https"
+                    android:host="appfinanceiro.tecpontes.com.br"
+                    android:pathPrefix="/invite/" />
+            </intent-filter>
+        </activity>
+
+        <activity
             android:name=".ui.menu.FeatureDestinationActivity"
             android:exported="false"
             android:label="AppFinanceiro"

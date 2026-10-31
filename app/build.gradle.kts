@@ -98,7 +98,7 @@ dependencies {
     // Room Database
     implementation(libs.androidx.room.runtime)
     implementation(libs.androidx.room.ktx)
-    kapt("androidx.room:room-compiler:2.6.1")
+    kapt(libs.androidx.room.compiler)
 
     // Retrofit2 for API calls
     implementation(libs.retrofit)
@@ -107,11 +107,11 @@ dependencies {
 
     // Hilt Dependency Injection
     implementation(libs.hilt.android)
-    kapt("com.google.dagger:hilt-compiler:2.48")
+    kapt(libs.hilt.compiler)
 
     // Image Loading
     implementation(libs.glide)
-    kapt("com.github.bumptech.glide:compiler:4.16.0")
+    kapt(libs.glide.compiler)
 
     // Trabalho em segundo plano (notificações locais)
     implementation(libs.androidx.work.runtime)

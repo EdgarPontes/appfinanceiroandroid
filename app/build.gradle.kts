@@ -65,9 +65,9 @@ android {
         viewBinding = true
         compose = true
     }
-    lintOptions {
-        isAbortOnError = false
-        isWarningsAsErrors = false
+    lint {
+        abortOnError = false
+        warningsAsErrors = false
     }
 
 

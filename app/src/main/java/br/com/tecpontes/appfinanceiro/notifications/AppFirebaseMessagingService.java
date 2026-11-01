@@ -14,7 +14,8 @@ import javax.inject.Inject;
 
 @AndroidEntryPoint
 public class AppFirebaseMessagingService extends FirebaseMessagingService {
-    private static final String EXPECTED_DEEP_LINK = "app://notifications/history";
+    private static final String HISTORY_DEEP_LINK = "app://notifications/history";
+    private static final String INVITATION_DEEP_LINK_PREFIX = "app://finance-space/invitation/";
 
     @Inject PushRegistrationManager registrationManager;
     @Inject NotificationPreferences notificationPreferences;
@@ -48,7 +49,7 @@ public class AppFirebaseMessagingService extends FirebaseMessagingService {
         String logId = data.get("logId");
         if (!isUuid(logId)) return;
         String deepLink = data.get("deepLink");
-        if (!EXPECTED_DEEP_LINK.equals(deepLink)) return;
+        if (!isAllowedDeepLink(deepLink)) return;
 
         String type = data.get("type");
         if (!isSupportedType(type)) return;
@@ -62,7 +63,7 @@ public class AppFirebaseMessagingService extends FirebaseMessagingService {
 
         FcmMessageDeduplicator deduplicator = FcmMessageDeduplicator.get(this);
         if (deduplicator.wasDelivered(logId)) return;
-        LocalNotificationPublisher.publishFcm(this, logId, title, body, priority);
+        LocalNotificationPublisher.publishFcm(this, logId, title, body, priority, deepLink);
         deduplicator.markDelivered(logId);
     }
 
@@ -99,7 +100,16 @@ public class AppFirebaseMessagingService extends FirebaseMessagingService {
                 || "financial_due_date".equals(type)
                 || "payment_confirmation".equals(type)
                 || "delay_notice".equals(type)
-                || "cancellation_notice".equals(type);
+                || "cancellation_notice".equals(type)
+                || "finance_space_invitation".equals(type);
+    }
+
+    private static boolean isAllowedDeepLink(@Nullable String deepLink) {
+        if (deepLink == null) return false;
+        if (HISTORY_DEEP_LINK.equals(deepLink)) return true;
+        if (!deepLink.startsWith(INVITATION_DEEP_LINK_PREFIX)) return false;
+        String token = deepLink.substring(INVITATION_DEEP_LINK_PREFIX.length());
+        return token.matches("[A-Za-z0-9_-]{40,128}");
     }
 
     private static boolean isSupportedPriority(@Nullable String priority) {

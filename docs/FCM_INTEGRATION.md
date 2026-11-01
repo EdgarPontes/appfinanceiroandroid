@@ -35,6 +35,8 @@ Use an FCM **data-only** message; do not include the FCM `notification` block be
 
 `logId` is the stable message-log UUID and the idempotency key. `bindingId` must match the current local registration so queued messages from a previous account association are ignored. `deepLink` is an allow-listed in-app route, never an arbitrary URL. Keep the total payload within FCM limits and omit sensitive details where possible. The backend sets Android delivery priority and TTL according to the message’s urgency and expiry; distinct reminder occurrences must not be collapsed into one another.
 
+Supported deep links are `app://notifications/history` and `app://finance-space/invitation/<token>`. The invitation route is used only for finance-space invitations; its bearer token travels exclusively in the FCM data payload (never in the persisted notification history) and the app validates it before opening the invitation screen.
+
 FCM acceptance by Google is not proof that a device displayed the notification. Do not call a message “delivered to device” solely because the Admin SDK accepted it.
 
 ## Current app state

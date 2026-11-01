@@ -10,7 +10,8 @@ import org.junit.Test;
 
 public class NotificationContractsTest {
 
-    private static final String EXPECTED_DEEP_LINK = "app://notifications/history";
+    private static final String HISTORY_DEEP_LINK = "app://notifications/history";
+    private static final String INVITATION_DEEP_LINK_PREFIX = "app://finance-space/invitation/";
 
     private boolean isUuid(String value) {
         if (value == null) return false;
@@ -26,7 +27,16 @@ public class NotificationContractsTest {
                 || "financial_due_date".equals(type)
                 || "payment_confirmation".equals(type)
                 || "delay_notice".equals(type)
-                || "cancellation_notice".equals(type);
+                || "cancellation_notice".equals(type)
+                || "finance_space_invitation".equals(type);
+    }
+
+    private boolean isAllowedDeepLink(String deepLink) {
+        if (deepLink == null) return false;
+        if (HISTORY_DEEP_LINK.equals(deepLink)) return true;
+        if (!deepLink.startsWith(INVITATION_DEEP_LINK_PREFIX)) return false;
+        String token = deepLink.substring(INVITATION_DEEP_LINK_PREFIX.length());
+        return token.matches("[A-Za-z0-9_-]{40,128}");
     }
 
     private boolean isSupportedPriority(String priority) {
@@ -45,7 +55,7 @@ public class NotificationContractsTest {
         if (!isUuid(logId)) return false;
 
         String deepLink = data.get("deepLink");
-        if (!EXPECTED_DEEP_LINK.equals(deepLink)) return false;
+        if (!isAllowedDeepLink(deepLink)) return false;
 
         String type = data.get("type");
         if (!isSupportedType(type)) return false;
@@ -74,6 +84,38 @@ public class NotificationContractsTest {
         data.put("body", "Sua conta vence hoje");
 
         assertTrue(isValidFcmPayload(data, activeBindingId));
+    }
+
+    @Test
+    public void validPayload_acceptsFinanceSpaceInvitationDeepLink() {
+        String activeBindingId = "binding-account-1";
+        Map<String, String> data = new HashMap<>();
+        data.put("schemaVersion", "1");
+        data.put("bindingId", activeBindingId);
+        data.put("logId", UUID.randomUUID().toString());
+        data.put("deepLink", INVITATION_DEEP_LINK_PREFIX
+                + "AbCdEfGhIjKlMnOpQrStUvWxYz0123456789-_abcd");
+        data.put("type", "finance_space_invitation");
+        data.put("priority", "high");
+        data.put("title", "Convite para compartilhar finanças");
+        data.put("body", "Você recebeu um convite.");
+
+        assertTrue(isValidFcmPayload(data, activeBindingId));
+    }
+
+    @Test
+    public void invalidPayload_rejectsInvitationDeepLinkWithoutToken() {
+        String bindingId = "binding-1";
+        Map<String, String> data = new HashMap<>();
+        data.put("schemaVersion", "1");
+        data.put("bindingId", bindingId);
+        data.put("logId", UUID.randomUUID().toString());
+        data.put("deepLink", INVITATION_DEEP_LINK_PREFIX);
+        data.put("type", "finance_space_invitation");
+        data.put("priority", "high");
+        data.put("title", "Convite");
+
+        assertFalse(isValidFcmPayload(data, bindingId));
     }
 
     @Test

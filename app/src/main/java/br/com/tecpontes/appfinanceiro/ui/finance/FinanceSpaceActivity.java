@@ -2,13 +2,13 @@ package br.com.tecpontes.appfinanceiro.ui.finance;
 
 import android.content.Intent;
 import android.os.Bundle;
-import android.text.InputType;
 import android.view.View;
 import android.view.ViewGroup;
-import android.widget.EditText;
 import android.widget.LinearLayout;
+import android.widget.RadioGroup;
 import android.widget.TextView;
 import android.widget.Toast;
+import android.util.Patterns;
 import androidx.activity.EdgeToEdge;
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
@@ -26,6 +26,8 @@ import br.com.tecpontes.appfinanceiro.utils.SessionExpiredNavigation;
 import br.com.tecpontes.appfinanceiro.utils.TokenManager;
 import com.google.android.material.button.MaterialButton;
 import com.google.android.material.card.MaterialCardView;
+import com.google.android.material.textfield.TextInputEditText;
+import com.google.android.material.textfield.TextInputLayout;
 import dagger.hilt.android.AndroidEntryPoint;
 import java.util.ArrayList;
 import java.util.List;
@@ -211,31 +213,56 @@ public class FinanceSpaceActivity extends AppCompatActivity {
         FinanceSpaceDto space = selectedSpace;
         if (space == null || !space.isOwner()) return;
 
-        EditText emailInput = new EditText(this);
-        emailInput.setHint("E-mail do convidado");
-        emailInput.setInputType(InputType.TYPE_CLASS_TEXT | InputType.TYPE_TEXT_VARIATION_EMAIL_ADDRESS);
-        int horizontal = dp(24);
-        emailInput.setPadding(horizontal, dp(12), horizontal, dp(12));
+        View dialogView = getLayoutInflater().inflate(R.layout.dialog_invite_finance_space, null);
+        TextInputLayout emailLayout = dialogView.findViewById(R.id.inviteEmailLayout);
+        TextInputEditText emailInput = dialogView.findViewById(R.id.inviteEmailEditText);
+        RadioGroup channelGroup = dialogView.findViewById(R.id.inviteChannelGroup);
+        if (emailLayout == null || emailInput == null || channelGroup == null) return;
 
-        new AlertDialog.Builder(this)
+        AlertDialog dialog = new AlertDialog.Builder(this)
                 .setTitle("Convidar pessoa")
-                .setMessage("Ao aceitar, a pessoa verá as contas, cartões e lançamentos deste espaço. O convite também poderá ser compartilhado pelo WhatsApp.")
-                .setView(emailInput)
+                .setMessage("Ao aceitar, a pessoa verá as contas, cartões e lançamentos deste espaço.")
+                .setView(dialogView)
                 .setNegativeButton("Cancelar", null)
-                .setPositiveButton("Enviar convite", (dialog, which) -> {
-                    String email = emailInput.getText().toString().trim();
+                .setPositiveButton("Enviar convite", null)
+                .create();
+        dialog.setOnShowListener(ignored -> dialog.getButton(AlertDialog.BUTTON_POSITIVE)
+                .setOnClickListener(v -> {
+                    emailLayout.setError(null);
+                    String email = emailInput.getText() == null
+                            ? "" : emailInput.getText().toString().trim();
                     if (email.isEmpty()) {
-                        Toast.makeText(this, "Informe o e-mail do convidado.", Toast.LENGTH_SHORT).show();
+                        emailLayout.setError("Informe o e-mail do convidado.");
                         return;
                     }
-                    createInvitation(space, email);
-                })
-                .show();
+                    if (!Patterns.EMAIL_ADDRESS.matcher(email).matches()) {
+                        emailLayout.setError("Informe um e-mail válido.");
+                        return;
+                    }
+                    String channel = selectedChannel(channelGroup);
+                    dialog.dismiss();
+                    createInvitation(space, email, channel);
+                }));
+        dialog.show();
     }
 
-    private void createInvitation(FinanceSpaceDto space, String email) {
+    @NonNull
+    private String selectedChannel(@NonNull RadioGroup group) {
+        if (group.getCheckedRadioButtonId() == R.id.inviteChannelWhatsapp) {
+            return FinanceSpaceInvitationDto.CHANNEL_WHATSAPP;
+        }
+        if (group.getCheckedRadioButtonId() == R.id.inviteChannelPush) {
+            return FinanceSpaceInvitationDto.CHANNEL_PUSH;
+        }
+        return FinanceSpaceInvitationDto.CHANNEL_EMAIL;
+    }
+
+    private void createInvitation(
+            @NonNull FinanceSpaceDto space,
+            @NonNull String email,
+            @NonNull String channel) {
         binding.inviteFinanceSpaceButton.setEnabled(false);
-        repository.createInvitation(space.id, email,
+        repository.createInvitation(space.id, email, channel,
                 new FinanceSpaceRepository.ResultCallback<FinanceSpaceInvitationDto>() {
                     @Override public void onSuccess(@Nullable FinanceSpaceInvitationDto invitation) {
                         binding.inviteFinanceSpaceButton.setEnabled(true);
@@ -245,7 +272,7 @@ public class FinanceSpaceActivity extends AppCompatActivity {
                             loadSpaceDetails();
                             return;
                         }
-                        shareInvitation(invitation, space.name);
+                        handleInvitationDelivery(invitation, space.name);
                         loadSpaceDetails();
                     }
 
@@ -256,13 +283,35 @@ public class FinanceSpaceActivity extends AppCompatActivity {
         });
     }
 
-    private void shareInvitation(FinanceSpaceInvitationDto invitation, String spaceName) {
+    private void handleInvitationDelivery(
+            @NonNull FinanceSpaceInvitationDto invitation,
+            @NonNull String spaceName) {
+        String channel = invitation.deliveryChannel == null
+                ? FinanceSpaceInvitationDto.CHANNEL_EMAIL : invitation.deliveryChannel;
+
         if (!invitation.emailSent) {
             Toast.makeText(this,
-                    "O e-mail com o código de confirmação não foi enviado. Verifique o serviço de e-mail e reenvie o convite.",
+                    "O e-mail com o código de confirmação não foi enviado. "
+                            + "Verifique o serviço de e-mail e reenvie o convite.",
                     Toast.LENGTH_LONG).show();
             return;
         }
+
+        if (FinanceSpaceInvitationDto.CHANNEL_EMAIL.equals(channel)) {
+            Toast.makeText(this, "Convite enviado por e-mail.", Toast.LENGTH_LONG).show();
+            return;
+        }
+        if (FinanceSpaceInvitationDto.CHANNEL_PUSH.equals(channel)) {
+            Toast.makeText(this, invitation.pushSent
+                            ? "Convite enviado por notificação push."
+                            : "Convite criado, mas o push não foi entregue. Reenvie ou escolha outro canal.",
+                    Toast.LENGTH_LONG).show();
+            return;
+        }
+        shareInvitation(invitation, spaceName);
+    }
+
+    private void shareInvitation(FinanceSpaceInvitationDto invitation, String spaceName) {
         String message = "Você foi convidado para compartilhar o espaço financeiro \""
                 + spaceName + "\". Entre no App Financeiro com " + invitation.email
                 + " para aceitar: " + invitation.shareUrl;
@@ -270,9 +319,16 @@ public class FinanceSpaceActivity extends AppCompatActivity {
         sendIntent.setType("text/plain");
         sendIntent.putExtra(Intent.EXTRA_SUBJECT, "Convite do App Financeiro");
         sendIntent.putExtra(Intent.EXTRA_TEXT, message);
-        startActivity(Intent.createChooser(sendIntent, "Compartilhar convite"));
-        Toast.makeText(this, "Convite enviado por e-mail. Você também pode encaminhar o link.",
+        startActivity(Intent.createChooser(sendIntent, "Compartilhar convite no WhatsApp"));
+        Toast.makeText(this, "Convite criado. O código de confirmação foi enviado por e-mail.",
                 Toast.LENGTH_LONG).show();
+    }
+
+    @NonNull
+    private String channelLabel(@Nullable String channel) {
+        if (FinanceSpaceInvitationDto.CHANNEL_PUSH.equals(channel)) return "Push";
+        if (FinanceSpaceInvitationDto.CHANNEL_WHATSAPP.equals(channel)) return "WhatsApp";
+        return "E-mail";
     }
 
     private void addInvitation(FinanceSpaceInvitationDto invitation, String spaceId) {
@@ -280,7 +336,8 @@ public class FinanceSpaceActivity extends AppCompatActivity {
         row.setOrientation(LinearLayout.HORIZONTAL);
         row.setGravity(android.view.Gravity.CENTER_VERTICAL);
         TextView email = new TextView(this);
-        email.setText(invitation.email + "  •  Pendente");
+        email.setText(invitation.email + "  •  Pendente  •  "
+                + channelLabel(invitation.deliveryChannel));
         email.setTextColor(getColor(R.color.on_surface));
         email.setTextSize(14);
         row.addView(email, new LinearLayout.LayoutParams(0, ViewGroup.LayoutParams.WRAP_CONTENT, 1f));
@@ -292,7 +349,8 @@ public class FinanceSpaceActivity extends AppCompatActivity {
                 new FinanceSpaceRepository.ResultCallback<FinanceSpaceInvitationDto>() {
                     @Override public void onSuccess(@Nullable FinanceSpaceInvitationDto updated) {
                         if (updated != null && updated.shareUrl != null) {
-                            shareInvitation(updated, selectedSpace == null ? "Finanças" : selectedSpace.name);
+                            handleInvitationDelivery(updated,
+                                    selectedSpace == null ? "Finanças" : selectedSpace.name);
                         }
                         loadSpaceDetails();
                     }

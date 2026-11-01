@@ -72,9 +72,10 @@ public class FinanceSpaceRepository {
     public void createInvitation(
             @NonNull String spaceId,
             @NonNull String email,
+            @NonNull String channel,
             @NonNull ResultCallback<FinanceSpaceInvitationDto> callback) {
         enqueue(apiService.createFinanceSpaceInvitation(
-                spaceId, new FinanceSpaceInvitationRequestDto(email)),
+                spaceId, new FinanceSpaceInvitationRequestDto(email, channel)),
                 callback, "Não foi possível criar o convite.");
     }
 

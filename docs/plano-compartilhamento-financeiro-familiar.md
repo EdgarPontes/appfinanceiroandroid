@@ -303,14 +303,16 @@ Regras complementares:
 2. Seleciona “Convidar pessoa”.
 3. Informa o e-mail do convidado. O e-mail é obrigatório mesmo quando o envio será feito pelo WhatsApp.
 4. O app mostra o aviso: “Ao aceitar, a pessoa verá todas as contas, cartões, categorias e lançamentos deste espaço.”
-5. O backend valida que o solicitante é `OWNER`, que há vaga e que o e-mail não é de um membro ativo.
-6. O backend cria o convite, gera um token aleatório, monta o link e o envia por e-mail.
-7. O e-mail contém o link e o código de verificação de seis dígitos.
-8. O app recebe também o `shareUrl` e oferece **“Compartilhar no WhatsApp”**, usando o compartilhamento nativo do Android. O mesmo link pode ser enviado por qualquer aplicativo de mensagem, mas o código continua sendo enviado somente ao e-mail convidado.
-9. O app exibe o convite como “Pendente”, com opção de reenviar (rotaciona link e código), compartilhar novamente ou cancelar.
+5. O app apresenta o canal de envio: **E-mail**, **WhatsApp** ou **Push**.
+6. O backend valida que o solicitante é `OWNER`, que há vaga e que o e-mail não é de um membro ativo.
+7. O backend cria o convite, gera um token aleatório, monta o link e o entrega pelo canal escolhido.
+8. O e-mail contém o link (quando o canal é e-mail) e o código de verificação de seis dígitos. Nos canais WhatsApp e push, o código de confirmação continua sendo enviado por e-mail.
+9. No WhatsApp, o app usa o compartilhamento nativo do Android com o `shareUrl`. O mesmo link pode ser enviado por qualquer aplicativo de mensagem, mas o código continua sendo enviado somente ao e-mail convidado.
+10. No push, a notificação abre diretamente a tela do convite. O envio só é permitido quando o e-mail pertence a uma conta com dispositivo e notificações push ativos; caso contrário, o app orienta a escolher e-mail ou WhatsApp.
+11. O app exibe o convite como “Pendente”, com canal utilizado e opção de reenviar (rotaciona link e código), compartilhar novamente ou cancelar.
 
-O envio por WhatsApp não cria um convite sem e-mail e não gera um token diferente. É apenas outro canal para entregar o mesmo link ao endereço convidado.
-O e-mail é obrigatório também para receber o código de confirmação; se o envio falhar, o Android não deve compartilhar o link e deve orientar o proprietário a configurar/reparar o serviço de e-mail e reenviar.
+O envio por WhatsApp ou push não cria um convite sem e-mail e não gera um token diferente. São apenas outros canais para entregar o mesmo link ao endereço convidado.
+O e-mail é obrigatório também para receber o código de confirmação; se o envio falhar, o Android não deve compartilhar o link e deve orientar o proprietário a configurar/reparar o serviço de e-mail e reenviar. No push, o token do convite vai somente no payload FCM e não é gravado no histórico de notificações.
 
 ### 7.2 Aceite
 
@@ -724,13 +726,15 @@ A tela deve conter:
 - Não registrar o token em logs, analytics ou mensagens de erro.
 - Tratar o caso de link encaminhado com mensagem clara e opção de solicitar um novo convite ao proprietário.
 
-### 11.5 Compartilhamento por WhatsApp
+### 11.5 Compartilhamento por WhatsApp e push
 
 - Usar `Intent.ACTION_SEND` com `type = "text/plain"` para abrir o seletor nativo do Android.
 - Incluir uma mensagem curta, o nome do espaço e o `shareUrl`.
 - Não exigir que o WhatsApp esteja instalado; o seletor deve mostrar os aplicativos disponíveis.
 - Não usar a API oficial do WhatsApp nesta primeira versão.
 - O link continua válido somente para o e-mail informado no convite.
+- No push, enviar uma notificação FCM com deep link `app://finance-space/invitation/<token>`; o app valida o token e abre `FinanceSpaceInvitationActivity`.
+- Se o e-mail não tiver conta com dispositivo/notificações ativas, não criar o convite por push: informar que o canal não está disponível e sugerir e-mail ou WhatsApp.
 
 ### 11.6 Room e cache local
 

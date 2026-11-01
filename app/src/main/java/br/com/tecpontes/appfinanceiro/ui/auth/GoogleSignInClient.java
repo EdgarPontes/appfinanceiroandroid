@@ -127,7 +127,19 @@ public class GoogleSignInClient {
             callback.onError("Nenhuma conta Google disponível neste dispositivo.");
             return;
         }
-        Log.e(TAG, "Falha no login com Google: " + error.getType(), error);
+
+        String errorMsg = error.getMessage() != null ? error.getMessage() : "";
+        Throwable cause = error.getCause();
+        String causeMsg = cause != null && cause.getMessage() != null ? cause.getMessage() : "";
+
+        if (errorMsg.contains("UNREGISTERED_ON_API_CONSOLE") || causeMsg.contains("UNREGISTERED_ON_API_CONSOLE")) {
+            Log.e(TAG, "Erro OAuth (UNREGISTERED_ON_API_CONSOLE): O pacote " + applicationContext.getPackageName()
+                    + " ou a SHA-1 do keystore não estão cadastrados no Google Cloud Console/Firebase Console para o GOOGLE_WEB_CLIENT_ID configurado.", error);
+            callback.onError("O app não está registrado no Google Cloud Console (UNREGISTERED_ON_API_CONSOLE). Cadastre a SHA-1 do keystore nas credenciais OAuth.");
+            return;
+        }
+
+        Log.e(TAG, "Falha no login com Google: " + error.getClass().getSimpleName(), error);
         callback.onError("Não foi possível entrar com o Google. Tente novamente.");
     }
 }

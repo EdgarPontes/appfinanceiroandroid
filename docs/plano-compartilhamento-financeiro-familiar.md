@@ -2,8 +2,8 @@
 
 Documento de estudo e implementação para permitir que duas pessoas controlem as mesmas contas, cartões e lançamentos, com convite e aceite, mantendo uma base preparada para compartilhamento com mais pessoas no futuro.
 
-- **Status geral:** Em andamento — primeira fatia de backend e Android implementada; migration de banco e validação end-to-end pendentes.
-- **Última atualização:** 2026-10-30.
+- **Status geral:** Em andamento — convites, ciclo de membros, transferência, migração de dados pessoais e `space_id` nas entidades financeiras implementados. Falta migrar as consultas para `space_id`, concluir a auditoria de isolamento e validar a publicação.
+- **Última atualização:** 2026-11-01.
 - **Escopo desta versão:** dois membros ativos por espaço financeiro.
 - **Responsáveis:** equipe Android e equipe do backend.
 
@@ -239,11 +239,13 @@ Regras:
 
 #### Adaptador de compatibilidade implementado
 
-Na primeira fatia, as tabelas financeiras existentes **ainda não receberam `space_id`**. O middleware valida a associação ao espaço e resolve `finance_spaces.owner_user_id` como escopo das consultas legadas por `user_id`. Assim, compartilhar o espaço atual permite acessar seus dados sem juntar os dados pessoais do convidado.
+Na primeira fatia, as tabelas financeiras existentes **ainda não receberam `space_id`**. O middleware valida a associação ao espaço e resolve `finance_spaces.data_scope_user_id` como escopo das consultas legadas por `user_id`. Assim, compartilhar o espaço atual permite acessar seus dados sem juntar os dados pessoais do convidado.
 
 O identificador do usuário autenticado é preservado em `financeActorUserId`. Novos lançamentos usam `transactions.created_by_user_id` para autoria, enquanto `transactions.user_id` continua representando o escopo legado. A migração `0023_create_finance_spaces.sql` preenche a autoria dos lançamentos antigos com o proprietário atual.
 
-**Limite dessa etapa:** como os registros financeiros não têm `space_id`, não é seguro transferir a propriedade nem mesclar dados pessoais para um espaço cujo proprietário já tenha dados próprios. Essas operações ficam pendentes até os registros usarem um escopo explícito por espaço (ou uma solução equivalente com isolamento validado).
+**Transferência de propriedade:** a migration `0026_transfer_space_ownership.sql` adiciona `data_scope_user_id`, imutável, separado de `owner_user_id`. A transferência altera o proprietário administrativo e os papéis dos membros, mas mantém o escopo dos dados legados. Isso permite que o novo proprietário veja e gerencie os mesmos registros sem mover dados. O índice `finance_space_members_single_owner_unique` garante um único `OWNER` ativo por espaço.
+
+**Limite dessa etapa:** como os registros financeiros não têm `space_id`, ainda não é seguro mesclar os dados pessoais de outro espaço nem excluir a conta que permanece como `data_scope_user_id`. Essas operações continuam bloqueadas até a migração estrutural.
 
 #### Migração estrutural planejada
 
@@ -394,6 +396,7 @@ Todas as rotas exigem JWT, exceto quando indicado. A resposta de erro deve segui
 | `PATCH` | `/api/finance-spaces/{spaceId}` | Renomeia o espaço; somente `OWNER`. |
 | `GET` | `/api/finance-spaces/{spaceId}/members` | Lista membros ativos. |
 | `DELETE` | `/api/finance-spaces/{spaceId}/members/{memberId}` | Remove membro; somente `OWNER`. |
+| `POST` | `/api/finance-spaces/{spaceId}/leave` | Permite que um `MEMBER` saia do espaço. `OWNER` só pode sair após transferência. |
 | `POST` | `/api/finance-spaces/{spaceId}/transfer-ownership` | Transfere a propriedade para outro membro ativo; somente `OWNER`. |
 | `GET` | `/api/finance-spaces/{spaceId}/invitations` | Lista convites pendentes; somente `OWNER`. |
 | `POST` | `/api/finance-spaces/{spaceId}/invitations` | Cria convite; somente `OWNER`. |
@@ -554,12 +557,12 @@ O backend fica no repositório separado do App Financeiro e usa Express, Drizzle
 | Fase | Objetivo | Status |
 | :--- | :--- | :--- |
 | B0 | Definir regras e contrato | Concluído |
-| B1 | Criar schema, migration e provisionar espaços pessoais | Em andamento — código criado, migration ainda não aplicada |
-| B2 | Implementar espaços, membros, convites e pedidos de exclusão | Em andamento — endpoints implementados; falta teste com banco migrado |
+| B1 | Criar schema, migration e provisionar espaços pessoais | Em andamento — `space_id` adicionado e backfill concluído no banco de teste; provisionamento de usuários sem espaço e triggers de compatibilidade aplicados; falta validar produção |
+| B2 | Implementar espaços, membros, convites e pedidos de exclusão | Em andamento — convites validados manualmente; remoção de membro e saída do espaço implementadas; transferência pendente |
 | B3 | Aplicar autorização por espaço às rotas financeiras | Em andamento — middleware e papéis aplicados; revisão integral ainda necessária |
 | B4 | Ajustar tarefas agendadas, alertas e notificações de pedidos | Em andamento — scheduler envia alertas de vencimento a membros ativos; validação end-to-end pendente |
-| B5 | Implementar transferência de propriedade e desativação segura | Pendente — hoje a desativação é bloqueada se um proprietário ainda tiver membro ativo |
-| B6 | Implementar aprovação da migração dos dados pessoais | Pendente |
+| B5 | Implementar transferência de propriedade e desativação segura | Em andamento — transferência de propriedade implementada separando `data_scope_user_id` do proprietário; desativação bloqueia quando o escopo de dados ainda pertence à conta |
+| B6 | Implementar aprovação da migração dos dados pessoais | Em andamento — solicitação, aprovação/recusa, cancelamento e movimentação transacional implementados; validação end-to-end com banco real pendente |
 | B7 | Testes de isolamento, concorrência e migração | Pendente — testes unitários de token/link passam; integração com PostgreSQL pendente |
 
 ### 9.1.1 Primeira fatia implementada
@@ -707,7 +710,10 @@ A tela deve conter:
 - seletor de espaço, quando houver mais de um;
 - lista de membros com papel;
 - botão “Convidar pessoa”, visível apenas para `OWNER`;
-- opções “Enviar por e-mail” e “Compartilhar no WhatsApp” após criar o convite;
+- opções “Enviar por e-mail”, “Compartilhar no WhatsApp” ou “Push” após informar o e-mail;
+- ação “Remover” ao lado de cada membro, visível apenas para `OWNER`;
+- ação “Transferir propriedade” ao lado de cada membro, visível apenas para `OWNER`;
+- ação “Sair deste espaço”, visível apenas para `MEMBER`;
 - lista de convites pendentes com status, reenvio, compartilhamento e cancelamento;
 - seção “Pedidos de exclusão” para o proprietário aprovar ou recusar;
 - seção “Migração de dados” para o membro solicitar e para o proprietário aprovar ou recusar;
@@ -830,6 +836,7 @@ Regras decididas:
 - Antes da desativação, o app deve mostrar o nome do membro que receberá a propriedade e pedir confirmação explícita.
 - `created_by_user_id` deve usar `SET NULL` ou manter o identificador sem exclusão em cascata.
 - Revisar todas as foreign keys para evitar `ON DELETE CASCADE` nos dados compartilhados.
+- Enquanto `data_scope_user_id` apontar para a conta, a desativação é bloqueada mesmo que a propriedade já tenha sido transferida; migrar o escopo dos dados é pré-requisito para apagar essa conta.
 
 **Implementação atual:** o endpoint já impede a exclusão destrutiva do proprietário quando há outro membro ativo e retorna `409 OWNERSHIP_TRANSFER_REQUIRED`. A transferência real e a confirmação Android ainda não foram implementadas; o bloqueio existe para evitar perda do espaço.
 
@@ -1140,3 +1147,8 @@ A estrutura proposta já foi desenhada para vários membros. Para liberar mais d
 | 2026-10-30 | Decisões de produto | Resolvidas P-01 a P-07: convite por e-mail/WhatsApp vinculado ao e-mail, exclusão com aprovação, alertas para todos, lembretes pessoais, transferência de propriedade, compartilhamento do espaço existente e migração com aprovação. |
 | 2026-10-30 | Primeira fatia e validação | API e Android iniciados; `npx tsc` passou, 8 testes server-side passaram e `./gradlew testDebugUnitTest` passou. Testes PostgreSQL end-to-end pendentes; migration ainda não aplicada. |
 | 2026-10-30 | Início da implementação | Adicionados schema/migration de espaços e convites, middleware de escopo compatível com `user_id`, endpoints de convite/aceite, pedidos de exclusão, alertas por membro, seleção de espaço no Android, deep link, fila offline com espaço e cache de opções isolado. A migration não foi aplicada ao banco. |
+| 2026-11-01 | Convites por e-mail, WhatsApp e push | Adicionado canal de entrega, envio de código OTP separado para WhatsApp/push, deep link FCM para o convite e validação de push ativo no servidor. Migration `0025` aplicada no banco de teste. |
+| 2026-11-01 | Ciclo de membros | Implementadas remoção de membro pelo proprietário e saída do espaço pelo membro, com confirmação no Android, notificações e testes de autorização no servidor. Transferência de propriedade ainda não implementada naquela entrega. |
+| 2026-11-01 | Transferência de propriedade | Adicionado `data_scope_user_id` imutável para separar o escopo dos dados legados do proprietário administrativo. Transferência transacional, índice de proprietário único ativo, ação no Android, bloqueios de desativação e testes de autorização implementados. Migration `0026` aplicada no banco de teste. |
+| 2026-11-01 | Migração de dados pessoais | Adicionada tabela de solicitações, endpoints de solicitar/aprovar/recusar/cancelar, movimentação transacional de contas, cartões, categorias, metas e lançamentos, notificações e tela de aprovação no Android. Migration `0027` aplicada no banco de teste. |
+| 2026-11-01 | B1 — espaço explícito | Adicionado `space_id` em contas, cartões, categorias, lançamentos, metas e saldos diários; backfill concluído; espaços pessoais provisionados para usuários antigos; triggers preenchem `space_id` durante a compatibilidade com `user_id`. Migration `0028` aplicada no banco de teste com contagens preservadas e zero órfãos. |

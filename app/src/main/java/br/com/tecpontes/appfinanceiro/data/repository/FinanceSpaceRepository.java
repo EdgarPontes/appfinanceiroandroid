@@ -11,6 +11,10 @@ import br.com.tecpontes.appfinanceiro.model.FinanceSpaceInvitationRequestDto;
 import br.com.tecpontes.appfinanceiro.model.FinanceSpaceInvitationTokenRequestDto;
 import br.com.tecpontes.appfinanceiro.model.FinanceSpaceInvitationVerificationRequestDto;
 import br.com.tecpontes.appfinanceiro.model.FinanceSpaceMemberDto;
+import br.com.tecpontes.appfinanceiro.model.FinanceSpaceMigrationRequestCreateDto;
+import br.com.tecpontes.appfinanceiro.model.FinanceSpaceMigrationRequestDto;
+import br.com.tecpontes.appfinanceiro.model.FinanceSpaceMigrationRejectRequestDto;
+import br.com.tecpontes.appfinanceiro.model.FinanceSpaceOwnershipTransferRequestDto;
 import br.com.tecpontes.appfinanceiro.network.ApiService;
 import br.com.tecpontes.appfinanceiro.utils.ApiErrorUtils;
 import br.com.tecpontes.appfinanceiro.utils.NetworkErrors;
@@ -42,6 +46,68 @@ public class FinanceSpaceRepository {
             @NonNull String spaceId,
             @NonNull ResultCallback<List<FinanceSpaceMemberDto>> callback) {
         enqueue(apiService.getFinanceSpaceMembers(spaceId), callback, "Não foi possível carregar os membros.");
+    }
+
+    public void removeMember(
+            @NonNull String spaceId,
+            @NonNull String memberId,
+            @NonNull ActionCallback callback) {
+        enqueueAction(apiService.removeFinanceSpaceMember(spaceId, memberId), callback,
+                "Não foi possível remover o membro.");
+    }
+
+    public void leaveSpace(@NonNull String spaceId, @NonNull ActionCallback callback) {
+        enqueueAction(apiService.leaveFinanceSpace(spaceId), callback,
+                "Não foi possível sair do espaço.");
+    }
+
+    public void transferOwnership(
+            @NonNull String spaceId,
+            @NonNull String targetUserId,
+            @NonNull ActionCallback callback) {
+        enqueueAction(apiService.transferFinanceSpaceOwnership(
+                spaceId, new FinanceSpaceOwnershipTransferRequestDto(targetUserId)),
+                callback, "Não foi possível transferir a propriedade.");
+    }
+
+    public void getMigrationRequests(
+            @NonNull String spaceId,
+            @NonNull ResultCallback<List<FinanceSpaceMigrationRequestDto>> callback) {
+        enqueue(apiService.getFinanceSpaceMigrationRequests(spaceId), callback,
+                "Não foi possível carregar as migrações.");
+    }
+
+    public void createMigrationRequest(
+            @NonNull String spaceId,
+            @NonNull ResultCallback<FinanceSpaceMigrationRequestDto> callback) {
+        enqueue(apiService.createFinanceSpaceMigrationRequest(
+                spaceId, new FinanceSpaceMigrationRequestCreateDto(null)),
+                callback, "Não foi possível solicitar a migração.");
+    }
+
+    public void approveMigrationRequest(
+            @NonNull String spaceId,
+            @NonNull String requestId,
+            @NonNull ActionCallback callback) {
+        enqueueAction(apiService.approveFinanceSpaceMigrationRequest(spaceId, requestId),
+                callback, "Não foi possível aprovar a migração.");
+    }
+
+    public void rejectMigrationRequest(
+            @NonNull String spaceId,
+            @NonNull String requestId,
+            @NonNull ActionCallback callback) {
+        enqueueAction(apiService.rejectFinanceSpaceMigrationRequest(
+                spaceId, requestId, new FinanceSpaceMigrationRejectRequestDto(null)),
+                callback, "Não foi possível recusar a migração.");
+    }
+
+    public void cancelMigrationRequest(
+            @NonNull String spaceId,
+            @NonNull String requestId,
+            @NonNull ActionCallback callback) {
+        enqueueAction(apiService.cancelFinanceSpaceMigrationRequest(spaceId, requestId),
+                callback, "Não foi possível cancelar a migração.");
     }
 
     public void getInvitations(

@@ -21,6 +21,7 @@ import br.com.tecpontes.appfinanceiro.model.FinanceSpaceDto;
 import br.com.tecpontes.appfinanceiro.model.FinanceSpaceDeletionRequestDto;
 import br.com.tecpontes.appfinanceiro.model.FinanceSpaceInvitationDto;
 import br.com.tecpontes.appfinanceiro.model.FinanceSpaceMemberDto;
+import br.com.tecpontes.appfinanceiro.model.FinanceSpaceMigrationRequestDto;
 import br.com.tecpontes.appfinanceiro.ui.BottomNavigationHelper;
 import br.com.tecpontes.appfinanceiro.utils.SessionExpiredNavigation;
 import br.com.tecpontes.appfinanceiro.utils.TokenManager;
@@ -53,6 +54,8 @@ public class FinanceSpaceActivity extends AppCompatActivity {
         BottomNavigationHelper.setup(this, R.id.navigation_menu);
         BottomNavigationHelper.applyEdgeToEdgeInsets(binding.getRoot());
         binding.inviteFinanceSpaceButton.setOnClickListener(v -> showInviteDialog());
+        binding.leaveFinanceSpaceButton.setOnClickListener(v -> confirmLeaveSpace());
+        binding.requestMigrationButton.setOnClickListener(v -> confirmMigrationRequest());
         SessionExpiredNavigation.observe(this, tokenManager);
     }
 
@@ -142,10 +145,14 @@ public class FinanceSpaceActivity extends AppCompatActivity {
         FinanceSpaceDto space = selectedSpace;
         if (space == null) return;
         binding.inviteFinanceSpaceButton.setVisibility(space.isOwner() ? View.VISIBLE : View.GONE);
+        binding.leaveFinanceSpaceButton.setVisibility(space.isOwner() ? View.GONE : View.VISIBLE);
         binding.financeSpaceMembersContainer.removeAllViews();
         binding.financeSpaceInvitationsContainer.removeAllViews();
         binding.deletionRequestsContainer.removeAllViews();
+        binding.migrationRequestsContainer.removeAllViews();
         binding.deletionRequestsCard.setVisibility(View.VISIBLE);
+        binding.migrationRequestsCard.setVisibility(View.VISIBLE);
+        binding.requestMigrationButton.setVisibility(View.GONE);
 
         repository.getMembers(space.id, new FinanceSpaceRepository.ResultCallback<List<FinanceSpaceMemberDto>>() {
             @Override public void onSuccess(@Nullable List<FinanceSpaceMemberDto> result) {
@@ -154,9 +161,7 @@ public class FinanceSpaceActivity extends AppCompatActivity {
                     return;
                 }
                 for (FinanceSpaceMemberDto member : result) {
-                    addMessage(binding.financeSpaceMembersContainer,
-                            member.displayName() + ("OWNER".equalsIgnoreCase(member.role)
-                                    ? "  •  Proprietário" : "  •  Membro"));
+                    addMember(member, space);
                 }
             }
 
@@ -207,6 +212,215 @@ public class FinanceSpaceActivity extends AppCompatActivity {
                         addMessage(binding.deletionRequestsContainer, message);
                     }
                 });
+        loadMigrationRequests(space);
+    }
+
+    private void loadMigrationRequests(@NonNull FinanceSpaceDto space) {
+        binding.migrationRequestsContainer.removeAllViews();
+        binding.requestMigrationButton.setVisibility(View.GONE);
+        repository.getMigrationRequests(space.id,
+                new FinanceSpaceRepository.ResultCallback<List<FinanceSpaceMigrationRequestDto>>() {
+                    @Override public void onSuccess(
+                            @Nullable List<FinanceSpaceMigrationRequestDto> result) {
+                        boolean hasPending = false;
+                        int shown = 0;
+                        if (result != null) {
+                            for (FinanceSpaceMigrationRequestDto request : result) {
+                                if (request.isPending()) hasPending = true;
+                                if (shown >= 5) break;
+                                addMigrationRequest(request, space);
+                                shown++;
+                            }
+                        }
+                        if (shown == 0) {
+                            addMessage(binding.migrationRequestsContainer,
+                                    space.isOwner()
+                                            ? "Nenhuma solicitação de migração."
+                                            : "Nenhuma migração pendente.");
+                        }
+                        binding.requestMigrationButton.setVisibility(
+                                !space.isOwner() && !hasPending ? View.VISIBLE : View.GONE);
+                    }
+
+                    @Override public void onError(@NonNull String message) {
+                        addMessage(binding.migrationRequestsContainer, message);
+                    }
+                });
+    }
+
+    private void addMigrationRequest(
+            @NonNull FinanceSpaceMigrationRequestDto request,
+            @NonNull FinanceSpaceDto space) {
+        LinearLayout item = new LinearLayout(this);
+        item.setOrientation(LinearLayout.VERTICAL);
+        item.setPadding(0, dp(8), 0, dp(8));
+
+        TextView details = new TextView(this);
+        details.setText("Status: " + migrationStatusLabel(request.status)
+                + "  •  " + migrationSummaryText(request.summary));
+        details.setTextColor(getColor(R.color.on_surface));
+        details.setTextSize(13);
+        item.addView(details);
+
+        if (request.rejectionReason != null && !request.rejectionReason.trim().isEmpty()) {
+            TextView reason = new TextView(this);
+            reason.setText("Motivo: " + request.rejectionReason);
+            reason.setTextColor(getColor(R.color.on_surface_variant));
+            reason.setTextSize(12);
+            item.addView(reason);
+        }
+
+        if (request.isPending()) {
+            LinearLayout actions = new LinearLayout(this);
+            actions.setOrientation(LinearLayout.HORIZONTAL);
+            if (space.isOwner()) {
+                MaterialButton reject = new MaterialButton(this);
+                reject.setText("Recusar");
+                reject.setTextSize(11);
+                reject.setOnClickListener(v -> confirmRejectMigration(space, request));
+                MaterialButton approve = new MaterialButton(this);
+                approve.setText("Aprovar migração");
+                approve.setTextSize(11);
+                approve.setOnClickListener(v -> confirmApproveMigration(space, request));
+                actions.addView(reject,
+                        new LinearLayout.LayoutParams(0, ViewGroup.LayoutParams.WRAP_CONTENT, 1f));
+                actions.addView(approve,
+                        new LinearLayout.LayoutParams(0, ViewGroup.LayoutParams.WRAP_CONTENT, 1f));
+            } else {
+                TextView waiting = new TextView(this);
+                waiting.setText("Aguardando aprovação do proprietário");
+                waiting.setTextColor(getColor(R.color.on_surface_variant));
+                waiting.setTextSize(12);
+                actions.addView(waiting,
+                        new LinearLayout.LayoutParams(0, ViewGroup.LayoutParams.WRAP_CONTENT, 1f));
+                MaterialButton cancel = new MaterialButton(this);
+                cancel.setText("Cancelar");
+                cancel.setTextSize(11);
+                cancel.setOnClickListener(v -> confirmCancelMigration(space, request));
+                actions.addView(cancel);
+            }
+            item.addView(actions);
+        }
+        binding.migrationRequestsContainer.addView(item);
+    }
+
+    @NonNull
+    private String migrationStatusLabel(@Nullable String status) {
+        if ("APPROVED".equalsIgnoreCase(status)) return "Migração concluída";
+        if ("REJECTED".equalsIgnoreCase(status)) return "Recusada";
+        if ("CANCELLED".equalsIgnoreCase(status)) return "Cancelada";
+        if ("FAILED".equalsIgnoreCase(status)) return "Falhou";
+        return "Pendente";
+    }
+
+    @NonNull
+    private String migrationSummaryText(@Nullable FinanceSpaceMigrationRequestDto.Summary summary) {
+        if (summary == null) return "sem resumo";
+        return summary.accounts + " contas, " + summary.cards + " cartões, "
+                + summary.categories + " categorias, " + summary.transactions + " lançamentos";
+    }
+
+    private void confirmMigrationRequest() {
+        FinanceSpaceDto space = selectedSpace;
+        if (space == null || space.isOwner()) return;
+        new AlertDialog.Builder(this)
+                .setTitle("Trazer meus dados?")
+                .setMessage("Os dados do seu espaço pessoal serão movidos para este espaço "
+                        + "compartilhado após a aprovação do proprietário. Nada será apagado "
+                        + "se a solicitação for recusada.")
+                .setNegativeButton("Cancelar", null)
+                .setPositiveButton("Solicitar", (dialog, which) -> requestMigration(space))
+                .show();
+    }
+
+    private void requestMigration(@NonNull FinanceSpaceDto space) {
+        binding.requestMigrationButton.setEnabled(false);
+        repository.createMigrationRequest(space.id,
+                new FinanceSpaceRepository.ResultCallback<FinanceSpaceMigrationRequestDto>() {
+                    @Override public void onSuccess(
+                            @Nullable FinanceSpaceMigrationRequestDto request) {
+                        binding.requestMigrationButton.setEnabled(true);
+                        Toast.makeText(FinanceSpaceActivity.this,
+                                "Solicitação enviada ao proprietário.", Toast.LENGTH_LONG).show();
+                        loadMigrationRequests(space);
+                    }
+
+                    @Override public void onError(@NonNull String message) {
+                        binding.requestMigrationButton.setEnabled(true);
+                        showError(message);
+                    }
+                });
+    }
+
+    private void confirmApproveMigration(
+            @NonNull FinanceSpaceDto space,
+            @NonNull FinanceSpaceMigrationRequestDto request) {
+        new AlertDialog.Builder(this)
+                .setTitle("Aprovar migração?")
+                .setMessage("Os dados pessoais do membro serão movidos para este espaço. "
+                        + "A operação será concluída por completo ou não alterará nada.")
+                .setNegativeButton("Cancelar", null)
+                .setPositiveButton("Aprovar", (dialog, which) ->
+                        decideMigration(space, request, true))
+                .show();
+    }
+
+    private void confirmRejectMigration(
+            @NonNull FinanceSpaceDto space,
+            @NonNull FinanceSpaceMigrationRequestDto request) {
+        new AlertDialog.Builder(this)
+                .setTitle("Recusar migração?")
+                .setMessage("Os dados continuarão no espaço pessoal do membro e não serão apagados.")
+                .setNegativeButton("Voltar", null)
+                .setPositiveButton("Recusar", (dialog, which) ->
+                        decideMigration(space, request, false))
+                .show();
+    }
+
+    private void confirmCancelMigration(
+            @NonNull FinanceSpaceDto space,
+            @NonNull FinanceSpaceMigrationRequestDto request) {
+        new AlertDialog.Builder(this)
+                .setTitle("Cancelar solicitação?")
+                .setMessage("A solicitação deixará de aparecer para o proprietário.")
+                .setNegativeButton("Voltar", null)
+                .setPositiveButton("Cancelar solicitação", (dialog, which) ->
+                        repository.cancelMigrationRequest(space.id, request.id,
+                                new FinanceSpaceRepository.ActionCallback() {
+                                    @Override public void onSuccess() {
+                                        Toast.makeText(FinanceSpaceActivity.this,
+                                                "Solicitação cancelada.", Toast.LENGTH_SHORT).show();
+                                        loadMigrationRequests(space);
+                                    }
+                                    @Override public void onError(@NonNull String message) {
+                                        showError(message);
+                                    }
+                                }))
+                .show();
+    }
+
+    private void decideMigration(
+            @NonNull FinanceSpaceDto space,
+            @NonNull FinanceSpaceMigrationRequestDto request,
+            boolean approve) {
+        FinanceSpaceRepository.ActionCallback callback =
+                new FinanceSpaceRepository.ActionCallback() {
+                    @Override public void onSuccess() {
+                        Toast.makeText(FinanceSpaceActivity.this,
+                                approve ? "Migração aprovada." : "Migração recusada.",
+                                Toast.LENGTH_LONG).show();
+                        loadMigrationRequests(space);
+                    }
+
+                    @Override public void onError(@NonNull String message) {
+                        showError(message);
+                    }
+                };
+        if (approve) {
+            repository.approveMigrationRequest(space.id, request.id, callback);
+        } else {
+            repository.rejectMigrationRequest(space.id, request.id, callback);
+        }
     }
 
     private void showInviteDialog() {
@@ -380,6 +594,126 @@ public class FinanceSpaceActivity extends AppCompatActivity {
                 .show());
         row.addView(cancel);
         binding.financeSpaceInvitationsContainer.addView(row);
+    }
+
+    private void addMember(FinanceSpaceMemberDto member, FinanceSpaceDto space) {
+        LinearLayout item = new LinearLayout(this);
+        item.setOrientation(LinearLayout.VERTICAL);
+        item.setPadding(0, dp(6), 0, dp(6));
+
+        TextView name = new TextView(this);
+        name.setText(member.displayName() + ("OWNER".equalsIgnoreCase(member.role)
+                ? "  •  Proprietário" : "  •  Membro"));
+        name.setTextColor(getColor(R.color.on_surface));
+        name.setTextSize(14);
+        item.addView(name);
+
+        if (space.isOwner() && !"OWNER".equalsIgnoreCase(member.role)) {
+            LinearLayout actions = new LinearLayout(this);
+            actions.setOrientation(LinearLayout.HORIZONTAL);
+            MaterialButton transfer = new MaterialButton(this);
+            transfer.setText("Transferir propriedade");
+            transfer.setTextSize(11);
+            transfer.setOnClickListener(v -> confirmTransferOwnership(space, member));
+            MaterialButton remove = new MaterialButton(this);
+            remove.setText("Remover");
+            remove.setTextSize(11);
+            remove.setOnClickListener(v -> confirmRemoveMember(space, member));
+            actions.addView(transfer,
+                    new LinearLayout.LayoutParams(0, ViewGroup.LayoutParams.WRAP_CONTENT, 1f));
+            actions.addView(remove,
+                    new LinearLayout.LayoutParams(0, ViewGroup.LayoutParams.WRAP_CONTENT, 1f));
+            item.addView(actions);
+        }
+        binding.financeSpaceMembersContainer.addView(item);
+    }
+
+    private void confirmTransferOwnership(
+            @NonNull FinanceSpaceDto space,
+            @NonNull FinanceSpaceMemberDto member) {
+        new AlertDialog.Builder(this)
+                .setTitle("Transferir propriedade?")
+                .setMessage("A propriedade do espaço será transferida para " + member.displayName()
+                        + ". Você continuará como membro e perderá as ações de proprietário.")
+                .setNegativeButton("Cancelar", null)
+                .setPositiveButton("Transferir", (dialog, which) ->
+                        transferOwnership(space, member))
+                .show();
+    }
+
+    private void transferOwnership(
+            @NonNull FinanceSpaceDto space,
+            @NonNull FinanceSpaceMemberDto member) {
+        repository.transferOwnership(space.id, member.userId,
+                new FinanceSpaceRepository.ActionCallback() {
+                    @Override public void onSuccess() {
+                        Toast.makeText(FinanceSpaceActivity.this,
+                                "Propriedade transferida para " + member.displayName() + ".",
+                                Toast.LENGTH_LONG).show();
+                        loadSpaces();
+                    }
+
+                    @Override public void onError(@NonNull String message) {
+                        showError(message);
+                    }
+                });
+    }
+
+    private void confirmRemoveMember(
+            @NonNull FinanceSpaceDto space,
+            @NonNull FinanceSpaceMemberDto member) {
+        new AlertDialog.Builder(this)
+                .setTitle("Remover membro?")
+                .setMessage(member.displayName() + " perderá o acesso a este espaço imediatamente. "
+                        + "Os lançamentos já feitos serão mantidos.")
+                .setNegativeButton("Cancelar", null)
+                .setPositiveButton("Remover", (dialog, which) -> removeMember(space, member))
+                .show();
+    }
+
+    private void removeMember(
+            @NonNull FinanceSpaceDto space,
+            @NonNull FinanceSpaceMemberDto member) {
+        repository.removeMember(space.id, member.id, new FinanceSpaceRepository.ActionCallback() {
+            @Override public void onSuccess() {
+                Toast.makeText(FinanceSpaceActivity.this,
+                        "Membro removido do espaço.", Toast.LENGTH_LONG).show();
+                loadSpaceDetails();
+            }
+
+            @Override public void onError(@NonNull String message) {
+                showError(message);
+            }
+        });
+    }
+
+    private void confirmLeaveSpace() {
+        FinanceSpaceDto space = selectedSpace;
+        if (space == null || space.isOwner()) return;
+        new AlertDialog.Builder(this)
+                .setTitle("Sair deste espaço?")
+                .setMessage("Você perderá o acesso às contas, cartões e lançamentos compartilhados. "
+                        + "Os lançamentos já feitos serão mantidos.")
+                .setNegativeButton("Cancelar", null)
+                .setPositiveButton("Sair", (dialog, which) -> leaveSpace(space))
+                .show();
+    }
+
+    private void leaveSpace(@NonNull FinanceSpaceDto space) {
+        binding.leaveFinanceSpaceButton.setEnabled(false);
+        repository.leaveSpace(space.id, new FinanceSpaceRepository.ActionCallback() {
+            @Override public void onSuccess() {
+                binding.leaveFinanceSpaceButton.setEnabled(true);
+                Toast.makeText(FinanceSpaceActivity.this,
+                        "Você saiu do espaço financeiro.", Toast.LENGTH_LONG).show();
+                loadSpaces();
+            }
+
+            @Override public void onError(@NonNull String message) {
+                binding.leaveFinanceSpaceButton.setEnabled(true);
+                showError(message);
+            }
+        });
     }
 
     private void addDeletionRequest(FinanceSpaceDeletionRequestDto request, FinanceSpaceDto space) {

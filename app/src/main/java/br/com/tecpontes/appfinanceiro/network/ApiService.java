@@ -23,6 +23,10 @@ import br.com.tecpontes.appfinanceiro.model.FinanceSpaceInvitationRequestDto;
 import br.com.tecpontes.appfinanceiro.model.FinanceSpaceInvitationTokenRequestDto;
 import br.com.tecpontes.appfinanceiro.model.FinanceSpaceInvitationVerificationRequestDto;
 import br.com.tecpontes.appfinanceiro.model.FinanceSpaceMemberDto;
+import br.com.tecpontes.appfinanceiro.model.FinanceSpaceMigrationRequestCreateDto;
+import br.com.tecpontes.appfinanceiro.model.FinanceSpaceMigrationRequestDto;
+import br.com.tecpontes.appfinanceiro.model.FinanceSpaceMigrationRejectRequestDto;
+import br.com.tecpontes.appfinanceiro.model.FinanceSpaceOwnershipTransferRequestDto;
 import br.com.tecpontes.appfinanceiro.model.GoogleAuthRequestDto;
 import br.com.tecpontes.appfinanceiro.model.CreditCardDto;
 import br.com.tecpontes.appfinanceiro.model.CreditCardRequestDto;
@@ -95,6 +99,44 @@ public interface ApiService {
 
     @GET("finance-spaces/{spaceId}/members")
     Call<List<FinanceSpaceMemberDto>> getFinanceSpaceMembers(@Path("spaceId") String spaceId);
+
+    @DELETE("finance-spaces/{spaceId}/members/{memberId}")
+    Call<ResponseBody> removeFinanceSpaceMember(
+            @Path("spaceId") String spaceId,
+            @Path("memberId") String memberId);
+
+    @POST("finance-spaces/{spaceId}/leave")
+    Call<ResponseBody> leaveFinanceSpace(@Path("spaceId") String spaceId);
+
+    @POST("finance-spaces/{spaceId}/transfer-ownership")
+    Call<ResponseBody> transferFinanceSpaceOwnership(
+            @Path("spaceId") String spaceId,
+            @Body FinanceSpaceOwnershipTransferRequestDto request);
+
+    @GET("finance-spaces/{spaceId}/migration-requests")
+    Call<List<FinanceSpaceMigrationRequestDto>> getFinanceSpaceMigrationRequests(
+            @Path("spaceId") String spaceId);
+
+    @POST("finance-spaces/{spaceId}/migration-requests")
+    Call<FinanceSpaceMigrationRequestDto> createFinanceSpaceMigrationRequest(
+            @Path("spaceId") String spaceId,
+            @Body FinanceSpaceMigrationRequestCreateDto request);
+
+    @POST("finance-spaces/{spaceId}/migration-requests/{requestId}/approve")
+    Call<ResponseBody> approveFinanceSpaceMigrationRequest(
+            @Path("spaceId") String spaceId,
+            @Path("requestId") String requestId);
+
+    @POST("finance-spaces/{spaceId}/migration-requests/{requestId}/reject")
+    Call<ResponseBody> rejectFinanceSpaceMigrationRequest(
+            @Path("spaceId") String spaceId,
+            @Path("requestId") String requestId,
+            @Body FinanceSpaceMigrationRejectRequestDto request);
+
+    @DELETE("finance-spaces/{spaceId}/migration-requests/{requestId}")
+    Call<ResponseBody> cancelFinanceSpaceMigrationRequest(
+            @Path("spaceId") String spaceId,
+            @Path("requestId") String requestId);
 
     @GET("finance-spaces/{spaceId}/invitations")
     Call<List<FinanceSpaceInvitationDto>> getFinanceSpaceInvitations(@Path("spaceId") String spaceId);

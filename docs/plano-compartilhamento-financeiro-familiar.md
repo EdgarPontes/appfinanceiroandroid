@@ -559,11 +559,11 @@ O backend fica no repositório separado do App Financeiro e usa Express, Drizzle
 | B0 | Definir regras e contrato | Concluído |
 | B1 | Criar schema, migration e provisionar espaços pessoais | Em andamento — `space_id` adicionado e backfill concluído no banco de teste; provisionamento de usuários sem espaço e triggers de compatibilidade aplicados; falta validar produção |
 | B2 | Implementar espaços, membros, convites e pedidos de exclusão | Em andamento — convites validados manualmente; remoção de membro e saída do espaço implementadas; transferência pendente |
-| B3 | Aplicar autorização por espaço às rotas financeiras | Em andamento — middleware e papéis aplicados; revisão integral ainda necessária |
+| B3 | Aplicar autorização por espaço às rotas financeiras | Concluído no código — todas as rotas financeiras usam `space_id` e o fallback de dados por `user_id` foi removido; a migration `0030` remove os triggers de compatibilidade e será aplicada em produção após backup. Ressalva: sem `X-Finance-Space-Id`, a API ainda seleciona o espaço pessoal do usuário. |
 | B4 | Ajustar tarefas agendadas, alertas e notificações de pedidos | Em andamento — scheduler envia alertas de vencimento a membros ativos; validação end-to-end pendente |
-| B5 | Implementar transferência de propriedade e desativação segura | Em andamento — transferência de propriedade implementada separando `data_scope_user_id` do proprietário; desativação bloqueia quando o escopo de dados ainda pertence à conta |
-| B6 | Implementar aprovação da migração dos dados pessoais | Em andamento — solicitação, aprovação/recusa, cancelamento e movimentação transacional implementados; validação end-to-end com banco real pendente |
-| B7 | Testes de isolamento, concorrência e migração | Pendente — testes unitários de token/link passam; integração com PostgreSQL pendente |
+| B5 | Implementar transferência de propriedade e desativação segura | Concluído no banco de teste — transferência, mesclagem dos dados no novo proprietário e desativação do antigo proprietário validadas com PostgreSQL real; produção pendente |
+| B6 | Implementar aprovação da migração dos dados pessoais | Concluído no banco de teste — solicitação, aprovação/recusa, cancelamento, movimentação transacional validada com PostgreSQL real; produção pendente |
+| B7 | Testes de isolamento, concorrência e migração | Concluído no banco de teste — isolamento, aceites simultâneos, aprovações simultâneas e migração end-to-end validados com PostgreSQL real; homologação de produção pendente |
 
 ### 9.1.1 Primeira fatia implementada
 
@@ -1029,6 +1029,38 @@ Seguir os componentes e tokens definidos em `docs/design-system.md`, com `Modern
 - Monitorar erros `403`, falhas de convite e filas offline presas.
 - Ter rollback do backend sem perda de dados; a migration de `space_id` deve ser compatível com a versão anterior durante a janela de transição.
 
+### 17.1 Backup antes de mudanças estruturais
+
+O backup obrigatório antes de concluir a B3 usa o script:
+
+```bash
+./scripts/backup-and-verify.sh
+```
+
+O script lê `DATABASE_URL` do `.env` ou aceita a URL como argumento. Ele:
+
+1. gera dump PostgreSQL customizado e comprimido em `backups/`;
+2. grava checksum SHA-256 ao lado do dump;
+3. valida a estrutura com `pg_restore --list`;
+4. cria um banco temporário e restaura o dump;
+5. compara contagens e somas das tabelas financeiras;
+6. remove o banco temporário ao final;
+7. mantém os últimos 10 backups por padrão.
+
+Para banco cujo nome contenha `prod`, o script exige:
+
+```bash
+ALLOW_PROD_BACKUP=true ./scripts/backup-and-verify.sh
+```
+
+Antes de aplicar migrations em produção:
+
+- confirmar que a URL aponta para o banco correto;
+- executar o backup com verificação de restauração;
+- registrar checksum, data e responsável;
+- manter o dump em armazenamento seguro e fora do servidor do banco;
+- só iniciar a janela de migração após a restauração de ensaio passar.
+
 ## 18. Riscos e mitigação
 
 | Risco | Impacto | Mitigação |
@@ -1152,3 +1184,11 @@ A estrutura proposta já foi desenhada para vários membros. Para liberar mais d
 | 2026-11-01 | Transferência de propriedade | Adicionado `data_scope_user_id` imutável para separar o escopo dos dados legados do proprietário administrativo. Transferência transacional, índice de proprietário único ativo, ação no Android, bloqueios de desativação e testes de autorização implementados. Migration `0026` aplicada no banco de teste. |
 | 2026-11-01 | Migração de dados pessoais | Adicionada tabela de solicitações, endpoints de solicitar/aprovar/recusar/cancelar, movimentação transacional de contas, cartões, categorias, metas e lançamentos, notificações e tela de aprovação no Android. Migration `0027` aplicada no banco de teste. |
 | 2026-11-01 | B1 — espaço explícito | Adicionado `space_id` em contas, cartões, categorias, lançamentos, metas e saldos diários; backfill concluído; espaços pessoais provisionados para usuários antigos; triggers preenchem `space_id` durante a compatibilidade com `user_id`. Migration `0028` aplicada no banco de teste com contagens preservadas e zero órfãos. |
+| 2026-11-01 | B3/B7 — isolamento | Adicionados testes com PostgreSQL cobrindo isolamento de contas/lançamentos entre espaços pessoais, acesso de membro ao espaço compartilhado, bloqueio de usuário sem participação e fallback para o espaço pessoal. Suíte do servidor com 213 testes passando. |
+| 2026-11-01 | B6 — migração end-to-end | Validada com PostgreSQL real a aprovação de migração movendo conta, cartão, categoria, lançamento, meta e saldo diário para o espaço de destino em uma única transação, deixando a origem sem registros. Suíte com 215 testes passando. |
+| 2026-11-01 | B7 — concorrência | Validados dois aceites simultâneos sem ultrapassar dois membros ativos e duas aprovações simultâneas da mesma migração movendo os dados apenas uma vez. Suíte com 217 testes passando. |
+| 2026-11-01 | B5 — desativação após transferência | A desativação do antigo proprietário agora mescla o espaço pessoal do novo proprietário no espaço compartilhado e transfere o `data_scope_user_id` em transação, preservando os dados. Triggers ajustados pela migration `0029` para não sobrescrever reatribuições explícitas. Suíte com 218 testes passando. |
+| 2026-11-01 | Backup e início da B3 | Criado `scripts/backup-and-verify.sh` com checksum, validação do dump, restauração em banco temporário e comparação de contagens/somas. Documentado no plano. Iniciada a B3: contas, cartões e categorias agora filtram por `space_id` nas leituras, atualizações e exclusões; testes com 218 casos passando. |
+| 2026-11-01 | B3 — lançamentos | Lançamentos agora usam `space_id` para listagem, busca por ID, atualização, exclusão, atualização em série, conciliação e operações em lote. Fallback por `user_id` mantido para chamadas antigas; suíte com 218 testes passando. |
+| 2026-11-02 | B3 — faturas, dashboard e rotas restantes | Faturas, pagamentos, dashboard, metas por categoria, histórico de saldo, importação de extratos, conciliação, manutenção, duplicatas e despesas fixas passaram a usar `space_id`. Filtros de contas/cartões e gravações associadas são validados no espaço ativo. |
+| 2026-11-02 | B3 — remoção da compatibilidade | Removido o fallback de consultas e gravações por `user_id`; operações financeiras passaram a exigir `space_id` explicitamente. Criada a migration `0030_drop_space_id_compat_triggers.sql` para remover triggers e funções de compatibilidade, validada em transação com rollback e pendente de aplicação em produção após backup. Mantida a seleção automática do espaço pessoal quando não há `X-Finance-Space-Id`, como ressalva de compatibilidade. Suíte com 223 testes passando. |

@@ -29,6 +29,10 @@ import br.com.tecpontes.appfinanceiro.model.ReconciliationConfirmResultDto;
 import br.com.tecpontes.appfinanceiro.model.ReconciliationPreviewDto;
 import br.com.tecpontes.appfinanceiro.model.ReconciliationPreviewRequestDto;
 import br.com.tecpontes.appfinanceiro.model.StatementEntryDto;
+import br.com.tecpontes.appfinanceiro.ui.help.FeatureTour;
+import br.com.tecpontes.appfinanceiro.ui.help.HelpGuide;
+import br.com.tecpontes.appfinanceiro.ui.help.HelpPreferences;
+import br.com.tecpontes.appfinanceiro.ui.help.HelpStep;
 import br.com.tecpontes.appfinanceiro.utils.SessionExpiredNavigation;
 import br.com.tecpontes.appfinanceiro.utils.StatementFileParser;
 import br.com.tecpontes.appfinanceiro.utils.TokenManager;
@@ -68,6 +72,8 @@ public class StatementImportActivity extends AppCompatActivity {
     private final Map<Integer, Spinner> categorySpinners = new HashMap<>();
 
     @Inject TokenManager tokenManager;
+    @Inject HelpPreferences helpPreferences;
+    @Nullable private FeatureTour activeHelpTour;
 
     @Override protected void onCreate(@Nullable Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
@@ -92,6 +98,94 @@ public class StatementImportActivity extends AppCompatActivity {
         binding.confirmReconciliationButton.setOnClickListener(v -> confirmReconciliation());
         SessionExpiredNavigation.observe(this, tokenManager);
         viewModel.loadCategories();
+        scheduleImportIntroGuide();
+    }
+
+    private void scheduleImportIntroGuide() {
+        if (binding == null) return;
+        binding.getRoot().postDelayed(() -> {
+            if (binding == null || isFinishing() || isDestroyed() || preview != null) return;
+            if (activeHelpTour != null && activeHelpTour.isShowing()) return;
+            if (!helpPreferences.shouldShow(HelpGuide.STATEMENT_IMPORT)) return;
+
+            HelpStep step = new HelpStep(
+                    binding.selectStatementButton,
+                    getString(R.string.help_import_select_title),
+                    getString(R.string.help_import_select_message))
+                    .nextLabel(getString(R.string.help_import_select_action))
+                    .allowTargetClick();
+            activeHelpTour = FeatureTour.show(
+                    this,
+                    java.util.Collections.singletonList(step),
+                    new FeatureTour.Listener() {
+                        @Override public void onCompleted() {
+                            openPickerFromHelp();
+                        }
+
+                        @Override public void onSkipped() {
+                            helpPreferences.markCompleted(HelpGuide.STATEMENT_IMPORT);
+                        }
+
+                        @Override public void onTargetClicked() {
+                            openPickerFromHelp();
+                        }
+                    });
+        }, 650);
+    }
+
+    private void openPickerFromHelp() {
+        helpPreferences.markCompleted(HelpGuide.STATEMENT_IMPORT);
+        if (binding == null || isFinishing() || isDestroyed()) return;
+        binding.selectStatementButton.performClick();
+    }
+
+    private void scheduleImportReviewGuide() {
+        if (binding == null || preview == null) return;
+        if (activeHelpTour != null && activeHelpTour.isShowing()) return;
+        if (!helpPreferences.shouldShow(HelpGuide.STATEMENT_IMPORT_REVIEW)) return;
+        binding.getRoot().postDelayed(() -> {
+            if (binding == null || preview == null || isFinishing() || isDestroyed()) return;
+            if (activeHelpTour != null && activeHelpTour.isShowing()) return;
+            if (!helpPreferences.shouldShow(HelpGuide.STATEMENT_IMPORT_REVIEW)) return;
+
+            List<HelpStep> steps = new ArrayList<>();
+            steps.add(new HelpStep(
+                    binding.summaryCard,
+                    getString(R.string.help_import_review_summary_title),
+                    getString(R.string.help_import_review_summary_message)));
+            if (binding.importMatchesContainer.getChildCount() > 0) {
+                steps.add(new HelpStep(
+                        binding.importMatchesContainer,
+                        getString(R.string.help_import_review_matches_title),
+                        getString(R.string.help_import_review_matches_message)));
+            }
+            if (binding.importUnmatchedContainer.getChildCount() > 0) {
+                steps.add(new HelpStep(
+                        binding.importUnmatchedContainer,
+                        getString(R.string.help_import_review_new_title),
+                        getString(R.string.help_import_review_new_message)));
+            }
+            if (binding.confirmReconciliationButton.isEnabled()) {
+                steps.add(new HelpStep(
+                        binding.confirmReconciliationButton,
+                        getString(R.string.help_import_review_confirm_title),
+                        getString(R.string.help_import_review_confirm_message)));
+            }
+
+            activeHelpTour = FeatureTour.show(this, steps, new FeatureTour.Listener() {
+                @Override public void onCompleted() {
+                    helpPreferences.markCompleted(HelpGuide.STATEMENT_IMPORT_REVIEW);
+                }
+
+                @Override public void onSkipped() {
+                    helpPreferences.markCompleted(HelpGuide.STATEMENT_IMPORT_REVIEW);
+                }
+
+                @Override public void onTargetClicked() {
+                    // A revisão apenas apresenta os itens da prévia.
+                }
+            });
+        }, 450);
     }
 
     private void setupPicker() {
@@ -221,6 +315,7 @@ public class StatementImportActivity extends AppCompatActivity {
         binding.importEmptyTextView.setText(noActionableRows
                 ? "Todas as transações do arquivo já foram importadas." : "");
         binding.confirmReconciliationButton.setEnabled(!noActionableRows);
+        scheduleImportReviewGuide();
     }
 
     private void addMatchRow(ReconciliationPreviewDto.Match match) {
@@ -431,6 +526,17 @@ public class StatementImportActivity extends AppCompatActivity {
 
     private String safe(@Nullable Object value) { return value == null ? "" : String.valueOf(value); }
     private int dp(float value) { return Math.round(value * getResources().getDisplayMetrics().density); }
+
+    @Override protected void onResume() {
+        super.onResume();
+        scheduleImportIntroGuide();
+    }
+
+    @Override protected void onDestroy() {
+        if (activeHelpTour != null) activeHelpTour.dismiss();
+        super.onDestroy();
+        binding = null;
+    }
 
     private static class CategoryOption {
         final String id;

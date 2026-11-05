@@ -23,6 +23,10 @@ import br.com.tecpontes.appfinanceiro.model.FinanceSpaceInvitationDto;
 import br.com.tecpontes.appfinanceiro.model.FinanceSpaceMemberDto;
 import br.com.tecpontes.appfinanceiro.model.FinanceSpaceMigrationRequestDto;
 import br.com.tecpontes.appfinanceiro.ui.BottomNavigationHelper;
+import br.com.tecpontes.appfinanceiro.ui.help.FeatureTour;
+import br.com.tecpontes.appfinanceiro.ui.help.HelpGuide;
+import br.com.tecpontes.appfinanceiro.ui.help.HelpPreferences;
+import br.com.tecpontes.appfinanceiro.ui.help.HelpStep;
 import br.com.tecpontes.appfinanceiro.utils.SessionExpiredNavigation;
 import br.com.tecpontes.appfinanceiro.utils.TokenManager;
 import com.google.android.material.button.MaterialButton;
@@ -39,8 +43,10 @@ import javax.inject.Inject;
 public class FinanceSpaceActivity extends AppCompatActivity {
     @Inject FinanceSpaceRepository repository;
     @Inject TokenManager tokenManager;
+    @Inject HelpPreferences helpPreferences;
 
     private ActivityFinanceSpaceBinding binding;
+    @Nullable private FeatureTour activeHelpTour;
     private final List<FinanceSpaceDto> spaces = new ArrayList<>();
     @Nullable private FinanceSpaceDto selectedSpace;
 
@@ -87,6 +93,7 @@ public class FinanceSpaceActivity extends AppCompatActivity {
                 }
                 renderSpaces();
                 loadSpaceDetails();
+                scheduleFinanceSpaceGuide();
             }
 
             @Override public void onError(@NonNull String message) {
@@ -94,6 +101,62 @@ public class FinanceSpaceActivity extends AppCompatActivity {
                 showError(message);
             }
         });
+    }
+
+    private void scheduleFinanceSpaceGuide() {
+        if (binding == null) return;
+        binding.getRoot().postDelayed(() -> {
+            if (binding == null || spaces.isEmpty() || isFinishing() || isDestroyed()) return;
+            if (activeHelpTour != null && activeHelpTour.isShowing()) return;
+            if (!helpPreferences.shouldShow(HelpGuide.FINANCE_SPACE)) return;
+
+            View spaceTarget = binding.financeSpacesContainer.getChildCount() > 0
+                    ? binding.financeSpacesContainer.getChildAt(0)
+                    : binding.financeSpacesContainer;
+            List<HelpStep> steps = new ArrayList<>();
+            steps.add(new HelpStep(
+                    spaceTarget,
+                    getString(R.string.help_finance_space_select_title),
+                    getString(R.string.help_finance_space_select_message)));
+            if (binding.financeSpaceMembersContainer.getChildCount() > 0) {
+                steps.add(new HelpStep(
+                        binding.financeSpaceMembersContainer,
+                        getString(R.string.help_finance_space_members_title),
+                        getString(R.string.help_finance_space_members_message)));
+            }
+            if (binding.inviteFinanceSpaceButton.getVisibility() == View.VISIBLE) {
+                steps.add(new HelpStep(
+                        binding.inviteFinanceSpaceButton,
+                        getString(R.string.help_finance_space_invite_title),
+                        getString(R.string.help_finance_space_invite_message)));
+            }
+            if (binding.leaveFinanceSpaceButton.getVisibility() == View.VISIBLE) {
+                steps.add(new HelpStep(
+                        binding.leaveFinanceSpaceButton,
+                        getString(R.string.help_finance_space_leave_title),
+                        getString(R.string.help_finance_space_leave_message)));
+            }
+            if (binding.requestMigrationButton.getVisibility() == View.VISIBLE) {
+                steps.add(new HelpStep(
+                        binding.requestMigrationButton,
+                        getString(R.string.help_finance_space_migration_title),
+                        getString(R.string.help_finance_space_migration_message)));
+            }
+
+            activeHelpTour = FeatureTour.show(this, steps, new FeatureTour.Listener() {
+                @Override public void onCompleted() {
+                    helpPreferences.markCompleted(HelpGuide.FINANCE_SPACE);
+                }
+
+                @Override public void onSkipped() {
+                    helpPreferences.markCompleted(HelpGuide.FINANCE_SPACE);
+                }
+
+                @Override public void onTargetClicked() {
+                    // O guia do espaço financeiro apenas apresenta as ações.
+                }
+            });
+        }, 1000);
     }
 
     @Nullable
@@ -801,5 +864,12 @@ public class FinanceSpaceActivity extends AppCompatActivity {
 
     private int dp(int value) {
         return Math.round(value * getResources().getDisplayMetrics().density);
+    }
+
+    @Override
+    protected void onDestroy() {
+        if (activeHelpTour != null) activeHelpTour.dismiss();
+        super.onDestroy();
+        binding = null;
     }
 }

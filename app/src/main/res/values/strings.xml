@@ -43,6 +43,153 @@
     <string name="settings_month_hint">Selecione o mês</string>
     <string name="settings_year_hint">2026</string>
 
+    <!-- Ajuda e guias contextuais -->
+    <string name="help_step_progress">Passo %1$d de %2$d</string>
+    <string name="help_next">Próxima →</string>
+    <string name="help_done">Entendi</string>
+    <string name="help_back">Voltar</string>
+    <string name="help_skip">Pular</string>
+    <string name="help_settings_title">Ajuda e dicas</string>
+    <string name="help_settings_helper">Mostre novamente os guias que apresentam as principais funções do aplicativo.</string>
+    <string name="help_settings_switch">Exibir guias automáticos</string>
+    <string name="help_settings_replay">Reexibir dicas agora</string>
+    <string name="help_settings_enabled">Dicas ativadas. Elas serão exibidas nas próximas telas.</string>
+    <string name="help_settings_disabled">Dicas desativadas.</string>
+    <string name="help_settings_replayed">Pronto! As dicas serão exibidas novamente nas próximas telas.</string>
+
+    <!-- Guias: lançamentos -->
+    <string name="help_transactions_intro_title">Adicionar despesa</string>
+    <string name="help_transactions_intro_message">Toque no botão + para registrar uma nova despesa. Vamos abrir o formulário com você.</string>
+    <string name="help_transactions_intro_action">Adicionar agora →</string>
+    <string name="help_transaction_type_title">Escolha o tipo</string>
+    <string name="help_transaction_type_message">Use Despesa, Receita ou Transferência para classificar o lançamento.</string>
+    <string name="help_transaction_description_title">Descreva o lançamento</string>
+    <string name="help_transaction_description_message">Informe um nome curto, como “Supermercado” ou “Salário”.</string>
+    <string name="help_transaction_amount_title">Informe o valor</string>
+    <string name="help_transaction_amount_message">Digite o valor e ajuste a data de vencimento ou recebimento ao lado.</string>
+    <string name="help_transaction_category_title">Escolha a categoria</string>
+    <string name="help_transaction_category_message">A categoria organiza o lançamento nos relatórios e no dashboard.</string>
+    <string name="help_transaction_payment_title">Conta ou cartão</string>
+    <string name="help_transaction_payment_message">Selecione de onde saiu o dinheiro ou qual cartão foi utilizado.</string>
+    <string name="help_transaction_save_title">Salve o lançamento</string>
+    <string name="help_transaction_save_message">Toque em Salvar. Se estiver offline, o app sincroniza o lançamento depois.</string>
+
+    <!-- Guias: dashboard -->
+    <string name="help_dashboard_balance_title">Seu saldo hoje</string>
+    <string name="help_dashboard_balance_message">Este valor reúne o saldo atual das contas ativas.</string>
+    <string name="help_dashboard_period_title">Filtre o período</string>
+    <string name="help_dashboard_period_message">Altere para consultar saldos, evolução e categorias de outro período.</string>
+    <string name="help_dashboard_privacy_title">Privacidade</string>
+    <string name="help_dashboard_privacy_message">Toque no olho para ocultar os valores rapidamente.</string>
+    <string name="help_dashboard_add_title">Adicione lançamentos</string>
+    <string name="help_dashboard_add_message">Use este atalho para abrir a tela de lançamentos.</string>
+    <string name="help_dashboard_add_action">Abrir lançamentos →</string>
+
+    <!-- Guias: contas -->
+    <string name="help_accounts_summary_title">Visão geral dos saldos</string>
+    <string name="help_accounts_summary_message">Acompanhe o saldo das contas e o limite disponível dos cartões.</string>
+    <string name="help_accounts_new_account_title">Cadastre uma conta</string>
+    <string name="help_accounts_new_account_message">Comece adicionando sua conta bancária para acompanhar seus saldos.</string>
+    <string name="help_accounts_new_card_title">Adicione um cartão</string>
+    <string name="help_accounts_new_card_message">Cadastre cartões para controlar limite e faturas.</string>
+    <string name="help_accounts_reconcile_title">Conciliação pendente</string>
+    <string name="help_accounts_reconcile_message">Veja os lançamentos que ainda precisam ser conciliados.</string>
+    <string name="help_accounts_recalculate_title">Atualize os saldos</string>
+    <string name="help_accounts_recalculate_message">Use este botão para recalcular os saldos quando precisar.</string>
+
+    <!-- Guias: relatórios -->
+    <string name="help_reports_period_title">Escolha o período</string>
+    <string name="help_reports_period_message">Compare qualquer intervalo de datas para analisar seus resultados.</string>
+    <string name="help_reports_type_title">Filtre o tipo</string>
+    <string name="help_reports_type_message">Veja apenas despesas, receitas ou todos os lançamentos.</string>
+    <string name="help_reports_category_title">Filtre categorias</string>
+    <string name="help_reports_category_message">Combine categorias para analisar gastos específicos.</string>
+    <string name="help_reports_summary_title">Leia o resumo</string>
+    <string name="help_reports_summary_message">Receitas, despesas, saldo e quantidade de lançamentos do período.</string>
+    <string name="help_reports_export_title">Exporte o relatório</string>
+    <string name="help_reports_export_message">Baixe em CSV ou PDF para compartilhar e arquivar os dados.</string>
+
+    <!-- Guias: cartões -->
+    <string name="help_cards_select_title">Escolha o cartão</string>
+    <string name="help_cards_select_message">Alterne entre seus cartões para consultar cada fatura.</string>
+    <string name="help_cards_overview_title">Acompanhe limite e fatura</string>
+    <string name="help_cards_overview_message">Veja o limite utilizado, o valor disponível e o resumo da fatura.</string>
+    <string name="help_cards_status_title">Status da fatura</string>
+    <string name="help_cards_status_message">Feche a fatura quando o período terminar e registre o pagamento quando quitar.</string>
+    <string name="help_cards_add_title">Lance no cartão</string>
+    <string name="help_cards_add_message">Adicione uma compra diretamente a este cartão.</string>
+    <string name="help_cards_export_title">Exporte a fatura</string>
+    <string name="help_cards_export_message">Baixe os lançamentos da fatura para conferir ou compartilhar.</string>
+
+    <!-- Guias: categorias -->
+    <string name="help_categories_type_title">Separe despesas e receitas</string>
+    <string name="help_categories_type_message">Alterne entre os tipos para organizar cada grupo de categorias.</string>
+    <string name="help_categories_add_title">Crie categorias</string>
+    <string name="help_categories_add_message">Use o botão + para criar categorias e subcategorias.</string>
+    <string name="help_categories_defaults_title">Comece com categorias prontas</string>
+    <string name="help_categories_defaults_message">Crie uma lista inicial de categorias e ajuste depois como preferir.</string>
+
+    <!-- Guias: importação de extrato -->
+    <string name="help_import_select_title">Selecione o arquivo</string>
+    <string name="help_import_select_message">Escolha o extrato OFX ou CSV exportado pelo seu banco. O arquivo será comparado com os lançamentos desta conta.</string>
+    <string name="help_import_select_action">Selecionar arquivo →</string>
+    <string name="help_import_review_summary_title">Confira a prévia</string>
+    <string name="help_import_review_summary_message">O resumo mostra correspondências encontradas, lançamentos novos e itens que já foram importados.</string>
+    <string name="help_import_review_matches_title">Revise as correspondências</string>
+    <string name="help_import_review_matches_message">As correspondências de alta confiança já vêm marcadas. Desmarque o que não corresponder ao lançamento do sistema.</string>
+    <string name="help_import_review_new_title">Revise os novos lançamentos</string>
+    <string name="help_import_review_new_message">Escolha a categoria de cada lançamento que será criado a partir do extrato.</string>
+    <string name="help_import_review_confirm_title">Confirme a conciliação</string>
+    <string name="help_import_review_confirm_message">Somente os itens marcados serão conciliados ou criados. Você poderá revisar os lançamentos depois.</string>
+
+    <!-- Guias: espaço financeiro -->
+    <string name="help_finance_space_select_title">Escolha o espaço financeiro</string>
+    <string name="help_finance_space_select_message">O espaço selecionado será usado nas próximas consultas, relatórios e lançamentos.</string>
+    <string name="help_finance_space_members_title">Pessoas com acesso</string>
+    <string name="help_finance_space_members_message">Aqui você vê quem participa do espaço e qual é o papel de cada pessoa.</string>
+    <string name="help_finance_space_invite_title">Convide uma pessoa</string>
+    <string name="help_finance_space_invite_message">Envie um convite por link ou notificação para compartilhar este espaço.</string>
+    <string name="help_finance_space_leave_title">Controle seu acesso</string>
+    <string name="help_finance_space_leave_message">Se você não é o proprietário, pode sair deste espaço quando quiser.</string>
+    <string name="help_finance_space_migration_title">Traga seus dados</string>
+    <string name="help_finance_space_migration_message">Solicite a migração dos dados do seu espaço pessoal. O proprietário precisa aprovar.</string>
+
+    <!-- Guias: configurações -->
+    <string name="help_settings_savings_title">Defina sua meta de poupança</string>
+    <string name="help_settings_savings_message">Informe a porcentagem da renda que você pretende guardar todos os meses.</string>
+    <string name="help_settings_budget_title">Planeje o orçamento</string>
+    <string name="help_settings_budget_message">Defina o limite mensal e a porcentagem que deve disparar um alerta de gastos.</string>
+    <string name="help_settings_category_goals_title">Metas por categoria</string>
+    <string name="help_settings_category_goals_message">Defina limites específicos para cada categoria e importe as metas do mês anterior quando precisar.</string>
+    <string name="help_settings_dnd_title">Escolha quando silenciar</string>
+    <string name="help_settings_dnd_message">Ative o Não Perturbe e selecione o horário em que você não quer receber notificações.</string>
+    <string name="help_settings_retention_title">Retenção de notificações</string>
+    <string name="help_settings_retention_message">Defina por quantos dias as notificações excluídas permanecem na lixeira.</string>
+    <string name="help_settings_help_title">Reative as dicas quando quiser</string>
+    <string name="help_settings_help_message">Use esta opção para exibir novamente os guias do aplicativo em todas as telas.</string>
+
+    <!-- Guias: notificações -->
+    <string name="help_notifications_financial_title">Alertas financeiros</string>
+    <string name="help_notifications_financial_message">Aqui ficam os avisos de vencimento, atraso e pagamento. Use o interruptor de cada item para ativar ou pausar.</string>
+    <string name="help_notifications_defaults_title">Crie os alertas recomendados</string>
+    <string name="help_notifications_defaults_message">O app pode criar automaticamente os lembretes financeiros padrão para você.</string>
+    <string name="help_notifications_custom_title">Lembretes personalizados</string>
+    <string name="help_notifications_custom_message">Crie avisos próprios, como pagar uma conta específica ou trocar o óleo do carro.</string>
+    <string name="help_notifications_device_title">Notificações do aparelho</string>
+    <string name="help_notifications_device_message">Permita que o Android exiba os alertas neste aparelho. Se estiver bloqueado, abra as configurações do sistema.</string>
+    <string name="help_notifications_history_title">Histórico de notificações</string>
+    <string name="help_notifications_history_message">Consulte os alertas enviados, itens não lidos e a lixeira de notificações excluídas.</string>
+
+    <!-- Guias: menu -->
+    <string name="help_menu_reports_title">Relatórios</string>
+    <string name="help_menu_reports_message">Analise receitas, despesas e categorias por período e exporte os resultados.</string>
+    <string name="help_menu_import_title">Importe um extrato</string>
+    <string name="help_menu_import_message">Selecione um arquivo OFX ou CSV para conciliar com os lançamentos.</string>
+    <string name="help_menu_settings_title">Configure o aplicativo</string>
+    <string name="help_menu_settings_message">Ajuste metas, notificações, privacidade e os guias de ajuda.</string>
+    <string name="help_menu_finance_space_title">Compartilhe suas finanças</string>
+    <string name="help_menu_finance_space_message">Crie ou participe de um espaço financeiro com outras pessoas.</string>
+
     <!-- Notificações -->
     <string name="notifications_title">Notificações</string>
     <string name="notifications_subtitle">Ative, desative e configure suas notificações e lembretes automáticos.</string>

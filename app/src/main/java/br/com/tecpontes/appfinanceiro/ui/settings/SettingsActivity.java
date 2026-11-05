@@ -30,6 +30,10 @@ import br.com.tecpontes.appfinanceiro.model.ImportCategoryGoalsRequestDto;
 import br.com.tecpontes.appfinanceiro.model.UserSettingsDto;
 import br.com.tecpontes.appfinanceiro.model.UserSettingsUpdateRequestDto;
 import br.com.tecpontes.appfinanceiro.ui.BottomNavigationHelper;
+import br.com.tecpontes.appfinanceiro.ui.help.FeatureTour;
+import br.com.tecpontes.appfinanceiro.ui.help.HelpGuide;
+import br.com.tecpontes.appfinanceiro.ui.help.HelpPreferences;
+import br.com.tecpontes.appfinanceiro.ui.help.HelpStep;
 import br.com.tecpontes.appfinanceiro.utils.SessionExpiredNavigation;
 import br.com.tecpontes.appfinanceiro.utils.TokenManager;
 import br.com.tecpontes.appfinanceiro.viewmodel.SettingsViewModel;
@@ -59,6 +63,8 @@ public class SettingsActivity extends AppCompatActivity {
     private final Map<String, String> originalGoals = new HashMap<>();
 
     @Inject TokenManager tokenManager;
+    @Inject HelpPreferences helpPreferences;
+    @Nullable private FeatureTour activeHelpTour;
 
     @Override
     protected void onCreate(@Nullable Bundle savedInstanceState) {
@@ -74,9 +80,84 @@ public class SettingsActivity extends AppCompatActivity {
         viewModel = new ViewModelProvider(this).get(SettingsViewModel.class);
 
         setupListeners();
+        setupHelpCard();
         setupObservers();
         SessionExpiredNavigation.observe(this, tokenManager);
         viewModel.load();
+        scheduleSettingsGuide();
+    }
+
+    private void scheduleSettingsGuide() {
+        if (binding == null) return;
+        binding.getRoot().postDelayed(() -> {
+            if (binding == null || isFinishing() || isDestroyed()) return;
+            if (activeHelpTour != null && activeHelpTour.isShowing()) return;
+            if (!helpPreferences.shouldShow(HelpGuide.SETTINGS)) return;
+
+            List<HelpStep> steps = new ArrayList<>();
+            steps.add(new HelpStep(
+                    binding.savingsGoalEditText,
+                    getString(R.string.help_settings_savings_title),
+                    getString(R.string.help_settings_savings_message)));
+            steps.add(new HelpStep(
+                    binding.monthlyBudgetEditText,
+                    getString(R.string.help_settings_budget_title),
+                    getString(R.string.help_settings_budget_message)));
+            steps.add(new HelpStep(
+                    binding.dndSwitch,
+                    getString(R.string.help_settings_dnd_title),
+                    getString(R.string.help_settings_dnd_message)));
+            steps.add(new HelpStep(
+                    binding.retentionEditText,
+                    getString(R.string.help_settings_retention_title),
+                    getString(R.string.help_settings_retention_message)));
+            steps.add(new HelpStep(
+                    binding.helpSwitch,
+                    getString(R.string.help_settings_help_title),
+                    getString(R.string.help_settings_help_message)));
+            steps.add(new HelpStep(
+                    binding.categoryGoalsCard,
+                    getString(R.string.help_settings_category_goals_title),
+                    getString(R.string.help_settings_category_goals_message)));
+
+            activeHelpTour = FeatureTour.show(this, steps, new FeatureTour.Listener() {
+                @Override public void onCompleted() {
+                    helpPreferences.markCompleted(HelpGuide.SETTINGS);
+                }
+
+                @Override public void onSkipped() {
+                    helpPreferences.markCompleted(HelpGuide.SETTINGS);
+                }
+
+                @Override public void onTargetClicked() {
+                    // O guia apenas apresenta as configurações disponíveis.
+                }
+            });
+        }, 750);
+    }
+
+    private void setupHelpCard() {
+        binding.helpSwitch.setChecked(helpPreferences.isHelpEnabled());
+        bindHelpSwitch();
+        binding.replayHelpButton.setOnClickListener(view -> {
+            helpPreferences.enableAndResetAll();
+            binding.helpSwitch.setOnCheckedChangeListener(null);
+            binding.helpSwitch.setChecked(true);
+            bindHelpSwitch();
+            Toast.makeText(this, R.string.help_settings_replayed, Toast.LENGTH_LONG).show();
+        });
+    }
+
+    private void bindHelpSwitch() {
+        binding.helpSwitch.setOnCheckedChangeListener((button, checked) -> {
+            if (checked) {
+                helpPreferences.enableAndResetAll();
+                Toast.makeText(this, R.string.help_settings_enabled, Toast.LENGTH_SHORT).show();
+            } else {
+                helpPreferences.setHelpEnabled(false);
+                Toast.makeText(this, R.string.help_settings_disabled, Toast.LENGTH_SHORT).show();
+            }
+        });
     }
 
     private void setupListeners() {
@@ -400,7 +481,14 @@ public class SettingsActivity extends AppCompatActivity {
     }
 
     @Override
+    protected void onResume() {
+        super.onResume();
+        scheduleSettingsGuide();
+    }
+
+    @Override
     protected void onDestroy() {
+        if (activeHelpTour != null) activeHelpTour.dismiss();
         super.onDestroy();
         binding = null;
     }

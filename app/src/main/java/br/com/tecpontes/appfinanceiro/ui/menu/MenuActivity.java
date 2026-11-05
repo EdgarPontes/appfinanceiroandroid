@@ -8,6 +8,10 @@ import androidx.annotation.Nullable;
 import androidx.appcompat.app.AppCompatActivity;
 import br.com.tecpontes.appfinanceiro.R;
 import br.com.tecpontes.appfinanceiro.ui.BottomNavigationHelper;
+import br.com.tecpontes.appfinanceiro.ui.help.FeatureTour;
+import br.com.tecpontes.appfinanceiro.ui.help.HelpGuide;
+import br.com.tecpontes.appfinanceiro.ui.help.HelpPreferences;
+import br.com.tecpontes.appfinanceiro.ui.help.HelpStep;
 import br.com.tecpontes.appfinanceiro.ui.categories.CategoriesActivity;
 import br.com.tecpontes.appfinanceiro.ui.notifications.NotificationsActivity;
 import br.com.tecpontes.appfinanceiro.ui.reports.ReportsActivity;
@@ -15,9 +19,17 @@ import br.com.tecpontes.appfinanceiro.ui.settings.SettingsActivity;
 import br.com.tecpontes.appfinanceiro.ui.transactions.TransactionsActivity;
 import br.com.tecpontes.appfinanceiro.ui.profile.ProfileActivity;
 import br.com.tecpontes.appfinanceiro.ui.finance.FinanceSpaceActivity;
+import dagger.hilt.android.AndroidEntryPoint;
+import java.util.ArrayList;
+import java.util.List;
+import javax.inject.Inject;
 
 /** Menu para destinos secundários do aplicativo. */
+@AndroidEntryPoint
 public class MenuActivity extends AppCompatActivity {
+
+    @Inject HelpPreferences helpPreferences;
+    @Nullable private FeatureTour activeHelpTour;
 
     @Override
     protected void onCreate(@Nullable Bundle savedInstanceState) {
@@ -41,6 +53,59 @@ public class MenuActivity extends AppCompatActivity {
                 "Notificações", "Avisos e lembretes", FeatureDestinationActivity.NOTIFICATIONS);
         configureRow(R.id.menuFinanceSpace, R.drawable.ic_menu_profile,
                 "Espaço financeiro", "Compartilhe suas finanças", "finance_space");
+        scheduleMenuGuide();
+    }
+
+    private void scheduleMenuGuide() {
+        getWindow().getDecorView().postDelayed(() -> {
+            if (isFinishing() || isDestroyed()) return;
+            if (activeHelpTour != null && activeHelpTour.isShowing()) return;
+            if (!helpPreferences.shouldShow(HelpGuide.MENU)) return;
+
+            List<HelpStep> steps = new ArrayList<>();
+            steps.add(new HelpStep(
+                    findViewById(R.id.menuReports),
+                    getString(R.string.help_menu_reports_title),
+                    getString(R.string.help_menu_reports_message)));
+            steps.add(new HelpStep(
+                    findViewById(R.id.menuImport),
+                    getString(R.string.help_menu_import_title),
+                    getString(R.string.help_menu_import_message)));
+            steps.add(new HelpStep(
+                    findViewById(R.id.menuSettings),
+                    getString(R.string.help_menu_settings_title),
+                    getString(R.string.help_menu_settings_message)));
+            steps.add(new HelpStep(
+                    findViewById(R.id.menuFinanceSpace),
+                    getString(R.string.help_menu_finance_space_title),
+                    getString(R.string.help_menu_finance_space_message)));
+
+            activeHelpTour = FeatureTour.show(this, steps, new FeatureTour.Listener() {
+                @Override public void onCompleted() {
+                    helpPreferences.markCompleted(HelpGuide.MENU);
+                }
+
+                @Override public void onSkipped() {
+                    helpPreferences.markCompleted(HelpGuide.MENU);
+                }
+
+                @Override public void onTargetClicked() {
+                    // O guia do menu apenas apresenta os atalhos.
+                }
+            });
+        }, 700);
+    }
+
+    @Override
+    protected void onResume() {
+        super.onResume();
+        scheduleMenuGuide();
+    }
+
+    @Override
+    protected void onDestroy() {
+        if (activeHelpTour != null) activeHelpTour.dismiss();
+        super.onDestroy();
     }
 
     private void configureRow(

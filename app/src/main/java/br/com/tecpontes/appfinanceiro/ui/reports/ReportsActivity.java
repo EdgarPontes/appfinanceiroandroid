@@ -24,6 +24,10 @@ import br.com.tecpontes.appfinanceiro.databinding.ActivityReportsBinding;
 import br.com.tecpontes.appfinanceiro.model.CategoryDto;
 import br.com.tecpontes.appfinanceiro.model.TransactionListItemDto;
 import br.com.tecpontes.appfinanceiro.ui.BottomNavigationHelper;
+import br.com.tecpontes.appfinanceiro.ui.help.FeatureTour;
+import br.com.tecpontes.appfinanceiro.ui.help.HelpGuide;
+import br.com.tecpontes.appfinanceiro.ui.help.HelpPreferences;
+import br.com.tecpontes.appfinanceiro.ui.help.HelpStep;
 import br.com.tecpontes.appfinanceiro.utils.PrivacyMode;
 import br.com.tecpontes.appfinanceiro.utils.ReportExporter;
 import br.com.tecpontes.appfinanceiro.utils.SessionExpiredNavigation;
@@ -63,6 +67,8 @@ public class ReportsActivity extends AppCompatActivity {
     private ReportsViewModel viewModel;
 
     @Inject TokenManager tokenManager;
+    @Inject HelpPreferences helpPreferences;
+    @Nullable private FeatureTour activeHelpTour;
 
     private LocalDate periodStart = LocalDate.now().withDayOfMonth(1);
     private LocalDate periodEnd = LocalDate.now();
@@ -112,6 +118,52 @@ public class ReportsActivity extends AppCompatActivity {
         updatePeriodLabel();
         updateCategoryFilterLabel();
         loadReport();
+        scheduleReportsGuide();
+    }
+
+    private void scheduleReportsGuide() {
+        if (binding == null) return;
+        binding.getRoot().postDelayed(() -> {
+            if (binding == null || isFinishing() || isDestroyed()) return;
+            if (activeHelpTour != null && activeHelpTour.isShowing()) return;
+            if (!helpPreferences.shouldShow(HelpGuide.REPORTS)) return;
+
+            List<HelpStep> steps = new ArrayList<>();
+            steps.add(new HelpStep(
+                    binding.periodButton,
+                    getString(R.string.help_reports_period_title),
+                    getString(R.string.help_reports_period_message)));
+            steps.add(new HelpStep(
+                    binding.reportTypeSpinner,
+                    getString(R.string.help_reports_type_title),
+                    getString(R.string.help_reports_type_message)));
+            steps.add(new HelpStep(
+                    binding.categoryFilterButton,
+                    getString(R.string.help_reports_category_title),
+                    getString(R.string.help_reports_category_message)));
+            steps.add(new HelpStep(
+                    binding.reportSummaryCard,
+                    getString(R.string.help_reports_summary_title),
+                    getString(R.string.help_reports_summary_message)));
+            steps.add(new HelpStep(
+                    binding.exportCsvButton,
+                    getString(R.string.help_reports_export_title),
+                    getString(R.string.help_reports_export_message)));
+
+            activeHelpTour = FeatureTour.show(this, steps, new FeatureTour.Listener() {
+                @Override public void onCompleted() {
+                    helpPreferences.markCompleted(HelpGuide.REPORTS);
+                }
+
+                @Override public void onSkipped() {
+                    helpPreferences.markCompleted(HelpGuide.REPORTS);
+                }
+
+                @Override public void onTargetClicked() {
+                    // O guia apenas apresenta os filtros e ações.
+                }
+            });
+        }, 900);
     }
 
     private void setupTypeSpinner() {
@@ -583,11 +635,15 @@ public class ReportsActivity extends AppCompatActivity {
     @Override
     protected void onResume() {
         super.onResume();
-        if (binding != null) applyFiltersAndRender();
+        if (binding != null) {
+            applyFiltersAndRender();
+            scheduleReportsGuide();
+        }
     }
 
     @Override
     protected void onDestroy() {
+        if (activeHelpTour != null) activeHelpTour.dismiss();
         super.onDestroy();
         binding = null;
     }

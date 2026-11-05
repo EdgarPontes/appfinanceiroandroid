@@ -13,6 +13,10 @@ import br.com.tecpontes.appfinanceiro.R;
 import br.com.tecpontes.appfinanceiro.databinding.ActivityCategoriesBinding;
 import br.com.tecpontes.appfinanceiro.model.CategoryDto;
 import br.com.tecpontes.appfinanceiro.ui.BottomNavigationHelper;
+import br.com.tecpontes.appfinanceiro.ui.help.FeatureTour;
+import br.com.tecpontes.appfinanceiro.ui.help.HelpGuide;
+import br.com.tecpontes.appfinanceiro.ui.help.HelpPreferences;
+import br.com.tecpontes.appfinanceiro.ui.help.HelpStep;
 import br.com.tecpontes.appfinanceiro.utils.SessionExpiredNavigation;
 import br.com.tecpontes.appfinanceiro.utils.TokenManager;
 import br.com.tecpontes.appfinanceiro.viewmodel.CategoriesViewModel;
@@ -32,6 +36,8 @@ public class CategoriesActivity extends AppCompatActivity {
     private String currentType = CategoriesViewModel.TYPE_EXPENSE;
 
     @Inject TokenManager tokenManager;
+    @Inject HelpPreferences helpPreferences;
+    @Nullable private FeatureTour activeHelpTour;
 
     @Override
     protected void onCreate(@Nullable Bundle savedInstanceState) {
@@ -74,6 +80,46 @@ public class CategoriesActivity extends AppCompatActivity {
         setupObservers();
         SessionExpiredNavigation.observe(this, tokenManager);
         viewModel.load();
+        scheduleCategoriesGuide();
+    }
+
+    private void scheduleCategoriesGuide() {
+        if (binding == null) return;
+        binding.getRoot().postDelayed(() -> {
+            if (binding == null || isFinishing() || isDestroyed()) return;
+            if (activeHelpTour != null && activeHelpTour.isShowing()) return;
+            if (!helpPreferences.shouldShow(HelpGuide.CATEGORIES)) return;
+
+            List<HelpStep> steps = new ArrayList<>();
+            steps.add(new HelpStep(
+                    binding.categoryTypeToggleGroup,
+                    getString(R.string.help_categories_type_title),
+                    getString(R.string.help_categories_type_message)));
+            steps.add(new HelpStep(
+                    binding.addCategoryButton,
+                    getString(R.string.help_categories_add_title),
+                    getString(R.string.help_categories_add_message)));
+            if (binding.categoriesEmptyLayout.getVisibility() == View.VISIBLE) {
+                steps.add(new HelpStep(
+                        binding.createDefaultsButton,
+                        getString(R.string.help_categories_defaults_title),
+                        getString(R.string.help_categories_defaults_message)));
+            }
+
+            activeHelpTour = FeatureTour.show(this, steps, new FeatureTour.Listener() {
+                @Override public void onCompleted() {
+                    helpPreferences.markCompleted(HelpGuide.CATEGORIES);
+                }
+
+                @Override public void onSkipped() {
+                    helpPreferences.markCompleted(HelpGuide.CATEGORIES);
+                }
+
+                @Override public void onTargetClicked() {
+                    // O guia de categorias apenas apresenta os controles.
+                }
+            });
+        }, 800);
     }
 
     private void setupTabs() {
@@ -207,7 +253,14 @@ public class CategoriesActivity extends AppCompatActivity {
     }
 
     @Override
+    protected void onResume() {
+        super.onResume();
+        scheduleCategoriesGuide();
+    }
+
+    @Override
     protected void onDestroy() {
+        if (activeHelpTour != null) activeHelpTour.dismiss();
         super.onDestroy();
         binding = null;
     }

@@ -32,6 +32,10 @@ import br.com.tecpontes.appfinanceiro.model.TransactionListItemDto;
 import br.com.tecpontes.appfinanceiro.model.TransactionTransferRequestDto;
 import br.com.tecpontes.appfinanceiro.model.TransactionWriteDto;
 import br.com.tecpontes.appfinanceiro.ui.BottomNavigationHelper;
+import br.com.tecpontes.appfinanceiro.ui.help.FeatureTour;
+import br.com.tecpontes.appfinanceiro.ui.help.HelpGuide;
+import br.com.tecpontes.appfinanceiro.ui.help.HelpPreferences;
+import br.com.tecpontes.appfinanceiro.ui.help.HelpStep;
 import br.com.tecpontes.appfinanceiro.ui.transactions.CreateTransactionDialog;
 import br.com.tecpontes.appfinanceiro.ui.transactions.TransactionsAdapter;
 import br.com.tecpontes.appfinanceiro.utils.PrivacyMode;
@@ -75,6 +79,8 @@ public class CardsActivity extends AppCompatActivity {
     @Nullable private CreateTransactionDialog createTransactionDialog;
 
     @Inject TokenManager tokenManager;
+    @Inject HelpPreferences helpPreferences;
+    @Nullable private FeatureTour activeHelpTour;
 
     @Override
     protected void onCreate(@Nullable Bundle savedInstanceState) {
@@ -112,6 +118,7 @@ public class CardsActivity extends AppCompatActivity {
             cards.sort(Comparator.comparing(card -> safe(card.getName()), String.CASE_INSENSITIVE_ORDER));
             renderCardSelection();
             updateCreateTransactionDialogOptions();
+            maybeScheduleCardsGuide();
         });
         viewModel.invoiceData.observe(this, this::renderInvoice);
         viewModel.accountsData.observe(this, loadedAccounts -> {
@@ -158,6 +165,55 @@ public class CardsActivity extends AppCompatActivity {
         binding.reversePaymentButton.setOnClickListener(v -> reverseLastPayment());
         binding.addTransactionButton.setOnClickListener(v -> showCreateTransactionDialog());
         binding.exportInvoiceButton.setOnClickListener(v -> exportInvoice());
+    }
+
+    private void maybeScheduleCardsGuide() {
+        if (binding == null || cards.isEmpty()) return;
+        if (activeHelpTour != null && activeHelpTour.isShowing()) return;
+        if (!helpPreferences.shouldShow(HelpGuide.CARDS)) return;
+        binding.getRoot().postDelayed(() -> {
+            if (binding == null || isFinishing() || isDestroyed() || cards.isEmpty()) return;
+            if (activeHelpTour != null && activeHelpTour.isShowing()) return;
+            if (!helpPreferences.shouldShow(HelpGuide.CARDS)) return;
+
+            List<HelpStep> steps = new ArrayList<>();
+            steps.add(new HelpStep(
+                    binding.cardSpinner,
+                    getString(R.string.help_cards_select_title),
+                    getString(R.string.help_cards_select_message)));
+            steps.add(new HelpStep(
+                    binding.cardOverview,
+                    getString(R.string.help_cards_overview_title),
+                    getString(R.string.help_cards_overview_message)));
+            if (binding.invoiceStatusButton.getVisibility() == View.VISIBLE) {
+                steps.add(new HelpStep(
+                        binding.invoiceStatusButton,
+                        getString(R.string.help_cards_status_title),
+                        getString(R.string.help_cards_status_message)));
+            }
+            steps.add(new HelpStep(
+                    binding.addTransactionButton,
+                    getString(R.string.help_cards_add_title),
+                    getString(R.string.help_cards_add_message)));
+            steps.add(new HelpStep(
+                    binding.exportInvoiceButton,
+                    getString(R.string.help_cards_export_title),
+                    getString(R.string.help_cards_export_message)));
+
+            activeHelpTour = FeatureTour.show(this, steps, new FeatureTour.Listener() {
+                @Override public void onCompleted() {
+                    helpPreferences.markCompleted(HelpGuide.CARDS);
+                }
+
+                @Override public void onSkipped() {
+                    helpPreferences.markCompleted(HelpGuide.CARDS);
+                }
+
+                @Override public void onTargetClicked() {
+                    // O guia apenas apresenta a fatura e suas ações.
+                }
+            });
+        }, 800);
     }
 
     private void renderCardSelection() {
@@ -1108,6 +1164,7 @@ public class CardsActivity extends AppCompatActivity {
         renderCardOverview(findSelectedCard());
         InvoiceDetailsDto invoice = viewModel.invoiceData.getValue();
         if (invoice != null) renderInvoice(invoice);
+        maybeScheduleCardsGuide();
     }
 
 
@@ -1118,6 +1175,7 @@ public class CardsActivity extends AppCompatActivity {
     }
 
     @Override protected void onDestroy() {
+        if (activeHelpTour != null) activeHelpTour.dismiss();
         super.onDestroy();
         binding = null;
     }

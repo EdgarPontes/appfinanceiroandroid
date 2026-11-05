@@ -45,6 +45,8 @@
 
     <!-- Overlay -->
     <color name="scrim">#33000000</color>
+    <color name="help_scrim">#D90B0B12</color>
+    <color name="help_highlight">#FF7C6CFF</color>
 
     <!-- Base legada / Compose -->
     <color name="purple_200">#FFBB86FC</color>

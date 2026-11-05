@@ -43,6 +43,10 @@ import br.com.tecpontes.appfinanceiro.model.InvoicePendingDto;
 import br.com.tecpontes.appfinanceiro.model.TransactionTransferRequestDto;
 import br.com.tecpontes.appfinanceiro.model.TransactionWriteDto;
 import br.com.tecpontes.appfinanceiro.ui.BottomNavigationHelper;
+import br.com.tecpontes.appfinanceiro.ui.help.FeatureTour;
+import br.com.tecpontes.appfinanceiro.ui.help.HelpGuide;
+import br.com.tecpontes.appfinanceiro.ui.help.HelpPreferences;
+import br.com.tecpontes.appfinanceiro.ui.help.HelpStep;
 import br.com.tecpontes.appfinanceiro.utils.PrivacyMode;
 import br.com.tecpontes.appfinanceiro.utils.SessionExpiredNavigation;
 import br.com.tecpontes.appfinanceiro.utils.TokenManager;
@@ -80,6 +84,9 @@ public class TransactionsActivity extends AppCompatActivity {
 
     @Inject
     TokenManager tokenManager;
+    @Inject
+    HelpPreferences helpPreferences;
+    @Nullable private FeatureTour activeHelpTour;
 
     private ActivityResultLauncher<String[]> ofxFilePickerLauncher;
 
@@ -135,6 +142,8 @@ public class TransactionsActivity extends AppCompatActivity {
         loadInitialData();
         if (getIntent().getBooleanExtra(EXTRA_OPEN_IMPORT, false)) {
             binding.getRoot().post(this::openOfxFilePicker);
+        } else {
+            scheduleTransactionsIntroGuide();
         }
 
         Log.d(TAG, "TransactionsActivity criada");
@@ -420,6 +429,95 @@ public class TransactionsActivity extends AppCompatActivity {
         if (shouldShow == isVisible) return;
         if (shouldShow) binding.scrollToTopFab.show();
         else binding.scrollToTopFab.hide();
+    }
+
+    private void scheduleTransactionsIntroGuide() {
+        binding.getRoot().postDelayed(() -> {
+            if (binding == null || isFinishing() || isDestroyed()) return;
+            showTransactionsIntroGuide();
+        }, 650);
+    }
+
+    private void showTransactionsIntroGuide() {
+        if (activeHelpTour != null && activeHelpTour.isShowing()) return;
+        if (!helpPreferences.shouldShow(HelpGuide.TRANSACTIONS_INTRO)) return;
+        HelpStep step = new HelpStep(
+                binding.addTransactionFab,
+                getString(R.string.help_transactions_intro_title),
+                getString(R.string.help_transactions_intro_message))
+                .nextLabel(getString(R.string.help_transactions_intro_action))
+                .allowTargetClick();
+        activeHelpTour = FeatureTour.show(
+                this,
+                java.util.Collections.singletonList(step),
+                new FeatureTour.Listener() {
+                    @Override public void onCompleted() {
+                        openTransactionFormFromHelp();
+                    }
+
+                    @Override public void onSkipped() {
+                        helpPreferences.markCompleted(HelpGuide.TRANSACTIONS_INTRO);
+                    }
+
+                    @Override public void onTargetClicked() {
+                        openTransactionFormFromHelp();
+                    }
+                });
+    }
+
+    private void openTransactionFormFromHelp() {
+        helpPreferences.markCompleted(HelpGuide.TRANSACTIONS_INTRO);
+        if (binding == null || isFinishing() || isDestroyed()) return;
+        showCreateTransactionDialog();
+    }
+
+    private void scheduleTransactionFormGuide(@NonNull CreateTransactionDialog dialog) {
+        if (activeHelpTour != null && activeHelpTour.isShowing()) return;
+        if (!helpPreferences.shouldShow(HelpGuide.TRANSACTIONS_FORM)) return;
+        Window window = dialog.getWindow();
+        if (window == null) return;
+        window.getDecorView().postDelayed(() -> {
+            if (!dialog.isShowing() || isFinishing() || isDestroyed()) return;
+            List<HelpStep> steps = new ArrayList<>();
+            steps.add(new HelpStep(
+                    dialog.findViewById(R.id.typeChipGroup),
+                    getString(R.string.help_transaction_type_title),
+                    getString(R.string.help_transaction_type_message)));
+            steps.add(new HelpStep(
+                    dialog.findViewById(R.id.descriptionEditText),
+                    getString(R.string.help_transaction_description_title),
+                    getString(R.string.help_transaction_description_message)));
+            steps.add(new HelpStep(
+                    dialog.findViewById(R.id.amountEditText),
+                    getString(R.string.help_transaction_amount_title),
+                    getString(R.string.help_transaction_amount_message)));
+            steps.add(new HelpStep(
+                    dialog.findViewById(R.id.categorySpinner),
+                    getString(R.string.help_transaction_category_title),
+                    getString(R.string.help_transaction_category_message)));
+            steps.add(new HelpStep(
+                    dialog.findViewById(R.id.paymentMethodContainer),
+                    getString(R.string.help_transaction_payment_title),
+                    getString(R.string.help_transaction_payment_message)));
+            steps.add(new HelpStep(
+                    dialog.findViewById(R.id.saveButton),
+                    getString(R.string.help_transaction_save_title),
+                    getString(R.string.help_transaction_save_message)));
+
+            activeHelpTour = FeatureTour.show(dialog, steps, new FeatureTour.Listener() {
+                @Override public void onCompleted() {
+                    helpPreferences.markCompleted(HelpGuide.TRANSACTIONS_FORM);
+                }
+
+                @Override public void onSkipped() {
+                    helpPreferences.markCompleted(HelpGuide.TRANSACTIONS_FORM);
+                }
+
+                @Override public void onTargetClicked() {
+                    // Nenhuma dica do formulário ativa diretamente o elemento destacado.
+                }
+            });
+        }, 550);
     }
 
     private void loadInitialData() {
@@ -877,11 +975,18 @@ public class TransactionsActivity extends AppCompatActivity {
                         });
                     }
                 });
-        createTransactionDialog.setOnDismissListener(dialog -> createTransactionDialog = null);
+        createTransactionDialog.setOnDismissListener(dialog -> {
+            if (activeHelpTour != null) {
+                activeHelpTour.dismiss();
+                activeHelpTour = null;
+            }
+            createTransactionDialog = null;
+        });
         createTransactionDialog.show();
         updateTransactionDialogOptions();
         createTransactionDialog.setOptionsLoading(true);
         transactionsViewModel.loadTransactionFormOptions();
+        scheduleTransactionFormGuide(createTransactionDialog);
     }
 
     private void updateTransactionDialogOptions() {
@@ -1423,11 +1528,15 @@ public class TransactionsActivity extends AppCompatActivity {
     @Override
     protected void onResume() {
         super.onResume();
-        if (binding != null) applyLocalFilters();
+        if (binding != null) {
+            applyLocalFilters();
+            if (createTransactionDialog == null) scheduleTransactionsIntroGuide();
+        }
     }
 
     @Override
     protected void onDestroy() {
+        if (activeHelpTour != null) activeHelpTour.dismiss();
         if (binding != null) binding.getRoot().removeCallbacks(pendingSyncReload);
         super.onDestroy();
         binding = null;

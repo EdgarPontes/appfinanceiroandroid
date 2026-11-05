@@ -34,6 +34,10 @@ import br.com.tecpontes.appfinanceiro.model.CreditCardDto;
 import br.com.tecpontes.appfinanceiro.model.CreditCardRequestDto;
 import br.com.tecpontes.appfinanceiro.model.ReconciliationSummaryDto;
 import br.com.tecpontes.appfinanceiro.ui.BottomNavigationHelper;
+import br.com.tecpontes.appfinanceiro.ui.help.FeatureTour;
+import br.com.tecpontes.appfinanceiro.ui.help.HelpGuide;
+import br.com.tecpontes.appfinanceiro.ui.help.HelpPreferences;
+import br.com.tecpontes.appfinanceiro.ui.help.HelpStep;
 import br.com.tecpontes.appfinanceiro.ui.transactions.TransactionsActivity;
 import br.com.tecpontes.appfinanceiro.utils.PrivacyMode;
 import br.com.tecpontes.appfinanceiro.utils.SessionExpiredNavigation;
@@ -67,6 +71,8 @@ public class AccountsActivity extends AppCompatActivity {
     private TextView historyState;
 
     @Inject TokenManager tokenManager;
+    @Inject HelpPreferences helpPreferences;
+    @Nullable private FeatureTour activeHelpTour;
 
     @Override protected void onCreate(@Nullable Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
@@ -80,6 +86,56 @@ public class AccountsActivity extends AppCompatActivity {
         setupListeners();
         SessionExpiredNavigation.observe(this, tokenManager);
         viewModel.load(false);
+        scheduleAccountsGuide();
+    }
+
+    private void scheduleAccountsGuide() {
+        if (binding == null) return;
+        binding.getRoot().postDelayed(() -> {
+            if (binding == null || isFinishing() || isDestroyed()) return;
+            if (activeHelpTour != null && activeHelpTour.isShowing()) return;
+            if (!helpPreferences.shouldShow(HelpGuide.ACCOUNTS)) return;
+
+            List<HelpStep> steps = new ArrayList<>();
+            if (binding.summaryCard.getVisibility() == View.VISIBLE) {
+                steps.add(new HelpStep(
+                        binding.summaryCard,
+                        getString(R.string.help_accounts_summary_title),
+                        getString(R.string.help_accounts_summary_message)));
+            }
+            steps.add(new HelpStep(
+                    binding.addAccountButton,
+                    getString(R.string.help_accounts_new_account_title),
+                    getString(R.string.help_accounts_new_account_message)));
+            steps.add(new HelpStep(
+                    binding.addCardButton,
+                    getString(R.string.help_accounts_new_card_title),
+                    getString(R.string.help_accounts_new_card_message)));
+            steps.add(new HelpStep(
+                    binding.recalculateButton,
+                    getString(R.string.help_accounts_recalculate_title),
+                    getString(R.string.help_accounts_recalculate_message)));
+            if (binding.reconciliationCard.getVisibility() == View.VISIBLE) {
+                steps.add(new HelpStep(
+                        binding.viewPendingButton,
+                        getString(R.string.help_accounts_reconcile_title),
+                        getString(R.string.help_accounts_reconcile_message)));
+            }
+
+            activeHelpTour = FeatureTour.show(this, steps, new FeatureTour.Listener() {
+                @Override public void onCompleted() {
+                    helpPreferences.markCompleted(HelpGuide.ACCOUNTS);
+                }
+
+                @Override public void onSkipped() {
+                    helpPreferences.markCompleted(HelpGuide.ACCOUNTS);
+                }
+
+                @Override public void onTargetClicked() {
+                    // O guia de contas apenas apresenta os controles.
+                }
+            });
+        }, 1100);
     }
 
     private void setupObservers() {
@@ -835,6 +891,7 @@ public class AccountsActivity extends AppCompatActivity {
     private int dp(float value) { return Math.round(value * getResources().getDisplayMetrics().density); }
 
     @Override protected void onDestroy() {
+        if (activeHelpTour != null) activeHelpTour.dismiss();
         super.onDestroy();
         binding = null;
     }
@@ -848,5 +905,6 @@ public class AccountsActivity extends AppCompatActivity {
         }
         if (firstResume) firstResume = false;
         else if (viewModel != null) viewModel.load(includeInactive);
+        scheduleAccountsGuide();
     }
 }

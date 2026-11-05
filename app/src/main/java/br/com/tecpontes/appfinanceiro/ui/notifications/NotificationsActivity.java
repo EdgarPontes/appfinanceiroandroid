@@ -24,6 +24,10 @@ import br.com.tecpontes.appfinanceiro.R;
 import br.com.tecpontes.appfinanceiro.databinding.ActivityNotificationsBinding;
 import br.com.tecpontes.appfinanceiro.model.MessageConfigDto;
 import br.com.tecpontes.appfinanceiro.ui.BottomNavigationHelper;
+import br.com.tecpontes.appfinanceiro.ui.help.FeatureTour;
+import br.com.tecpontes.appfinanceiro.ui.help.HelpGuide;
+import br.com.tecpontes.appfinanceiro.ui.help.HelpPreferences;
+import br.com.tecpontes.appfinanceiro.ui.help.HelpStep;
 import br.com.tecpontes.appfinanceiro.utils.SessionExpiredNavigation;
 import br.com.tecpontes.appfinanceiro.utils.TokenManager;
 import br.com.tecpontes.appfinanceiro.viewmodel.NotificationsViewModel;
@@ -52,6 +56,8 @@ public class NotificationsActivity extends AppCompatActivity {
     private NotificationsViewModel viewModel;
 
     @Inject TokenManager tokenManager;
+    @Inject HelpPreferences helpPreferences;
+    @Nullable private FeatureTour activeHelpTour;
 
     private final ActivityResultLauncher<String> permissionLauncher =
             registerForActivityResult(new ActivityResultContracts.RequestPermission(), granted -> {
@@ -94,6 +100,58 @@ public class NotificationsActivity extends AppCompatActivity {
             viewModel.setDeviceNotificationsEnabled(false);
         }
         updateDeviceCard();
+        scheduleNotificationsGuide();
+    }
+
+    private void scheduleNotificationsGuide() {
+        if (binding == null || viewModel == null) return;
+        if (viewModel.configsData.getValue() == null) return;
+        binding.getRoot().postDelayed(() -> {
+            if (binding == null || isFinishing() || isDestroyed()) return;
+            if (activeHelpTour != null && activeHelpTour.isShowing()) return;
+            if (!helpPreferences.shouldShow(HelpGuide.NOTIFICATIONS)) return;
+
+            View financialTarget = binding.financialConfigsContainer.getChildCount() > 0
+                    ? binding.financialConfigsContainer.getChildAt(0)
+                    : binding.financialEmptyTextView;
+            List<HelpStep> steps = new ArrayList<>();
+            steps.add(new HelpStep(
+                    financialTarget,
+                    getString(R.string.help_notifications_financial_title),
+                    getString(R.string.help_notifications_financial_message)));
+            if (binding.createDefaultsButton.getVisibility() == View.VISIBLE) {
+                steps.add(new HelpStep(
+                        binding.createDefaultsButton,
+                        getString(R.string.help_notifications_defaults_title),
+                        getString(R.string.help_notifications_defaults_message)));
+            }
+            steps.add(new HelpStep(
+                    binding.createReminderButton,
+                    getString(R.string.help_notifications_custom_title),
+                    getString(R.string.help_notifications_custom_message)));
+            steps.add(new HelpStep(
+                    binding.deviceToggleButton,
+                    getString(R.string.help_notifications_device_title),
+                    getString(R.string.help_notifications_device_message)));
+            steps.add(new HelpStep(
+                    binding.historyButton,
+                    getString(R.string.help_notifications_history_title),
+                    getString(R.string.help_notifications_history_message)));
+
+            activeHelpTour = FeatureTour.show(this, steps, new FeatureTour.Listener() {
+                @Override public void onCompleted() {
+                    helpPreferences.markCompleted(HelpGuide.NOTIFICATIONS);
+                }
+
+                @Override public void onSkipped() {
+                    helpPreferences.markCompleted(HelpGuide.NOTIFICATIONS);
+                }
+
+                @Override public void onTargetClicked() {
+                    // O guia apenas apresenta os tipos de notificação e ações.
+                }
+            });
+        }, 550);
     }
 
     private void setupListeners() {
@@ -178,6 +236,7 @@ public class NotificationsActivity extends AppCompatActivity {
         binding.remindersEmptyTextView.setVisibility(reminders.isEmpty() ? View.VISIBLE : View.GONE);
         binding.createDefaultsButton.setVisibility(hasDefaultTitles ? View.GONE : View.VISIBLE);
         updateActionButtons();
+        scheduleNotificationsGuide();
     }
 
     private void updateActionButtons() {
@@ -311,6 +370,7 @@ public class NotificationsActivity extends AppCompatActivity {
 
     @Override
     protected void onDestroy() {
+        if (activeHelpTour != null) activeHelpTour.dismiss();
         super.onDestroy();
         binding = null;
     }

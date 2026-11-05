@@ -23,6 +23,10 @@ import br.com.tecpontes.appfinanceiro.databinding.ActivityDashboardBinding;
 import br.com.tecpontes.appfinanceiro.model.DashboardDto;
 import br.com.tecpontes.appfinanceiro.ui.BottomNavigationHelper;
 import br.com.tecpontes.appfinanceiro.ui.auth.LoginActivity;
+import br.com.tecpontes.appfinanceiro.ui.help.FeatureTour;
+import br.com.tecpontes.appfinanceiro.ui.help.HelpGuide;
+import br.com.tecpontes.appfinanceiro.ui.help.HelpPreferences;
+import br.com.tecpontes.appfinanceiro.ui.help.HelpStep;
 import br.com.tecpontes.appfinanceiro.ui.notifications.NotificationHistoryActivity;
 import br.com.tecpontes.appfinanceiro.notifications.PushRegistrationManager;
 import br.com.tecpontes.appfinanceiro.ui.transactions.TransactionsActivity;
@@ -55,6 +59,10 @@ public class DashboardActivity extends AppCompatActivity {
 
     @Inject
     PushRegistrationManager pushRegistrationManager;
+
+    @Inject
+    HelpPreferences helpPreferences;
+    @Nullable private FeatureTour activeHelpTour;
 
     // Adapter para transações recentes
     private RecentTransactionsAdapter transactionsAdapter;
@@ -102,6 +110,7 @@ public class DashboardActivity extends AppCompatActivity {
 
         // Carrega dados iniciais
         loadInitialData();
+        scheduleDashboardGuide();
 
         Log.d(TAG, "DashboardActivity criada");
     }
@@ -116,6 +125,7 @@ public class DashboardActivity extends AppCompatActivity {
         if (dashboardViewModel != null) {
             dashboardViewModel.loadUnreadNotifications();
         }
+        scheduleDashboardGuide();
     }
 
     /**
@@ -250,6 +260,55 @@ public class DashboardActivity extends AppCompatActivity {
      */
     private void loadInitialData() {
         loadDashboardForPeriod(selectedPeriodPosition);
+    }
+
+    private void scheduleDashboardGuide() {
+        if (binding == null) return;
+        binding.getRoot().postDelayed(() -> {
+            if (binding == null || isFinishing() || isDestroyed()) return;
+            if (activeHelpTour != null && activeHelpTour.isShowing()) return;
+            if (!helpPreferences.shouldShow(HelpGuide.DASHBOARD)) return;
+
+            List<HelpStep> steps = new ArrayList<>();
+            steps.add(new HelpStep(
+                    binding.balanceTextView,
+                    getString(R.string.help_dashboard_balance_title),
+                    getString(R.string.help_dashboard_balance_message)));
+            steps.add(new HelpStep(
+                    binding.periodSpinner,
+                    getString(R.string.help_dashboard_period_title),
+                    getString(R.string.help_dashboard_period_message)));
+            steps.add(new HelpStep(
+                    binding.maskValuesButton,
+                    getString(R.string.help_dashboard_privacy_title),
+                    getString(R.string.help_dashboard_privacy_message)));
+            steps.add(new HelpStep(
+                    binding.addTransactionCard,
+                    getString(R.string.help_dashboard_add_title),
+                    getString(R.string.help_dashboard_add_message))
+                    .nextLabel(getString(R.string.help_dashboard_add_action))
+                    .allowTargetClick());
+
+            activeHelpTour = FeatureTour.show(this, steps, new FeatureTour.Listener() {
+                @Override public void onCompleted() {
+                    finishDashboardGuideAndOpenTransactions();
+                }
+
+                @Override public void onSkipped() {
+                    helpPreferences.markCompleted(HelpGuide.DASHBOARD);
+                }
+
+                @Override public void onTargetClicked() {
+                    finishDashboardGuideAndOpenTransactions();
+                }
+            });
+        }, 700);
+    }
+
+    private void finishDashboardGuideAndOpenTransactions() {
+        helpPreferences.markCompleted(HelpGuide.DASHBOARD);
+        if (binding == null || isFinishing() || isDestroyed()) return;
+        binding.addTransactionCard.performClick();
     }
 
     private void setupPeriodFilter() {
@@ -500,6 +559,7 @@ public class DashboardActivity extends AppCompatActivity {
 
     @Override
     protected void onDestroy() {
+        if (activeHelpTour != null) activeHelpTour.dismiss();
         super.onDestroy();
         binding = null;
         Log.d(TAG, "DashboardActivity destruída");

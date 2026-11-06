@@ -41,7 +41,7 @@
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
                 android:layout_marginBottom="12dp"
-                android:text="Acesse outras áreas do AppFinanceiro"
+                android:text="Acesse outras áreas do FluxoCerto"
                 android:textColor="?attr/colorOnSurfaceVariant"
                 android:textSize="13sp" />
 

@@ -134,7 +134,7 @@
         <activity
             android:name=".ui.menu.FeatureDestinationActivity"
             android:exported="false"
-            android:label="AppFinanceiro"
+            android:label="FluxoCerto"
             android:theme="@style/Theme.Appfinanceiro" />
 
         <service

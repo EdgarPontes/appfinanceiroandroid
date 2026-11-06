@@ -1,4 +1,4 @@
-# App Financeiro Nativo - Java/Android
+# FluxoCerto — Android (Java)
 
 Um aplicativo financeiro moderno desenvolvido em Java com arquitetura MVVM, utilizando as melhores práticas do desenvolvimento Android moderno.
 

@@ -1,6 +1,6 @@
 # Relatório de Roteiro e Execução de Testes Manuais FCM
 
-Este documento detalha o protocolo e os passos de validação manual para os 5 cenários críticos de integração do Firebase Cloud Messaging (FCM) no aplicativo Android **AppFinanceiro**.
+Este documento detalha o protocolo e os passos de validação manual para os 5 cenários críticos de integração do Firebase Cloud Messaging (FCM) no aplicativo Android **FluxoCerto**.
 
 ---
 
@@ -103,7 +103,7 @@ Task :app:testDebugUnitTest
 - Dispositivo rodando Android 13+ (API level 33+).
 
 #### Passos de Teste
-1. Acesse **Configurações -> Aplicativos -> AppFinanceiro -> Permissões -> Notificações** e selecione **Negar**.
+1. Acesse **Configurações -> Aplicativos -> FluxoCerto -> Permissões -> Notificações** e selecione **Negar**.
 2. Faça login no aplicativo.
 3. Dispare uma notificação de vencimento financeira pelo Backend.
 4. Abra o app e acesse a tela de **Histórico de Notificações**.

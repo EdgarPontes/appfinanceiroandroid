@@ -1,7 +1,7 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
 
-    <string name="app_name">appfinanceiro</string>
+    <string name="app_name">FluxoCerto</string>
 
     <!-- Configurações -->
     <string name="settings_title">Configurações</string>

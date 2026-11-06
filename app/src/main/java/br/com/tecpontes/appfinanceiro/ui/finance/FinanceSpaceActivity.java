@@ -590,11 +590,11 @@ public class FinanceSpaceActivity extends AppCompatActivity {
 
     private void shareInvitation(FinanceSpaceInvitationDto invitation, String spaceName) {
         String message = "Você foi convidado para compartilhar o espaço financeiro \""
-                + spaceName + "\". Entre no App Financeiro com " + invitation.email
+                + spaceName + "\". Entre no FluxoCerto com " + invitation.email
                 + " para aceitar: " + invitation.shareUrl;
         Intent sendIntent = new Intent(Intent.ACTION_SEND);
         sendIntent.setType("text/plain");
-        sendIntent.putExtra(Intent.EXTRA_SUBJECT, "Convite do App Financeiro");
+        sendIntent.putExtra(Intent.EXTRA_SUBJECT, "Convite do FluxoCerto");
         sendIntent.putExtra(Intent.EXTRA_TEXT, message);
         startActivity(Intent.createChooser(sendIntent, "Compartilhar convite no WhatsApp"));
         Toast.makeText(this, "Convite criado. O código de confirmação foi enviado por e-mail.",

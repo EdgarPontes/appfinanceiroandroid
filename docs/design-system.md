@@ -1,4 +1,4 @@
-# Design System — Appfinanceiro
+# Design System — FluxoCerto
 
 Documentação da fundação visual "Modern Tech & Sofisticado". Serve como referência para as Fases 2 e 3 da refatoração.
 

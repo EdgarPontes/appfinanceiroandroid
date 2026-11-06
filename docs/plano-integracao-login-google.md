@@ -28,7 +28,7 @@ Documento vivo para acompanhar a implementação da autenticação com Google, c
 
 ## Objetivo
 
-Permitir que o usuário entre no App Financeiro com uma conta Google, preservando o modelo de autenticação atual: o Google comprova a identidade e a API do aplicativo emite o JWT usado nas demais requisições.
+Permitir que o usuário entre no FluxoCerto com uma conta Google, preservando o modelo de autenticação atual: o Google comprova a identidade e a API do aplicativo emite o JWT usado nas demais requisições.
 
 ## Visão geral
 

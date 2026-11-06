@@ -11,7 +11,7 @@
         android:layout_width="match_parent"
         android:layout_height="?attr/actionBarSize"
         android:background="?attr/colorSurface"
-        app:title="AppFinanceiro"
+        app:title="FluxoCerto"
         app:titleTextColor="?attr/colorOnSurface" />
 
     <LinearLayout

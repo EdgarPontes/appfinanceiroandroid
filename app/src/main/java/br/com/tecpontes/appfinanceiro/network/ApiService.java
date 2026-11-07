@@ -274,6 +274,13 @@ public interface ApiService {
             @Query("q") @Nullable String query
     );
 
+    /** Mesma consulta usada pelo widget "Transações Recentes" do app web. */
+    @GET("transactions")
+    Call<List<TransactionListItemDto>> getRecentTransactions(
+            @Query("limit") int limit,
+            @Query("orderBy") @NonNull String orderBy
+    );
+
     @GET("balance-history/batch")
     Call<BalanceHistoryDto> getBalancesAtDate(
             @Query("accountIds") @NonNull String accountIds,

@@ -73,6 +73,9 @@ public interface TransactionDao {
     @Query("SELECT * FROM transactions ORDER BY date DESC LIMIT 5")
     LiveData<List<Transaction>> getRecentTransactions();
 
+    @Query("SELECT * FROM transactions ORDER BY lastSync DESC LIMIT 5")
+    List<Transaction> getRecentTransactionsSync();
+
     @Query("SELECT category, SUM(amount) as total, type FROM transactions WHERE accountId = :accountId AND date BETWEEN :startDate AND :endDate GROUP BY category, type ORDER BY total DESC")
     LiveData<List<CategorySummary>> getCategorySummary(String accountId, long startDate, long endDate);
 

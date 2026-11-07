@@ -103,7 +103,7 @@
                 android:layout_height="wrap_content"
                 android:orientation="vertical"
                 android:padding="16dp"
-                android:paddingBottom="96dp">
+                android:paddingBottom="136dp">
 
                 <Spinner
                     android:id="@+id/periodSpinner"
@@ -540,38 +540,6 @@
                     </LinearLayout>
                 </com.google.android.material.card.MaterialCardView>
 
-                <com.google.android.material.card.MaterialCardView
-                    android:id="@+id/addTransactionCard"
-                    style="@style/ModernCard"
-                    android:layout_width="match_parent"
-                    android:layout_height="wrap_content"
-                    android:layout_marginBottom="14dp"
-                    app:cardBackgroundColor="?attr/colorTertiary"
-                    app:cardElevation="0dp"
-                    app:strokeWidth="0dp">
-                    <LinearLayout
-                        android:layout_width="match_parent"
-                        android:layout_height="wrap_content"
-                        android:gravity="center"
-                        android:orientation="horizontal"
-                        android:padding="18dp">
-                        <ImageView
-                            android:layout_width="24dp"
-                            android:layout_height="24dp"
-                            android:layout_marginEnd="12dp"
-                            android:contentDescription="@null"
-                            android:src="@android:drawable/ic_input_add"
-                            app:tint="?attr/colorOnTertiary" />
-                        <TextView
-                            android:layout_width="wrap_content"
-                            android:layout_height="wrap_content"
-                            android:text="Adicionar transação"
-                            android:textColor="?attr/colorOnTertiary"
-                            android:textSize="16sp"
-                            android:textStyle="bold" />
-                    </LinearLayout>
-                </com.google.android.material.card.MaterialCardView>
-
                 <LinearLayout
                     android:id="@+id/recentTransactionsSection"
                     android:layout_width="match_parent"
@@ -630,6 +598,19 @@
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
         android:layout_gravity="bottom" />
+
+    <com.google.android.material.floatingactionbutton.FloatingActionButton
+        android:id="@+id/addTransactionFab"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_gravity="bottom|end"
+        android:layout_marginEnd="16dp"
+        android:layout_marginBottom="72dp"
+        android:contentDescription="@string/transactions_add_content_desc"
+        app:backgroundTint="?attr/colorTertiary"
+        app:fabSize="mini"
+        app:srcCompat="@android:drawable/ic_input_add"
+        app:tint="?attr/colorOnTertiary" />
 
     <include
         android:id="@+id/loadingView"

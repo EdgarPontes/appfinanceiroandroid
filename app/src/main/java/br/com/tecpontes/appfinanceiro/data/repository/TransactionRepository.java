@@ -82,6 +82,40 @@ public class TransactionRepository {
         return transactionDao.getRecentTransactions();
     }
 
+    /** Lê o cache local fora da thread principal para o fallback offline. */
+    public void getRecentTransactionsFromCache(@NonNull LocalTransactionsCallback callback) {
+        executorService.execute(() -> callback.onLoaded(transactionDao.getRecentTransactionsSync()));
+    }
+
+    /**
+     * Busca os lançamentos mais recentes exatamente como o widget do app web:
+     * GET /api/transactions?limit=5&orderBy=created_at.
+     */
+    public void fetchRecentTransactions(int limit, @NonNull TransactionListCallback callback) {
+        apiService.getRecentTransactions(limit, "created_at")
+                .enqueue(new Callback<List<TransactionListItemDto>>() {
+                    @Override
+                    public void onResponse(@NonNull Call<List<TransactionListItemDto>> call,
+                                           @NonNull Response<List<TransactionListItemDto>> response) {
+                        if (response.isSuccessful()) {
+                            callback.onSuccess(response.body() != null
+                                    ? response.body()
+                                    : java.util.Collections.emptyList());
+                        } else {
+                            callback.onError("Erro na API: " + response.message());
+                        }
+                    }
+
+                    @Override
+                    public void onFailure(@NonNull Call<List<TransactionListItemDto>> call,
+                                          @NonNull Throwable error) {
+                        Log.e(TAG, "Falha ao carregar transações recentes", error);
+                        callback.onError(NetworkErrors.message(
+                                error, "Não foi possível carregar as transações recentes."));
+                    }
+                });
+    }
+
     /** Busca transações detalhadas usando os mesmos filtros aceitos pela API web. */
     public void fetchTransactions(
             @Nullable String accountIds,
@@ -460,6 +494,10 @@ public class TransactionRepository {
     public interface TransactionListCallback {
         void onSuccess(List<TransactionListItemDto> transactions);
         void onError(String error);
+    }
+
+    public interface LocalTransactionsCallback {
+        void onLoaded(List<Transaction> transactions);
     }
 
     public interface BalanceCallback {

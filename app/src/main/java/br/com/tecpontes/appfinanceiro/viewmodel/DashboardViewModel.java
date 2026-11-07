@@ -13,6 +13,7 @@ import br.com.tecpontes.appfinanceiro.data.repository.DashboardRepository;
 import br.com.tecpontes.appfinanceiro.data.repository.NotificationsRepository;
 import br.com.tecpontes.appfinanceiro.data.repository.TransactionRepository;
 import br.com.tecpontes.appfinanceiro.model.DashboardDto;
+import br.com.tecpontes.appfinanceiro.model.TransactionListItemDto;
 import dagger.hilt.android.lifecycle.HiltViewModel;
 import java.util.List;
 import javax.inject.Inject;
@@ -47,8 +48,13 @@ public class DashboardViewModel extends ViewModel {
     private final MutableLiveData<Integer> _unreadNotifications = new MutableLiveData<>(0);
     public final LiveData<Integer> unreadNotifications = _unreadNotifications;
 
+    private static final int RECENT_TRANSACTIONS_LIMIT = 5;
+
+    private final MutableLiveData<List<TransactionListItemDto>> _recentTransactions =
+            new MutableLiveData<>();
+    public final LiveData<List<TransactionListItemDto>> recentTransactions = _recentTransactions;
+
     public final LiveData<List<Account>> accounts;
-    public final LiveData<List<Transaction>> recentTransactions;
     public final LiveData<Double> totalBalance;
 
     @Inject
@@ -64,7 +70,6 @@ public class DashboardViewModel extends ViewModel {
         this.notificationsRepository = notificationsRepository;
 
         this.accounts = accountRepository.getAllAccounts();
-        this.recentTransactions = transactionRepository.getRecentTransactions();
         this.totalBalance = accountRepository.getTotalBalance();
 
         Log.d(TAG, "DashboardViewModel inicializado");
@@ -186,6 +191,48 @@ public class DashboardViewModel extends ViewModel {
     public void refreshData() {
         Log.d(TAG, "Atualizando dados do dashboard");
         loadDashboardData();
+    }
+
+    /** Carrega os 5 lançamentos mais recentes (mesma consulta do widget do app web). */
+    public void loadRecentTransactions() {
+        transactionRepository.fetchRecentTransactions(RECENT_TRANSACTIONS_LIMIT,
+                new TransactionRepository.TransactionListCallback() {
+                    @Override
+                    public void onSuccess(List<TransactionListItemDto> transactions) {
+                        _recentTransactions.postValue(transactions);
+                    }
+
+                    @Override
+                    public void onError(String error) {
+                        Log.w(TAG, "Falha ao carregar transações recentes; usando cache local: "
+                                + error);
+                        transactionRepository.getRecentTransactionsFromCache(local ->
+                                _recentTransactions.postValue(mapLocalTransactions(local)));
+                    }
+                });
+    }
+
+    /** Converte o cache local no mesmo formato da API para manter o dashboard offline. */
+    @NonNull
+    private List<TransactionListItemDto> mapLocalTransactions(
+            @Nullable List<Transaction> localTransactions) {
+        List<TransactionListItemDto> mapped = new java.util.ArrayList<>();
+        if (localTransactions == null) return mapped;
+
+        for (Transaction item : localTransactions) {
+            if (item == null) continue;
+            TransactionListItemDto dto = new TransactionListItemDto();
+            dto.id = item.getId();
+            dto.description = item.getNote() != null && !item.getNote().trim().isEmpty()
+                    ? item.getNote() : item.getCategory();
+            dto.amount = String.valueOf(item.getAmount());
+            dto.date = java.time.Instant.ofEpochMilli(item.getDate()).toString();
+            dto.type = "income".equalsIgnoreCase(item.getType()) ? "INCOME" : "EXPENSE";
+            dto.category = new TransactionListItemDto.CategoryInfo();
+            dto.category.name = item.getCategory();
+            mapped.add(dto);
+        }
+        return mapped;
     }
 
     /**

@@ -7,6 +7,7 @@ import android.os.Bundle;
 import android.util.Log;
 import android.view.Gravity;
 import android.view.View;
+import android.view.ViewGroup;
 import android.widget.AdapterView;
 import android.widget.ArrayAdapter;
 import android.widget.LinearLayout;
@@ -20,7 +21,12 @@ import androidx.lifecycle.ViewModelProvider;
 import androidx.recyclerview.widget.LinearLayoutManager;
 import br.com.tecpontes.appfinanceiro.R;
 import br.com.tecpontes.appfinanceiro.databinding.ActivityDashboardBinding;
+import br.com.tecpontes.appfinanceiro.model.AccountDto;
+import br.com.tecpontes.appfinanceiro.model.CategoryDto;
 import br.com.tecpontes.appfinanceiro.model.DashboardDto;
+import br.com.tecpontes.appfinanceiro.model.CreditCardDto;
+import br.com.tecpontes.appfinanceiro.model.TransactionTransferRequestDto;
+import br.com.tecpontes.appfinanceiro.model.TransactionWriteDto;
 import br.com.tecpontes.appfinanceiro.ui.BottomNavigationHelper;
 import br.com.tecpontes.appfinanceiro.ui.auth.LoginActivity;
 import br.com.tecpontes.appfinanceiro.ui.help.FeatureTour;
@@ -30,10 +36,12 @@ import br.com.tecpontes.appfinanceiro.ui.help.HelpStep;
 import br.com.tecpontes.appfinanceiro.ui.notifications.NotificationHistoryActivity;
 import br.com.tecpontes.appfinanceiro.notifications.PushRegistrationManager;
 import br.com.tecpontes.appfinanceiro.ui.transactions.TransactionsActivity;
+import br.com.tecpontes.appfinanceiro.ui.transactions.CreateTransactionDialog;
 import br.com.tecpontes.appfinanceiro.utils.PrivacyMode;
 import br.com.tecpontes.appfinanceiro.utils.TokenManager;
 import br.com.tecpontes.appfinanceiro.utils.SessionExpiredNavigation;
 import br.com.tecpontes.appfinanceiro.viewmodel.DashboardViewModel;
+import br.com.tecpontes.appfinanceiro.viewmodel.TransactionsViewModel;
 import dagger.hilt.android.AndroidEntryPoint;
 import java.time.Instant;
 import java.util.ArrayList;
@@ -53,6 +61,8 @@ public class DashboardActivity extends AppCompatActivity {
 
     private ActivityDashboardBinding binding;
     private DashboardViewModel dashboardViewModel;
+    private TransactionsViewModel transactionsViewModel;
+    @Nullable private CreateTransactionDialog createTransactionDialog;
 
     @Inject
     TokenManager tokenManager;
@@ -88,9 +98,13 @@ public class DashboardActivity extends AppCompatActivity {
 
         // Configura window insets
         BottomNavigationHelper.applyEdgeToEdgeInsets(binding.getRoot());
+        binding.bottomNavigation.getRoot().addOnLayoutChangeListener((view, left, top, right, bottom,
+                oldLeft, oldTop, oldRight, oldBottom) -> positionAddFabAboveBottomNavigation());
+        binding.getRoot().post(this::positionAddFabAboveBottomNavigation);
 
         // Inicializa ViewModel
         dashboardViewModel = new ViewModelProvider(this).get(DashboardViewModel.class);
+        transactionsViewModel = new ViewModelProvider(this).get(TransactionsViewModel.class);
 
         // Configura RecyclerView
         setupRecyclerView();
@@ -124,6 +138,7 @@ public class DashboardActivity extends AppCompatActivity {
         }
         if (dashboardViewModel != null) {
             dashboardViewModel.loadUnreadNotifications();
+            dashboardViewModel.loadRecentTransactions();
         }
         scheduleDashboardGuide();
     }
@@ -149,6 +164,7 @@ public class DashboardActivity extends AppCompatActivity {
         );
 
         binding.swipeRefreshLayout.setOnRefreshListener(() -> {
+            dashboardViewModel.loadRecentTransactions();
             loadDashboardForPeriod(selectedPeriodPosition);
         });
     }
@@ -195,6 +211,20 @@ public class DashboardActivity extends AppCompatActivity {
         });
 
         dashboardViewModel.unreadNotifications.observe(this, this::renderNotificationBadge);
+
+        transactionsViewModel.formAccounts.observe(this, accounts -> updateTransactionDialogOptions());
+        transactionsViewModel.formCategories.observe(this, categories -> updateTransactionDialogOptions());
+        transactionsViewModel.formCards.observe(this, cards -> updateTransactionDialogOptions());
+        transactionsViewModel.formOptionsLoading.observe(this, loading -> {
+            if (createTransactionDialog != null) {
+                createTransactionDialog.setOptionsLoading(Boolean.TRUE.equals(loading));
+            }
+        });
+        transactionsViewModel.formOptionsError.observe(this, error -> {
+            if (createTransactionDialog != null && error != null && !error.trim().isEmpty()) {
+                createTransactionDialog.showError(error);
+            }
+        });
 
     }
 
@@ -248,11 +278,98 @@ public class DashboardActivity extends AppCompatActivity {
             startActivity(intent);
         });
 
-        // Card de adicionar transação
-        binding.addTransactionCard.setOnClickListener(v -> {
-            Intent intent = new Intent(this, TransactionsActivity.class);
-            startActivity(intent);
-        });
+        // Abre o formulário diretamente, sem navegar para a tela de transações.
+        binding.addTransactionFab.setOnClickListener(v -> showCreateTransactionDialog());
+    }
+
+    private void showCreateTransactionDialog() {
+        if (createTransactionDialog != null && createTransactionDialog.isShowing()) return;
+
+        createTransactionDialog = new CreateTransactionDialog(this,
+                new CreateTransactionDialog.OnTransactionCreatedListener() {
+                    @Override
+                    public void onCreateTransaction(TransactionWriteDto transaction) {
+                        if (createTransactionDialog == null) return;
+                        createTransactionDialog.setSaving(true);
+                        transactionsViewModel.createTransactionFromList(transaction,
+                                new TransactionsViewModel.ActionCallback() {
+                                    @Override public void onSuccess() {
+                                        runOnUiThread(() -> {
+                                            closeCreateTransactionDialog();
+                                            Toast.makeText(DashboardActivity.this,
+                                                    "Lançamento salvo. Sincronização em andamento.",
+                                                    Toast.LENGTH_SHORT).show();
+                                            loadDashboardForPeriod(selectedPeriodPosition);
+                                            dashboardViewModel.loadRecentTransactions();
+                                        });
+                                    }
+
+                                    @Override public void onError(String error) {
+                                        runOnUiThread(() -> {
+                                            if (createTransactionDialog != null) {
+                                                createTransactionDialog.showError(error);
+                                            }
+                                        });
+                                    }
+                                });
+                    }
+
+                    @Override
+                    public void onCreateTransfer(TransactionTransferRequestDto transfer) {
+                        if (createTransactionDialog == null) return;
+                        createTransactionDialog.setSaving(true);
+                        transactionsViewModel.createTransactionTransfer(transfer,
+                                new TransactionsViewModel.ActionCallback() {
+                                    @Override public void onSuccess() {
+                                        runOnUiThread(() -> {
+                                            closeCreateTransactionDialog();
+                                            Toast.makeText(DashboardActivity.this,
+                                                    "Transferência salva", Toast.LENGTH_SHORT).show();
+                                            loadDashboardForPeriod(selectedPeriodPosition);
+                                            dashboardViewModel.loadRecentTransactions();
+                                        });
+                                    }
+
+                                    @Override public void onError(String error) {
+                                        runOnUiThread(() -> {
+                                            if (createTransactionDialog != null) {
+                                                createTransactionDialog.showError(error);
+                                            }
+                                        });
+                                    }
+                                });
+                    }
+                });
+        createTransactionDialog.setOnDismissListener(dialog -> createTransactionDialog = null);
+        createTransactionDialog.show();
+        createTransactionDialog.setOptionsLoading(true);
+        transactionsViewModel.loadTransactionFormOptions();
+    }
+
+    private void updateTransactionDialogOptions() {
+        if (createTransactionDialog == null) return;
+        List<AccountDto> accounts = transactionsViewModel.formAccounts.getValue();
+        List<CategoryDto> categories = transactionsViewModel.formCategories.getValue();
+        List<CreditCardDto> cards = transactionsViewModel.formCards.getValue();
+        createTransactionDialog.setOptions(accounts, categories, cards);
+    }
+
+    private void closeCreateTransactionDialog() {
+        if (createTransactionDialog == null) return;
+        CreateTransactionDialog dialog = createTransactionDialog;
+        createTransactionDialog = null;
+        dialog.dismiss();
+    }
+
+    private void positionAddFabAboveBottomNavigation() {
+        if (binding == null || binding.bottomNavigation.getRoot().getHeight() == 0) return;
+        ViewGroup.LayoutParams rawParams = binding.addTransactionFab.getLayoutParams();
+        if (!(rawParams instanceof ViewGroup.MarginLayoutParams)) return;
+        ViewGroup.MarginLayoutParams params = (ViewGroup.MarginLayoutParams) rawParams;
+        int targetBottomMargin = binding.bottomNavigation.getRoot().getHeight() + dp(8);
+        if (params.bottomMargin == targetBottomMargin) return;
+        params.bottomMargin = targetBottomMargin;
+        binding.addTransactionFab.setLayoutParams(params);
     }
 
     /**
@@ -283,7 +400,7 @@ public class DashboardActivity extends AppCompatActivity {
                     getString(R.string.help_dashboard_privacy_title),
                     getString(R.string.help_dashboard_privacy_message)));
             steps.add(new HelpStep(
-                    binding.addTransactionCard,
+                    binding.addTransactionFab,
                     getString(R.string.help_dashboard_add_title),
                     getString(R.string.help_dashboard_add_message))
                     .nextLabel(getString(R.string.help_dashboard_add_action))
@@ -291,7 +408,7 @@ public class DashboardActivity extends AppCompatActivity {
 
             activeHelpTour = FeatureTour.show(this, steps, new FeatureTour.Listener() {
                 @Override public void onCompleted() {
-                    finishDashboardGuideAndOpenTransactions();
+                    finishDashboardGuideAndOpenTransactionDialog();
                 }
 
                 @Override public void onSkipped() {
@@ -299,16 +416,16 @@ public class DashboardActivity extends AppCompatActivity {
                 }
 
                 @Override public void onTargetClicked() {
-                    finishDashboardGuideAndOpenTransactions();
+                    finishDashboardGuideAndOpenTransactionDialog();
                 }
             });
         }, 700);
     }
 
-    private void finishDashboardGuideAndOpenTransactions() {
+    private void finishDashboardGuideAndOpenTransactionDialog() {
         helpPreferences.markCompleted(HelpGuide.DASHBOARD);
         if (binding == null || isFinishing() || isDestroyed()) return;
-        binding.addTransactionCard.performClick();
+        binding.addTransactionFab.performClick();
     }
 
     private void setupPeriodFilter() {
@@ -534,7 +651,8 @@ public class DashboardActivity extends AppCompatActivity {
      * Atualiza visibilidade da seção de transações
      */
     private void updateTransactionsVisibility(boolean isEmpty) {
-        binding.recentTransactionsSection.setVisibility(isEmpty ? View.GONE : View.VISIBLE);
+        binding.recentTransactionsSection.setVisibility(View.VISIBLE);
+        binding.recentTransactionsRecyclerView.setVisibility(isEmpty ? View.GONE : View.VISIBLE);
         binding.emptyTransactionsTextView.setVisibility(isEmpty ? View.VISIBLE : View.GONE);
     }
 
@@ -560,6 +678,7 @@ public class DashboardActivity extends AppCompatActivity {
     @Override
     protected void onDestroy() {
         if (activeHelpTour != null) activeHelpTour.dismiss();
+        closeCreateTransactionDialog();
         super.onDestroy();
         binding = null;
         Log.d(TAG, "DashboardActivity destruída");

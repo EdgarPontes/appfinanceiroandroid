@@ -339,7 +339,11 @@ public class TransactionsActivity extends AppCompatActivity {
         if (selectedCategoryId != null) activeCount++;
         if (selectedReconciliation != null) activeCount++;
         if (!"date_asc".equals(selectedSort)) activeCount++;
-        binding.filtersButton.setText(activeCount == 0 ? "Filtros" : "Filtros (" + activeCount + ")");
+        String description = activeCount == 0
+                ? "Filtros"
+                : "Filtros, " + activeCount + (activeCount == 1 ? " filtro ativo" : " filtros ativos");
+        binding.filtersButton.setContentDescription(description);
+        binding.filtersButton.setTooltipText(description);
     }
 
     private void setupObservers() {

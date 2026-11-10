@@ -99,6 +99,7 @@
             android:fillViewport="true">
 
             <LinearLayout
+                android:id="@+id/dashboardContent"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
                 android:orientation="vertical"
@@ -549,18 +550,17 @@
                     <TextView
                         android:layout_width="wrap_content"
                         android:layout_height="wrap_content"
-                        android:layout_marginBottom="12dp"
+                        android:layout_marginBottom="16dp"
                         android:text="Transações recentes"
                         android:textColor="?attr/colorOnSurface"
                         android:textSize="18sp"
                         android:textStyle="bold" />
-                    <androidx.recyclerview.widget.RecyclerView
-                        android:id="@+id/recentTransactionsRecyclerView"
+                    <LinearLayout
+                        android:id="@+id/recentTransactionsContainer"
                         android:layout_width="match_parent"
                         android:layout_height="wrap_content"
-                        android:nestedScrollingEnabled="false"
-                        tools:itemCount="3"
-                        tools:listitem="@layout/item_recent_transaction" />
+                        android:orientation="vertical"
+                        android:paddingTop="2dp" />
                 </LinearLayout>
 
                 <TextView

@@ -7,6 +7,7 @@ import androidx.lifecycle.LiveData;
 import androidx.lifecycle.MutableLiveData;
 import androidx.lifecycle.ViewModel;
 import br.com.tecpontes.appfinanceiro.data.local.entity.Account;
+import br.com.tecpontes.appfinanceiro.data.local.entity.PendingTransaction;
 import br.com.tecpontes.appfinanceiro.data.local.entity.Transaction;
 import br.com.tecpontes.appfinanceiro.data.repository.AccountRepository;
 import br.com.tecpontes.appfinanceiro.data.repository.DashboardRepository;
@@ -48,11 +49,14 @@ public class DashboardViewModel extends ViewModel {
     private final MutableLiveData<Integer> _unreadNotifications = new MutableLiveData<>(0);
     public final LiveData<Integer> unreadNotifications = _unreadNotifications;
 
-    private static final int RECENT_TRANSACTIONS_LIMIT = 5;
+    public static final int RECENT_TRANSACTIONS_LIMIT = 5;
 
     private final MutableLiveData<List<TransactionListItemDto>> _recentTransactions =
             new MutableLiveData<>();
     public final LiveData<List<TransactionListItemDto>> recentTransactions = _recentTransactions;
+
+    /** Lançamentos criados no aparelho e ainda não confirmados pela API. */
+    public final LiveData<List<PendingTransaction>> pendingTransactions;
 
     public final LiveData<List<Account>> accounts;
     public final LiveData<Double> totalBalance;
@@ -71,6 +75,7 @@ public class DashboardViewModel extends ViewModel {
 
         this.accounts = accountRepository.getAllAccounts();
         this.totalBalance = accountRepository.getTotalBalance();
+        this.pendingTransactions = transactionRepository.getPendingTransactions();
 
         Log.d(TAG, "DashboardViewModel inicializado");
     }

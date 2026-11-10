@@ -6,6 +6,7 @@ import android.graphics.drawable.GradientDrawable;
 import android.os.Bundle;
 import android.util.Log;
 import android.view.Gravity;
+import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.AdapterView;
@@ -18,13 +19,14 @@ import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
 import androidx.appcompat.app.AppCompatActivity;
 import androidx.lifecycle.ViewModelProvider;
-import androidx.recyclerview.widget.LinearLayoutManager;
 import br.com.tecpontes.appfinanceiro.R;
+import br.com.tecpontes.appfinanceiro.data.local.entity.PendingTransaction;
 import br.com.tecpontes.appfinanceiro.databinding.ActivityDashboardBinding;
 import br.com.tecpontes.appfinanceiro.model.AccountDto;
 import br.com.tecpontes.appfinanceiro.model.CategoryDto;
 import br.com.tecpontes.appfinanceiro.model.DashboardDto;
 import br.com.tecpontes.appfinanceiro.model.CreditCardDto;
+import br.com.tecpontes.appfinanceiro.model.TransactionListItemDto;
 import br.com.tecpontes.appfinanceiro.model.TransactionTransferRequestDto;
 import br.com.tecpontes.appfinanceiro.model.TransactionWriteDto;
 import br.com.tecpontes.appfinanceiro.ui.BottomNavigationHelper;
@@ -74,10 +76,13 @@ public class DashboardActivity extends AppCompatActivity {
     HelpPreferences helpPreferences;
     @Nullable private FeatureTour activeHelpTour;
 
-    // Adapter para transações recentes
-    private RecentTransactionsAdapter transactionsAdapter;
     @Nullable private DashboardDto lastDashboardData;
     private int selectedPeriodPosition = 0;
+
+    private List<TransactionListItemDto> recentApiTransactions = new ArrayList<>();
+    private List<PendingTransaction> pendingTransactions = new ArrayList<>();
+    private boolean skipNextResumeRefresh = true;
+    private final Runnable pendingSyncReload = this::refreshDashboardData;
     private static final int[] FALLBACK_CHART_COLORS = {
             R.color.brand_primary, R.color.brand_secondary, R.color.password_strength_medium,
             R.color.money_negative, R.color.brand_primary_dark, R.color.money_neutral
@@ -100,14 +105,13 @@ public class DashboardActivity extends AppCompatActivity {
         BottomNavigationHelper.applyEdgeToEdgeInsets(binding.getRoot());
         binding.bottomNavigation.getRoot().addOnLayoutChangeListener((view, left, top, right, bottom,
                 oldLeft, oldTop, oldRight, oldBottom) -> positionAddFabAboveBottomNavigation());
+        binding.addTransactionFab.addOnLayoutChangeListener((view, left, top, right, bottom,
+                oldLeft, oldTop, oldRight, oldBottom) -> positionAddFabAboveBottomNavigation());
         binding.getRoot().post(this::positionAddFabAboveBottomNavigation);
 
         // Inicializa ViewModel
         dashboardViewModel = new ViewModelProvider(this).get(DashboardViewModel.class);
         transactionsViewModel = new ViewModelProvider(this).get(TransactionsViewModel.class);
-
-        // Configura RecyclerView
-        setupRecyclerView();
 
         // Configura SwipeRefreshLayout
         setupSwipeRefresh();
@@ -138,18 +142,24 @@ public class DashboardActivity extends AppCompatActivity {
         }
         if (dashboardViewModel != null) {
             dashboardViewModel.loadUnreadNotifications();
-            dashboardViewModel.loadRecentTransactions();
+            // A primeira execução já carrega tudo em onCreate; nas voltas para esta tela
+            // (por exemplo, depois de criar um lançamento) os dados precisam ser refeitos.
+            if (skipNextResumeRefresh) {
+                skipNextResumeRefresh = false;
+                dashboardViewModel.loadRecentTransactions();
+            } else {
+                refreshDashboardData();
+            }
         }
         scheduleDashboardGuide();
     }
 
-    /**
-     * Configura RecyclerView para transações recentes
-     */
-    private void setupRecyclerView() {
-        transactionsAdapter = new RecentTransactionsAdapter(new ArrayList<>());
-        binding.recentTransactionsRecyclerView.setLayoutManager(new LinearLayoutManager(this));
-        binding.recentTransactionsRecyclerView.setAdapter(transactionsAdapter);
+    /** Recarrega os totais do período e a lista de lançamentos recentes. */
+    private void refreshDashboardData() {
+        if (binding == null) return;
+        loadDashboardForPeriod(selectedPeriodPosition);
+        dashboardViewModel.loadRecentTransactions();
+        transactionsViewModel.requestPendingSync();
     }
 
     /**
@@ -163,10 +173,7 @@ public class DashboardActivity extends AppCompatActivity {
             R.color.money_negative
         );
 
-        binding.swipeRefreshLayout.setOnRefreshListener(() -> {
-            dashboardViewModel.loadRecentTransactions();
-            loadDashboardForPeriod(selectedPeriodPosition);
-        });
+        binding.swipeRefreshLayout.setOnRefreshListener(this::refreshDashboardData);
     }
 
     /**
@@ -176,8 +183,12 @@ public class DashboardActivity extends AppCompatActivity {
         // Observa estado de loading
         dashboardViewModel.loading.observe(this, loading -> {
             if (binding != null) {
-                binding.swipeRefreshLayout.setRefreshing(loading);
-                binding.loadingView.getRoot().setVisibility(loading ? View.VISIBLE : View.GONE);
+                boolean refreshing = Boolean.TRUE.equals(loading);
+                binding.swipeRefreshLayout.setRefreshing(refreshing);
+                // O overlay só aparece na primeira carga; recargas (voltar de outra tela,
+                // pull-to-refresh) usam apenas o indicador do SwipeRefreshLayout.
+                boolean showOverlay = refreshing && lastDashboardData == null;
+                binding.loadingView.getRoot().setVisibility(showOverlay ? View.VISIBLE : View.GONE);
             }
         });
 
@@ -204,9 +215,21 @@ public class DashboardActivity extends AppCompatActivity {
 
         // Observa transações recentes
         dashboardViewModel.recentTransactions.observe(this, transactions -> {
-            if (binding != null && transactions != null) {
-                transactionsAdapter.updateTransactions(transactions);
-                updateTransactionsVisibility(transactions.isEmpty());
+            if (binding == null) return;
+            recentApiTransactions = transactions != null ? transactions : new ArrayList<>();
+            renderRecentTransactions();
+        });
+
+        // Lançamentos ainda na fila local: aparecem na hora e, quando o envio termina,
+        // os totais são recarregados para refletir o que a API confirmou.
+        dashboardViewModel.pendingTransactions.observe(this, pending -> {
+            if (binding == null) return;
+            int previousCount = pendingTransactions.size();
+            pendingTransactions = visiblePendingTransactions(pending);
+            renderRecentTransactions();
+            if (pendingTransactions.size() < previousCount) {
+                binding.getRoot().removeCallbacks(pendingSyncReload);
+                binding.getRoot().postDelayed(pendingSyncReload, 700);
             }
         });
 
@@ -226,6 +249,50 @@ public class DashboardActivity extends AppCompatActivity {
             }
         });
 
+    }
+
+    /**
+     * Combina os lançamentos confirmados pela API com os que ainda estão na fila
+     * local, para que um lançamento recém-criado apareça imediatamente.
+     */
+    private void renderRecentTransactions() {
+        if (binding == null) return;
+        List<TransactionListItemDto> combined = new ArrayList<>(
+                pendingTransactions.size() + recentApiTransactions.size());
+        // A fila é ordenada por criação ascendente; no dashboard o mais novo vem primeiro.
+        for (int i = pendingTransactions.size() - 1; i >= 0; i--) {
+            combined.add(pendingTransactions.get(i).toListItemDto());
+        }
+        combined.addAll(recentApiTransactions);
+        if (combined.size() > DashboardViewModel.RECENT_TRANSACTIONS_LIMIT) {
+            combined = new ArrayList<>(
+                    combined.subList(0, DashboardViewModel.RECENT_TRANSACTIONS_LIMIT));
+        }
+        LinearLayout container = binding.recentTransactionsContainer;
+        container.removeAllViews();
+        LayoutInflater inflater = LayoutInflater.from(this);
+        for (TransactionListItemDto item : combined) {
+            View row = inflater.inflate(R.layout.item_recent_transaction, container, false);
+            // Reaproveita o binding do adapter (descrição, categoria, valor e data).
+            new RecentTransactionsAdapter.ViewHolder(row).bind(item);
+            container.addView(row);
+        }
+        updateTransactionsVisibility(combined.isEmpty());
+    }
+
+    /** Mantém apenas as pendências do usuário logado, como na tela de transações. */
+    @NonNull
+    private List<PendingTransaction> visiblePendingTransactions(
+            @Nullable List<PendingTransaction> pending) {
+        List<PendingTransaction> visible = new ArrayList<>();
+        if (pending == null) return visible;
+        String owner = tokenManager.getUserIdentity();
+        for (PendingTransaction item : pending) {
+            if (item == null) continue;
+            if (owner == null || !owner.equals(item.ownerEmail)) continue;
+            visible.add(item);
+        }
+        return visible;
     }
 
     private void renderNotificationBadge(@Nullable Integer count) {
@@ -367,9 +434,26 @@ public class DashboardActivity extends AppCompatActivity {
         if (!(rawParams instanceof ViewGroup.MarginLayoutParams)) return;
         ViewGroup.MarginLayoutParams params = (ViewGroup.MarginLayoutParams) rawParams;
         int targetBottomMargin = binding.bottomNavigation.getRoot().getHeight() + dp(8);
-        if (params.bottomMargin == targetBottomMargin) return;
-        params.bottomMargin = targetBottomMargin;
-        binding.addTransactionFab.setLayoutParams(params);
+        if (params.bottomMargin != targetBottomMargin) {
+            params.bottomMargin = targetBottomMargin;
+            binding.addTransactionFab.setLayoutParams(params);
+        }
+
+        // Reserva no fim do conteúdo a altura do FAB mais o equivalente a um item
+        // da lista, para o último cartão poder rolar acima do botão sem cobrir valores.
+        int fabHeight = binding.addTransactionFab.getHeight() > 0
+                ? binding.addTransactionFab.getHeight()
+                : dp(40);
+        int itemHeight = dp(96);
+        int contentBottomPadding = targetBottomMargin + fabHeight + itemHeight;
+        View content = binding.dashboardContent;
+        if (content.getPaddingBottom() != contentBottomPadding) {
+            content.setPadding(
+                    content.getPaddingLeft(),
+                    content.getPaddingTop(),
+                    content.getPaddingRight(),
+                    contentBottomPadding);
+        }
     }
 
     /**
@@ -652,7 +736,7 @@ public class DashboardActivity extends AppCompatActivity {
      */
     private void updateTransactionsVisibility(boolean isEmpty) {
         binding.recentTransactionsSection.setVisibility(View.VISIBLE);
-        binding.recentTransactionsRecyclerView.setVisibility(isEmpty ? View.GONE : View.VISIBLE);
+        binding.recentTransactionsContainer.setVisibility(isEmpty ? View.GONE : View.VISIBLE);
         binding.emptyTransactionsTextView.setVisibility(isEmpty ? View.VISIBLE : View.GONE);
     }
 
@@ -678,6 +762,7 @@ public class DashboardActivity extends AppCompatActivity {
     @Override
     protected void onDestroy() {
         if (activeHelpTour != null) activeHelpTour.dismiss();
+        if (binding != null) binding.getRoot().removeCallbacks(pendingSyncReload);
         closeCreateTransactionDialog();
         super.onDestroy();
         binding = null;

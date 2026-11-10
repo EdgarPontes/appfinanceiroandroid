@@ -49,7 +49,7 @@ public class TransactionSwipeCallback extends ItemTouchHelper.SimpleCallback {
 
     @Override
     public int getSwipeDirs(@NonNull RecyclerView recyclerView, @NonNull RecyclerView.ViewHolder viewHolder) {
-        TransactionListItemDto item = adapter.getItem(viewHolder.getAdapterPosition());
+        TransactionListItemDto item = adapter.getItem(viewHolder.getBindingAdapterPosition());
         if (item == null) return 0;
         int directions = 0;
         if (listener.canReconcile(item)) directions |= ItemTouchHelper.RIGHT;
@@ -66,7 +66,7 @@ public class TransactionSwipeCallback extends ItemTouchHelper.SimpleCallback {
 
     @Override
     public void onSwiped(@NonNull RecyclerView.ViewHolder viewHolder, int direction) {
-        int position = viewHolder.getAdapterPosition();
+        int position = viewHolder.getBindingAdapterPosition();
         TransactionListItemDto item = adapter.getItem(position);
         adapter.notifyItemChanged(position);
         if (item == null) return;
@@ -83,7 +83,7 @@ public class TransactionSwipeCallback extends ItemTouchHelper.SimpleCallback {
                             float dX, float dY, int actionState, boolean isCurrentlyActive) {
         if (actionState == ItemTouchHelper.ACTION_STATE_SWIPE && dX != 0f) {
             View itemView = viewHolder.itemView;
-            TransactionListItemDto item = adapter.getItem(viewHolder.getAdapterPosition());
+            TransactionListItemDto item = adapter.getItem(viewHolder.getBindingAdapterPosition());
             boolean reconcile = dX > 0;
             float left = reconcile ? itemView.getLeft() : itemView.getRight() + dX;
             float right = reconcile ? itemView.getLeft() + dX : itemView.getRight();

@@ -80,6 +80,7 @@ dependencies {
     implementation(libs.androidx.activity)
     implementation(libs.androidx.fragment.ktx)
     implementation(libs.androidx.swiperefreshlayout)
+    implementation(libs.androidx.recyclerview)
 
     // Material Design 3
     implementation(libs.material)

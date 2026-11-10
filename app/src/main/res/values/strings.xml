@@ -73,6 +73,8 @@
     <string name="help_transaction_payment_message">Selecione de onde saiu o dinheiro ou qual cartão foi utilizado.</string>
     <string name="help_transaction_save_title">Salve o lançamento</string>
     <string name="help_transaction_save_message">Toque em Salvar. Se estiver offline, o app sincroniza o lançamento depois.</string>
+    <string name="help_swipe_title">Conciliar ou clonar</string>
+    <string name="help_swipe_message">Arraste um lançamento para a direita para conciliar ou desfazer a conciliação. Arraste para a esquerda para clonar.</string>
 
     <!-- Guias: dashboard -->
     <string name="help_dashboard_balance_title">Seu saldo hoje</string>

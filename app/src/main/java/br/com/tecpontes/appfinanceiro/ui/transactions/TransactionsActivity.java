@@ -113,6 +113,7 @@ public class TransactionsActivity extends AppCompatActivity {
     private Map<String, String> balancesByAccount = new LinkedHashMap<>();
     private Map<String, InvoicePendingDto> invoicePendingByInvoiceId = new LinkedHashMap<>();
     private String requestedInvoicePendingKey = "";
+    private boolean swipeGuideScheduled;
 
     @Override
     @SuppressWarnings("deprecation")
@@ -132,6 +133,7 @@ public class TransactionsActivity extends AppCompatActivity {
         transactionsAdapter.setInvoiceAmountClickListener(this::showInvoiceItemsDialog);
         binding.transactionsRecyclerView.setLayoutManager(new LinearLayoutManager(this));
         binding.transactionsRecyclerView.setAdapter(transactionsAdapter);
+        setupSwipeActions();
 
         setupSwipeRefresh();
         setupOfxFilePicker();
@@ -147,6 +149,52 @@ public class TransactionsActivity extends AppCompatActivity {
         }
 
         Log.d(TAG, "TransactionsActivity criada");
+    }
+
+    private void setupSwipeActions() {
+        TransactionSwipeCallback.attach(binding.transactionsRecyclerView, transactionsAdapter,
+                new TransactionSwipeCallback.Listener() {
+                    @Override public boolean canReconcile(@NonNull TransactionListItemDto item) {
+                        return canReconcileItem(item);
+                    }
+
+                    @Override public boolean canClone(@NonNull TransactionListItemDto item) {
+                        return canCloneItem(item);
+                    }
+
+                    @Override public void onReconcile(@NonNull TransactionListItemDto item) {
+                        toggleReconciliation(item);
+                    }
+
+                    @Override public void onClone(@NonNull TransactionListItemDto item) {
+                        showCloneTransactionDialog(item);
+                    }
+                });
+    }
+
+    private boolean canReconcileItem(TransactionListItemDto item) {
+        return item.id != null && !item.isOfflinePending() && !item.isConsolidatedInvoice();
+    }
+
+    private boolean canCloneItem(TransactionListItemDto item) {
+        return !item.isOfflinePending() && !item.isConsolidatedInvoice()
+                && ("INCOME".equals(item.type) || "EXPENSE".equals(item.type));
+    }
+
+    private void toggleReconciliation(TransactionListItemDto item) {
+        if (item.id == null) return;
+        transactionsViewModel.setReconciled(item.id, !item.isReconciled(),
+                new TransactionsViewModel.ActionCallback() {
+                    @Override public void onSuccess() {
+                        Toast.makeText(TransactionsActivity.this,
+                                "Conciliação atualizada.", Toast.LENGTH_SHORT).show();
+                        reloadData();
+                    }
+
+                    @Override public void onError(String error) {
+                        Toast.makeText(TransactionsActivity.this, error, Toast.LENGTH_LONG).show();
+                    }
+                });
     }
 
     private void setupSwipeRefresh() {
@@ -798,6 +846,39 @@ public class TransactionsActivity extends AppCompatActivity {
         transactionsAdapter.updateTransactions(filtered);
         updateEmptyState(filtered.isEmpty());
         updateSummary(filtered);
+        if (!filtered.isEmpty()) scheduleTransactionsSwipeGuide();
+    }
+
+    private void scheduleTransactionsSwipeGuide() {
+        if (swipeGuideScheduled || binding == null) return;
+        if (!helpPreferences.shouldShow(HelpGuide.TRANSACTIONS_SWIPE)) return;
+        if (helpPreferences.shouldShow(HelpGuide.TRANSACTIONS_INTRO)) return;
+        swipeGuideScheduled = true;
+        binding.getRoot().postDelayed(() -> {
+            if (binding == null || isFinishing() || isDestroyed()) return;
+            if (activeHelpTour != null && activeHelpTour.isShowing()) return;
+            if (!helpPreferences.shouldShow(HelpGuide.TRANSACTIONS_SWIPE)) return;
+
+            List<HelpStep> steps = new ArrayList<>();
+            steps.add(new HelpStep(
+                    binding.transactionsRecyclerView,
+                    getString(R.string.help_swipe_title),
+                    getString(R.string.help_swipe_message)));
+
+            activeHelpTour = FeatureTour.show(this, steps, new FeatureTour.Listener() {
+                @Override public void onCompleted() {
+                    helpPreferences.markCompleted(HelpGuide.TRANSACTIONS_SWIPE);
+                }
+
+                @Override public void onSkipped() {
+                    helpPreferences.markCompleted(HelpGuide.TRANSACTIONS_SWIPE);
+                }
+
+                @Override public void onTargetClicked() {
+                    // O guia apenas explica os gestos da lista.
+                }
+            });
+        }, 800);
     }
 
     @NonNull
@@ -1183,16 +1264,19 @@ public class TransactionsActivity extends AppCompatActivity {
             menu.show();
             return;
         }
+        if (canReconcileItem(item)) {
+            menu.getMenu().add(item.isReconciled() ? "Desfazer conciliação" : "Conciliar")
+                    .setOnMenuItemClickListener(clicked -> {
+                        toggleReconciliation(item);
+                        return true;
+                    });
+        }
         menu.getMenu().add("Editar").setOnMenuItemClickListener(clicked -> {
             showEditTransactionDialog(item);
             return true;
         });
         menu.getMenu().add("Excluir").setOnMenuItemClickListener(clicked -> {
             requestTransactionDelete(item);
-            return true;
-        });
-        menu.getMenu().add("Clonar").setOnMenuItemClickListener(clicked -> {
-            showCloneTransactionDialog(item);
             return true;
         });
         menu.show();

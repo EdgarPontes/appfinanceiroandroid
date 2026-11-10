@@ -5,6 +5,8 @@ public final class HelpGuide {
 
     public static final String TRANSACTIONS_INTRO = "transactions_intro";
     public static final String TRANSACTIONS_FORM = "transactions_form";
+    public static final String TRANSACTIONS_SWIPE = "transactions_swipe";
+    public static final String CARDS_SWIPE = "cards_swipe";
     public static final String DASHBOARD = "dashboard";
     public static final String ACCOUNTS = "accounts";
     public static final String REPORTS = "reports";

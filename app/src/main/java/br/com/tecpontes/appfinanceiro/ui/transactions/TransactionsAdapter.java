@@ -90,6 +90,12 @@ public class TransactionsAdapter extends RecyclerView.Adapter<TransactionsAdapte
         return transactions.size();
     }
 
+    @Nullable
+    public TransactionListItemDto getItem(int position) {
+        if (position < 0 || position >= transactions.size()) return null;
+        return transactions.get(position);
+    }
+
     public void updateTransactions(@Nullable List<TransactionListItemDto> items) {
         transactions.clear();
         if (items != null) transactions.addAll(items);

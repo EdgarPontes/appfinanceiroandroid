@@ -37,6 +37,7 @@ import br.com.tecpontes.appfinanceiro.ui.help.HelpGuide;
 import br.com.tecpontes.appfinanceiro.ui.help.HelpPreferences;
 import br.com.tecpontes.appfinanceiro.ui.help.HelpStep;
 import br.com.tecpontes.appfinanceiro.ui.transactions.CreateTransactionDialog;
+import br.com.tecpontes.appfinanceiro.ui.transactions.TransactionSwipeCallback;
 import br.com.tecpontes.appfinanceiro.ui.transactions.TransactionsAdapter;
 import br.com.tecpontes.appfinanceiro.utils.PrivacyMode;
 import br.com.tecpontes.appfinanceiro.utils.SessionExpiredNavigation;
@@ -81,6 +82,7 @@ public class CardsActivity extends AppCompatActivity {
     @Inject TokenManager tokenManager;
     @Inject HelpPreferences helpPreferences;
     @Nullable private FeatureTour activeHelpTour;
+    private boolean swipeGuideScheduled;
 
     @Override
     protected void onCreate(@Nullable Bundle savedInstanceState) {
@@ -110,6 +112,69 @@ public class CardsActivity extends AppCompatActivity {
         binding.invoiceCreditsRecyclerView.setAdapter(creditsAdapter);
         binding.invoiceExpensesRecyclerView.setLayoutManager(new LinearLayoutManager(this));
         binding.invoiceExpensesRecyclerView.setAdapter(expensesAdapter);
+        setupSwipeActions();
+    }
+
+    private void setupSwipeActions() {
+        TransactionSwipeCallback.Listener swipeListener = new TransactionSwipeCallback.Listener() {
+            @Override public boolean canReconcile(@NonNull TransactionListItemDto transaction) {
+                return isInvoiceEditable() && transaction.id != null && !transaction.isConsolidatedInvoice();
+            }
+
+            @Override public boolean canClone(@NonNull TransactionListItemDto transaction) {
+                return isInvoiceEditable() && !transaction.isConsolidatedInvoice();
+            }
+
+            @Override public void onReconcile(@NonNull TransactionListItemDto transaction) {
+                if (transaction.id != null) {
+                    viewModel.setReconciled(transaction.id, !transaction.isReconciled(),
+                            actionCallback("Conciliação atualizada."));
+                }
+            }
+
+            @Override public void onClone(@NonNull TransactionListItemDto transaction) {
+                showCloneTransactionDialog(transaction);
+            }
+        };
+        TransactionSwipeCallback.attach(binding.invoiceCreditsRecyclerView, creditsAdapter, swipeListener);
+        TransactionSwipeCallback.attach(binding.invoiceExpensesRecyclerView, expensesAdapter, swipeListener);
+    }
+
+    private boolean isInvoiceEditable() {
+        InvoiceDetailsDto invoice = viewModel.invoiceData.getValue();
+        return invoice != null && !"CLOSED".equalsIgnoreCase(invoice.status);
+    }
+
+    private void scheduleCardsSwipeGuide() {
+        if (swipeGuideScheduled || binding == null) return;
+        if (!helpPreferences.shouldShow(HelpGuide.CARDS_SWIPE)) return;
+        if (helpPreferences.shouldShow(HelpGuide.CARDS)) return;
+        swipeGuideScheduled = true;
+        binding.getRoot().postDelayed(() -> {
+            if (binding == null || isFinishing() || isDestroyed()) return;
+            if (activeHelpTour != null && activeHelpTour.isShowing()) return;
+            if (!helpPreferences.shouldShow(HelpGuide.CARDS_SWIPE)) return;
+
+            List<HelpStep> steps = new ArrayList<>();
+            steps.add(new HelpStep(
+                    binding.transactionsCard,
+                    getString(R.string.help_swipe_title),
+                    getString(R.string.help_swipe_message)));
+
+            activeHelpTour = FeatureTour.show(this, steps, new FeatureTour.Listener() {
+                @Override public void onCompleted() {
+                    helpPreferences.markCompleted(HelpGuide.CARDS_SWIPE);
+                }
+
+                @Override public void onSkipped() {
+                    helpPreferences.markCompleted(HelpGuide.CARDS_SWIPE);
+                }
+
+                @Override public void onTargetClicked() {
+                    // O guia apenas explica os gestos da lista.
+                }
+            });
+        }, 800);
     }
 
     private void setupObservers() {
@@ -482,6 +547,7 @@ public class CardsActivity extends AppCompatActivity {
         binding.transactionsEmptyTextView.setVisibility(credits.isEmpty() && expenses.isEmpty() ? View.VISIBLE : View.GONE);
         creditsAdapter.updateTransactions(credits);
         expensesAdapter.updateTransactions(expenses);
+        if (!credits.isEmpty() || !expenses.isEmpty()) scheduleCardsSwipeGuide();
         renderCategoryBreakdown(invoice.getTransactions());
     }
 

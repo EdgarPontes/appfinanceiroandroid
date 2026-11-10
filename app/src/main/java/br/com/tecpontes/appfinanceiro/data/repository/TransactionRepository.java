@@ -11,6 +11,7 @@ import br.com.tecpontes.appfinanceiro.data.local.entity.Transaction;
 import br.com.tecpontes.appfinanceiro.model.TransactionDto;
 import br.com.tecpontes.appfinanceiro.model.TransactionListItemDto;
 import br.com.tecpontes.appfinanceiro.model.BalanceHistoryDto;
+import br.com.tecpontes.appfinanceiro.model.ReconciliationRequestDto;
 import br.com.tecpontes.appfinanceiro.model.TransactionWriteDto;
 import br.com.tecpontes.appfinanceiro.model.TransactionTransferRequestDto;
 import br.com.tecpontes.appfinanceiro.network.ApiService;
@@ -248,6 +249,30 @@ public class TransactionRepository {
             public void onFailure(@NonNull Call<ResponseBody> call, @NonNull Throwable error) {
                 callback.onError(NetworkErrors.message(
                         error, "Não foi possível editar o lançamento. Tente novamente."));
+            }
+        });
+    }
+
+    public void setReconciled(
+            @NonNull String transactionId, boolean reconciled,
+            @NonNull RemoteActionCallback callback) {
+        apiService.setTransactionReconciled(
+                transactionId, new ReconciliationRequestDto(reconciled)).enqueue(new Callback<ResponseBody>() {
+            @Override
+            public void onResponse(@NonNull Call<ResponseBody> call,
+                                   @NonNull Response<ResponseBody> response) {
+                if (response.isSuccessful()) {
+                    ApiErrorUtils.closeBody(response.body());
+                    callback.onSuccess();
+                } else {
+                    callback.onError(ApiErrorUtils.readError(response, "Não foi possível atualizar a conciliação"));
+                }
+            }
+
+            @Override
+            public void onFailure(@NonNull Call<ResponseBody> call, @NonNull Throwable error) {
+                callback.onError(NetworkErrors.message(
+                        error, "Não foi possível atualizar a conciliação. Tente novamente."));
             }
         });
     }

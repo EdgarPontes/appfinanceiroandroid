@@ -297,6 +297,16 @@ public class TransactionsViewModel extends ViewModel {
         });
     }
 
+    public void setReconciled(
+            @NonNull String transactionId,
+            boolean reconciled,
+            @NonNull ActionCallback callback) {
+        transactionRepository.setReconciled(transactionId, reconciled, new TransactionRepository.RemoteActionCallback() {
+            @Override public void onSuccess() { callback.onSuccess(); }
+            @Override public void onError(String error) { callback.onError(error); }
+        });
+    }
+
     public void createTransactionFromList(
             @NonNull TransactionWriteDto transaction,
             @NonNull ActionCallback callback) {

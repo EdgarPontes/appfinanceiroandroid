@@ -96,6 +96,20 @@ public class TransactionsAdapter extends RecyclerView.Adapter<TransactionsAdapte
         return transactions.get(position);
     }
 
+    /** Atualiza só o status de conciliação exibido, sem recarregar a lista. */
+    public boolean updateReconciled(@Nullable String transactionId, boolean reconciled) {
+        if (transactionId == null) return false;
+        for (int i = 0; i < transactions.size(); i++) {
+            TransactionListItemDto item = transactions.get(i);
+            if (transactionId.equals(item.id)) {
+                item.reconciled = reconciled;
+                notifyItemChanged(i);
+                return true;
+            }
+        }
+        return false;
+    }
+
     public void updateTransactions(@Nullable List<TransactionListItemDto> items) {
         transactions.clear();
         if (items != null) transactions.addAll(items);

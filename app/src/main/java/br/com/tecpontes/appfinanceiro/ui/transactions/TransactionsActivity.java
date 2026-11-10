@@ -183,12 +183,16 @@ public class TransactionsActivity extends AppCompatActivity {
 
     private void toggleReconciliation(TransactionListItemDto item) {
         if (item.id == null) return;
-        transactionsViewModel.setReconciled(item.id, !item.isReconciled(),
+        boolean reconciled = !item.isReconciled();
+        transactionsViewModel.setReconciled(item.id, reconciled,
                 new TransactionsViewModel.ActionCallback() {
                     @Override public void onSuccess() {
+                        item.reconciled = reconciled;
+                        transactionsAdapter.updateReconciled(item.id, reconciled);
+                        // Reaplica só o filtro local, sem consultar o servidor novamente.
+                        if (selectedReconciliation != null) applyLocalFilters();
                         Toast.makeText(TransactionsActivity.this,
                                 "Conciliação atualizada.", Toast.LENGTH_SHORT).show();
-                        reloadData();
                     }
 
                     @Override public void onError(String error) {

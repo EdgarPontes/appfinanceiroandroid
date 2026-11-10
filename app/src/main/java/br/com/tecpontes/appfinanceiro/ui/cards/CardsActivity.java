@@ -126,10 +126,7 @@ public class CardsActivity extends AppCompatActivity {
             }
 
             @Override public void onReconcile(@NonNull TransactionListItemDto transaction) {
-                if (transaction.id != null) {
-                    viewModel.setReconciled(transaction.id, !transaction.isReconciled(),
-                            actionCallback("Conciliação atualizada."));
-                }
+                toggleReconciliation(transaction);
             }
 
             @Override public void onClone(@NonNull TransactionListItemDto transaction) {
@@ -785,8 +782,7 @@ public class CardsActivity extends AppCompatActivity {
         if (!closed) {
             menu.getMenu().add(transaction.isReconciled() ? "Desfazer conciliação" : "Conciliar")
                     .setOnMenuItemClickListener(item -> {
-                        if (transaction.id != null) viewModel.setReconciled(transaction.id,
-                                !transaction.isReconciled(), actionCallback("Conciliação atualizada."));
+                        toggleReconciliation(transaction);
                         return true;
                     });
             menu.getMenu().add("Editar").setOnMenuItemClickListener(item -> {
@@ -809,6 +805,43 @@ public class CardsActivity extends AppCompatActivity {
             });
         }
         menu.show();
+    }
+
+    /** Atualiza só o status de conciliação exibido, sem recarregar a fatura. */
+    private void toggleReconciliation(@NonNull TransactionListItemDto transaction) {
+        if (transaction.id == null) return;
+        boolean reconciled = !transaction.isReconciled();
+        viewModel.setReconciled(transaction.id, reconciled, new CreditCardRepository.ActionCallback() {
+            @Override public void onSuccess() {
+                transaction.reconciled = reconciled;
+                creditsAdapter.updateReconciled(transaction.id, reconciled);
+                expensesAdapter.updateReconciled(transaction.id, reconciled);
+                InvoiceDetailsDto invoice = viewModel.invoiceData.getValue();
+                updateInvoiceReconciliationTotals(invoice, transaction, reconciled);
+                if (invoice != null) renderInvoice(invoice);
+                Toast.makeText(CardsActivity.this,
+                        "Conciliação atualizada.", Toast.LENGTH_SHORT).show();
+            }
+
+            @Override public void onError(@NonNull String message) {
+                Toast.makeText(CardsActivity.this, message, Toast.LENGTH_LONG).show();
+            }
+        });
+    }
+
+    /**
+     * Move o valor da despesa entre os totais de conciliação sem consultar o servidor.
+     * As despesas já conciliadas são subtraídas do total não conciliado e vice-versa.
+     */
+    private void updateInvoiceReconciliationTotals(@Nullable InvoiceDetailsDto invoice,
+                                                   @NonNull TransactionListItemDto transaction,
+                                                   boolean reconciled) {
+        if (invoice == null || transaction.isIncome()) return;
+        double amount = Math.abs(transaction.getAmountValue());
+        if (amount <= 0d) return;
+        double delta = reconciled ? amount : -amount;
+        invoice.totalConciliado = Math.max(0d, invoice.amount(invoice.totalConciliado) + delta);
+        invoice.totalNaoConciliado = Math.max(0d, invoice.amount(invoice.totalNaoConciliado) - delta);
     }
 
     private void showTransactionDetails(TransactionListItemDto transaction) {
